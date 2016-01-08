@@ -13,9 +13,19 @@ public class PhenomenologicalData extends GPData
     {
     /** return value **/
     public double x;
+    public double vmf;
+    public double initialVelocity;
+    public double rem;
+    public double s;
 
     public void copyTo(final GPData gpd)   // copy my stuff to another PhenomenologicalData
-        { ((PhenomenologicalData)gpd).x = x; }
+        {
+            ((PhenomenologicalData)gpd).x = x;
+            ((PhenomenologicalData)gpd).vmf = vmf;
+            ((PhenomenologicalData)gpd).rem = rem;
+            ((PhenomenologicalData)gpd).s = s;
+            ((PhenomenologicalData)gpd).initialVelocity = initialVelocity;
+        }
     }
 
 

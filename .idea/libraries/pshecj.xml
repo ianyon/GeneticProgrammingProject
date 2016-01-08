@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="pshecj">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/pshecj.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/libs/pshecj.jar!/" />
+    </SOURCES>
+  </library>
+</component>

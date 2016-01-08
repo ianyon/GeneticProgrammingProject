@@ -20,248 +20,248 @@ import static java.lang.Math.*;
  */
 
 public class QModeloFfriction {
-	JavascriptEngine mEngine;
+    JavascriptEngine mEngine;
 
-	// Cantidad de celdas
-	static final int col_fluido = 2;
-	static final int col_celda = 1;
-	static final int n_fluido = 2;
-	static final int n_celda = 1;
+    // Cantidad de celdas
+    static final int col_fluido = 2;
+    static final int col_celda = 1;
+    static final int n_fluido = 2;
+    static final int n_celda = 1;
 
-	static final double r = 32E-3;                          //Resistencia interna [Ohm]
-	static final double largo = 65E-3;                      //largo de celdas [m]
-	static final double e = 15E-3;                          //Espaciado entre pared y celda [m]
-	static final double z = 5E-3;                           //Corte del estudio [m]
-	// La presión atmosferica en pascales es 101325, aunque no importa porque la ecuación está en función de la diferencia
-	static final double atmPressure = 0;//101325                    //Presion atmosferica [Pa]
-	static final double errmax = 1E-3;                      //error corte
-	static final double piCuarto = PI / 4;
-	static final double doubleE = 2 * e;
+    static final double r = 32E-3;                          //Resistencia interna [Ohm]
+    static final double largo = 65E-3;                      //largo de celdas [m]
+    static final double e = 15E-3;                          //Espaciado entre pared y celda [m]
+    static final double z = 5E-3;                           //Corte del estudio [m]
+    // La presión atmosferica en pascales es 101325, aunque no importa porque la ecuación está en función de la diferencia
+    static final double atmPressure = 0;//101325                    //Presion atmosferica [Pa]
+    static final double errmax = 1E-3;                      //error corte
+    static final double piCuarto = PI / 4;
+    static final double doubleE = 2 * e;
 
-	public QModeloFfriction() {
-		try {
-			mEngine = new JavascriptEngine();
-		} catch (ScriptException e) {
-			e.printStackTrace();
-		}
-	}
+    public QModeloFfriction() {
+        /*try {
+            mEngine = new JavascriptEngine();
+        } catch (ScriptException e) {
+            e.printStackTrace();
+        }*/
+    }
 
-	double compute(double current, double separation, double flow, double initTemperature, double cellDiameter, String evolvedExpression) {
+    public double compute(double current, double separation, double flow, double initTemperature, double cellDiameter, String evolvedExpression) {
 
-		if (initTemperature == 0 && cellDiameter == 0 && evolvedExpression.equals("")) {
-			initTemperature = 20;
-			cellDiameter = 18;
-		}
+        if (initTemperature == 0 && cellDiameter == 0 && evolvedExpression.equals("")) {
+            initTemperature = 20;
+            cellDiameter = 18;
+        }
 
-		// Constantes del modelo
-		final double[] result = Interpolation.q_paramdrag(separation);
-		final FixedMatrix3_64F a = new FixedMatrix3_64F(result[0], result[1], 0.653);
-		
-		final double flux = flow * 0.00047;                                          //flujo de entrada del fluido [CFM]->[m3/s]
-		final double diam = cellDiameter / 1000;
+        // Constantes del modelo
+        final double[] result = Interpolation.q_paramdrag(separation);
+        final FixedMatrix3_64F a = new FixedMatrix3_64F(result[0], result[1], 0.653);
 
-		// Speedup cache variable
-		final double cellArea = pow(diam, 2) * piCuarto;
+        final double flux = flow * 0.00047;                                          //flujo de entrada del fluido [CFM]->[m3/s]
+        final double diam = cellDiameter / 1000;
 
-		final double vol = largo * cellArea;                                          //Volumen celda [m3]
-		final double volumetricQ = pow(current, 2) * r / vol;                         //Calor volumetrico
-		final double q = volumetricQ * z * cellArea;                                  //Calor total corte.
+        // Speedup cache variable
+        final double cellArea = pow(diam, 2) * piCuarto;
 
-		// Speedup cache variables
-		final double diamTimesZ = diam * z;
-		final double superficialArea = PI * diamTimesZ;                               //Area de la celda
+        final double vol = largo * cellArea;                                          //Volumen celda [m3]
+        final double volumetricQ = pow(current, 2) * r / vol;                         //Calor volumetrico
+        final double q = volumetricQ * z * cellArea;                                  //Calor total corte.
 
-		final double height = doubleE + diam * (n_fluido + separation * n_celda);     //Altura del pack
-		final double entranceArea = height * z;                                       //Area de entrada pack
+        // Speedup cache variables
+        final double diamTimesZ = diam * z;
+        final double superficialArea = PI * diamTimesZ;                               //Area de la celda
 
-		// Speedup cache variable
-		final double sPlusOne = separation + 1;
+        final double height = doubleE + diam * (n_fluido + separation * n_celda);     //Altura del pack
+        final double entranceArea = height * z;                                       //Area de entrada pack
 
-		final double controlVolumeArea = sPlusOne * diamTimesZ;                       //Area volumen control eje z
+        // Speedup cache variable
+        final double sPlusOne = separation + 1;
 
-		// Inicializacion
-		//Temperatura entrada [°C]
-		final MDenseMatrix64F tf = new MDenseMatrix64F(1, col_fluido);                                 //[°C]
-		//Presion entrada [Pa]
-		final MDenseMatrix64F pf = new MDenseMatrix64F(1, col_fluido);                                 //[Pa]
+        final double controlVolumeArea = sPlusOne * diamTimesZ;                       //Area volumen control eje z
 
-		// Speedup cache variable
-		final double innerArg = flux * z / (largo * entranceArea);
+        // Inicializacion
+        //Temperatura entrada [°C]
+        final MDenseMatrix64F tf = new MDenseMatrix64F(1, col_fluido);                                 //[°C]
+        //Presion entrada [Pa]
+        final MDenseMatrix64F pf = new MDenseMatrix64F(1, col_fluido);                                 //[Pa]
 
-		final MDenseMatrix64F vf = new MDenseMatrix64F(1, col_fluido, innerArg);                       //[m/s]
-		final DenseMatrix64F vmf = new MDenseMatrix64F(1, col_fluido, innerArg);                       //[m/s]
-		final MDenseMatrix64F df = new MDenseMatrix64F(1, col_fluido);                                 //[kg/m3]
-		final MDenseMatrix64F tc = new MDenseMatrix64F(1, col_celda, initTemperature);                 //[°C]
-		final DenseMatrix64F ff = new DenseMatrix64F(1, col_fluido);                                   //N
-		final DenseMatrix64F rem = new DenseMatrix64F(1, col_fluido);                                  //Adimensional
+        // Speedup cache variable
+        final double innerArg = flux * z / (largo * entranceArea);
 
-		/******************************************** Errores en columnas ********************************************/
-		final double[] cellTempError = new double[col_celda];
-		final double[] fluidTempError = new double[col_fluido];
-		final double[] velocityError = new double[col_fluido];
-		final double[] pressureError = new double[col_celda];
-		Arrays.fill(cellTempError, Double.MAX_VALUE);
-		Arrays.fill(fluidTempError, Double.MAX_VALUE);
-		Arrays.fill(velocityError, Double.MAX_VALUE);
-		Arrays.fill(pressureError, Double.MAX_VALUE);
-		/******************************************** Condiciones de borde ********************************************/
-		tf.set(0, initTemperature);                               // Temperatura entrada [°C]
-		final double initialVelocity = a.a2 * innerArg;           // Velocidad entrada[m/s]
-		df.set(0, Interpolation.q_densidad(initTemperature));     // Densidad de entrada [kg/m3]
-		pf.set(pf.getNumElements() - 1, atmPressure);             // Presión de salida se asume la presión atmosférica [Pa]
-		/**************************************************************************************************************/
-		// Speedup cache variable
-		final double dfMultiplicationTerm = diamTimesZ * initialVelocity * df.get(0);
+        final MDenseMatrix64F vf = new MDenseMatrix64F(1, col_fluido, innerArg);                       //[m/s]
+        final DenseMatrix64F vmf = new MDenseMatrix64F(1, col_fluido, innerArg);                       //[m/s]
+        final MDenseMatrix64F df = new MDenseMatrix64F(1, col_fluido);                                 //[kg/m3]
+        final MDenseMatrix64F tc = new MDenseMatrix64F(1, col_celda, initTemperature);                 //[°C]
+        final DenseMatrix64F ff = new DenseMatrix64F(1, col_fluido);                                   //N
+        final DenseMatrix64F rem = new DenseMatrix64F(1, col_fluido);                                  //Adimensional
 
-		final double m_punto = sPlusOne * dfMultiplicationTerm;
+        /******************************************** Errores en columnas ********************************************/
+        final double[] cellTempError = new double[col_celda];
+        final double[] fluidTempError = new double[col_fluido];
+        final double[] velocityError = new double[col_fluido];
+        final double[] pressureError = new double[col_celda];
+        Arrays.fill(cellTempError, Double.MAX_VALUE);
+        Arrays.fill(fluidTempError, Double.MAX_VALUE);
+        Arrays.fill(velocityError, Double.MAX_VALUE);
+        Arrays.fill(pressureError, Double.MAX_VALUE);
+        /******************************************** Condiciones de borde ********************************************/
+        tf.set(0, initTemperature);                               // Temperatura entrada [°C]
+        final double initialVelocity = a.a2 * innerArg;           // Velocidad entrada[m/s]
+        df.set(0, Interpolation.q_densidad(initTemperature));     // Densidad de entrada [kg/m3]
+        pf.set(pf.getNumElements() - 1, atmPressure);             // Presión de salida se asume la presión atmosférica [Pa]
+        /**************************************************************************************************************/
+        // Speedup cache variable
+        final double dfMultiplicationTerm = diamTimesZ * initialVelocity * df.get(0);
 
-		final DenseMatrix64F fluidK = new MDenseMatrix64F(1, col_fluido, Interpolation.q_conductividad(tf.get(0)));//[W/m k]
-		velocityError[0] = 0;
-		fluidTempError[0] = 0;
+        final double m_punto = sPlusOne * dfMultiplicationTerm;
 
-		// Speedup cache variables
-		final double sTerm = separation / sPlusOne;
-		final double heatPerArea = q / superficialArea;
-		final double initialFFTerm = 0.5 * dfMultiplicationTerm * initialVelocity;
-		final double fluidTempTerm = q / m_punto;
-		final JavascriptEngine engine = this.mEngine;
+        final DenseMatrix64F fluidK = new MDenseMatrix64F(1, col_fluido, Interpolation.q_conductividad(tf.get(0)));//[W/m k]
+        velocityError[0] = 0;
+        fluidTempError[0] = 0;
 
-		// Ecuaciones
-		for (int x = 0; x < 10; x++) {
-			// This gets uptated with the first value from the last attempt to converge
-			double cdrag = a.a1 * ModelUtils.q_cdr3(rem.get(0));
-			double initialFF = initialFFTerm * cdrag;
-			ff.set(0, initialFF);
-			vf.set(0, initialVelocity - initialFF / m_punto);
+        // Speedup cache variables
+        final double sTerm = separation / sPlusOne;
+        final double heatPerArea = q / superficialArea;
+        final double initialFFTerm = 0.5 * dfMultiplicationTerm * initialVelocity;
+        final double fluidTempTerm = q / m_punto;
+        final JavascriptEngine engine = this.mEngine;
 
-			// Tf(0), pf(0), Df(0) and rem aren't modified in the loop
-			for (int i = 0; i < col_fluido - 1; i++) {
-				/***************************************** Cached variables ****************************************************
-				 * This variables are cached to allow faster accesses in the rest of the loop *********************************/
-				final double iniFluidVel= vf.get(i);
-				final double iniFluidTemp= tf.get(i);
-				final double iniFluidDensity = df.get(i);
-				final double iniFluidMedVel = sTerm * iniFluidVel;
-				final double iniRem = ModelUtils.q_reynolds(iniFluidMedVel, iniFluidTemp, diam, iniFluidDensity);
-				final double iniFluidVelSquared = pow(iniFluidVel, 2);
-				/**************************************************************************************************************/
+        // Ecuaciones
+        for (int x = 0; x < 10; x++) {
+            // This gets uptated with the first value from the last attempt to converge
+            double cdrag = a.a1 * ModelUtils.q_cdr3(rem.get(0));
+            double initialFF = initialFFTerm * cdrag;
+            ff.set(0, initialFF);
+            vf.set(0, initialVelocity - initialFF / m_punto);
 
-				vmf.set(i, iniFluidMedVel);
-				rem.set(i, iniRem);
+            // Tf(0), pf(0), Df(0) and rem aren't modified in the loop
+            for (int i = 0; i < col_fluido - 1; i++) {
+                /***************************************** Cached variables ********************************************
+                 * This variables are cached to allow faster accesses in the rest of the loop *************************/
+                final double iniFluidVel = vf.get(i);
+                final double iniFluidTemp = tf.get(i);
+                final double iniFluidDensity = df.get(i);
+                final double iniFluidMedVel = sTerm * iniFluidVel;
+                final double iniRem = ModelUtils.q_reynolds(iniFluidMedVel, iniFluidTemp, diam, iniFluidDensity);
+                final double iniFluidVelSquared = pow(iniFluidVel, 2);
+                /******************************************************************************************************/
 
-				/***************************************** Calculo de la presion **********************************************/
-				double ffrictionX = engine.eval(
-						evolvedExpression, initialVelocity, iniFluidMedVel, iniFluidDensity, separation, iniRem);
-				// Caída de presion en intercambiadores de calor
-				// Note:salía (+) antes pero la ecuación dice que es con menos.
-				// Además es necesario usar los valores de la columna apropiada
-				//int inverseIndex = col_fluido - 1 - i;
-				final double endFluidPressure = pf.get(i + 1);
-				final double iniFluidPressure = endFluidPressure - 0.5 * ffrictionX * iniFluidDensity * pow(iniFluidMedVel, 2);
-				pf.setValue(i, pressureError, iniFluidPressure);
+                vmf.set(i, iniFluidMedVel);
+                rem.set(i, iniRem);
 
-				/***************************************** Calculo de la velocidad ********************************************/
-				cdrag = a.a1 * ModelUtils.q_cdr3(iniRem);
-				final double endFF = 0.5 * diamTimesZ * iniFluidDensity * iniFluidVelSquared * cdrag;
-				ff.set(i + 1, endFF);
-				// Conservacion de momento
-				final double sqrtInnerTerm = (controlVolumeArea * (endFluidPressure - iniFluidPressure) - endFF) / m_punto
-						+ iniFluidVelSquared;
-				final double endFluidVel = sqrt(sqrtInnerTerm);
-				vf.setValue(i + 1, velocityError, endFluidVel);
+                /***************************************** Calculo de la presion **************************************/
+                double ffrictionX = engine.eval(
+                        evolvedExpression, initialVelocity, iniFluidMedVel, iniFluidDensity, separation, iniRem);
+                // Caída de presion en intercambiadores de calor
+                // Note:salía (+) antes pero la ecuación dice que es con menos.
+                // Además es necesario usar los valores de la columna apropiada
+                //int inverseIndex = col_fluido - 1 - i;
+                final double endFluidPressure = pf.get(i + 1);
+                final double iniFluidPressure = endFluidPressure - 0.5 * ffrictionX * iniFluidDensity * pow(iniFluidMedVel, 2);
+                pf.setValue(i, pressureError, iniFluidPressure);
 
-				/********************************** Calculo de la temperatura fluido ******************************************/
-				final double cp = Interpolation.q_cp(iniFluidTemp);
-				// Conservacion de energia
-				final double endFluidTemp = iniFluidTemp + (fluidTempTerm - 0.5 * (pow(endFluidVel, 2) - iniFluidVelSquared)) / cp;
-				tf.setValue(i + 1, fluidTempError, endFluidTemp);
+                /***************************************** Calculo de la velocidad ************************************/
+                cdrag = a.a1 * ModelUtils.q_cdr3(iniRem);
+                final double endFF = 0.5 * diamTimesZ * iniFluidDensity * iniFluidVelSquared * cdrag;
+                ff.set(i + 1, endFF);
+                // Conservacion de momento
+                final double sqrtInnerTerm = (controlVolumeArea * (endFluidPressure - iniFluidPressure) - endFF) / m_punto
+                        + iniFluidVelSquared;
+                final double endFluidVel = sqrt(sqrtInnerTerm);
+                vf.setValue(i + 1, velocityError, endFluidVel);
 
-				/***************************************** Calculo de la densidad *********************************************/
-				df.set(i + 1, Interpolation.q_densidad(endFluidTemp));
+                /********************************** Calculo de la temperatura fluido **********************************/
+                final double cp = Interpolation.q_cp(iniFluidTemp);
+                // Conservacion de energia
+                final double endFluidTemp = iniFluidTemp + (fluidTempTerm - 0.5 * (pow(endFluidVel, 2) - iniFluidVelSquared)) / cp;
+                tf.setValue(i + 1, fluidTempError, endFluidTemp);
 
-				/********************************** Calculo de temperatura de celda *******************************************/
-				// Shift operator multiplies by 2
-				final double nu = Interpolation.q_cznusselt(i << i, iniRem) * ModelUtils.q_nusselt2(iniRem, a.a3);
-				final double iniFluidK = Interpolation.q_conductividad(iniFluidTemp);
-				fluidK.set(i, iniFluidK);
-				final double h = nu * iniFluidK / diam;
-				// Transferencia de energia
-				tc.setValue(i, cellTempError, heatPerArea / h + (iniFluidTemp + endFluidTemp) / 2);
-			}
-			if (ModelUtils.max(cellTempError) <= errmax && ModelUtils.max(fluidTempError) <= errmax &&
-					ModelUtils.max(pressureError) <= errmax && ModelUtils.max(velocityError) <= errmax) {
-				break;
-			}
-		}
+                /***************************************** Calculo de la densidad *************************************/
+                df.set(i + 1, Interpolation.q_densidad(endFluidTemp));
 
-		if (Double.MAX_VALUE == pf.get(0) || Double.isNaN(pf.get(0)))//TODO || ~isreal(pf[1]))
-			return 0;
-		else
-			return -pf.get(0);
-	}
+                /********************************** Calculo de temperatura de celda ***********************************/
+                // Shift operator multiplies by 2
+                final double nu = Interpolation.q_cznusselt(i << i, iniRem) * ModelUtils.q_nusselt2(iniRem, a.a3);
+                final double iniFluidK = Interpolation.q_conductividad(iniFluidTemp);
+                fluidK.set(i, iniFluidK);
+                final double h = nu * iniFluidK / diam;
+                // Transferencia de energia
+                tc.setValue(i, cellTempError, heatPerArea / h + (iniFluidTemp + endFluidTemp) / 2);
+            }
+            if (ModelUtils.max(cellTempError) <= errmax && ModelUtils.max(fluidTempError) <= errmax &&
+                    ModelUtils.max(pressureError) <= errmax && ModelUtils.max(velocityError) <= errmax) {
+                break;
+            }
+        }
 
-	public static void main(String[] args) throws ScriptException {
-		QModeloFfriction model = new QModeloFfriction();
+        if (Double.MAX_VALUE == pf.get(0) || Double.isNaN(pf.get(0)))//TODO || ~isreal(pf[1]))
+            return 0;
+        else
+            return -pf.get(0);
+    }
 
-		Path path = Paths.get("/home/ian/Workspace/Evolutiva/Proyecto/matlab code/GPLab reducido",
-				"model_args.txt");
-		Charset charset = Charset.forName("UTF-8");
+    public static void main(String[] args) throws ScriptException {
+        QModeloFfriction model = new QModeloFfriction();
 
-		List<String> lines;
-		try {
-			lines = Files.readAllLines(path, charset);
-		} catch (IOException e) {
-			System.out.println(e);
-			return;
-		}
+        Path path = Paths.get("/home/ian/Workspace/Evolutiva/Proyecto/matlab code/GPLab reducido",
+                "model_args.txt");
+        Charset charset = Charset.forName("UTF-8");
 
-		lines.remove(0);
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(path, charset);
+        } catch (IOException e) {
+            System.out.println(e);
+            return;
+        }
 
-		double meanTime = 0;
-		double min = Double.MAX_VALUE, max = -Double.MAX_VALUE;
+        lines.remove(0);
 
-		//long totalStartTime = System.nanoTime();
-		for (String line : lines) {
-		//for (int h = 0; h < 500; h++) {
-			//String line = lines.get(h);
+        double meanTime = 0;
+        double min = Double.MAX_VALUE, max = -Double.MAX_VALUE;
 
-			String[] elements = line.split(" ");
+        //long totalStartTime = System.nanoTime();
+        for (String line : lines) {
+            //for (int h = 0; h < 500; h++) {
+            //String line = lines.get(h);
 
-			double[] doubleVal = new double[6];
-			String str;
+            String[] elements = line.split(" ");
 
-			for (int i = 0; i < 5; i++) {
-				if (i < 5)
-					doubleVal[i] = Double.parseDouble(elements[i]);
-			}
-			str = elements[5];
-			doubleVal[5] = Double.parseDouble(elements[6]);
+            double[] doubleVal = new double[6];
+            String str;
 
-			long startTime = System.nanoTime();
-			double result = model.compute(doubleVal[0], doubleVal[1], doubleVal[2], doubleVal[3], doubleVal[4], str);
-			double elapsed = (System.nanoTime() - startTime) / 1000;
-			min = min(min, elapsed);
-			max = max(max, elapsed/1000);
-			meanTime += elapsed/1000;
+            for (int i = 0; i < 5; i++) {
+                if (i < 5)
+                    doubleVal[i] = Double.parseDouble(elements[i]);
+            }
+            str = elements[5];
+            doubleVal[5] = Double.parseDouble(elements[6]);
 
-			double percentError = 100 * Math.abs(result - doubleVal[5]) / doubleVal[5];
+            long startTime = System.nanoTime();
+            double result = model.compute(doubleVal[0], doubleVal[1], doubleVal[2], doubleVal[3], doubleVal[4], str);
+            double elapsed = (System.nanoTime() - startTime) / 1000;
+            min = min(min, elapsed);
+            max = max(max, elapsed / 1000);
+            meanTime += elapsed / 1000;
 
-			if (percentError > 0.5) {
-				System.out.format("Error %g%%. Esperado %f y se obtuvo %f %n", percentError, doubleVal[5], result);
-				System.out.format("Entrada: %f %f %f %f %f %s%n", doubleVal[0], doubleVal[1], doubleVal[2], doubleVal[3], doubleVal[4], str);
-				//return;
-			}
-		}
-		//double totalMeanTime = (System.nanoTime() - totalStartTime) / 1000000;
+            double percentError = 100 * Math.abs(result - doubleVal[5]) / doubleVal[5];
 
-		System.out.println("Tamaño dataset: " + lines.size());
-		System.out.format("Tiempo total prueba: %f ms%n",meanTime);
-		System.out.format("Tiempo medio en dataset: %f ms%n",meanTime / lines.size());
-		System.out.format("Tiempo máximo: %f ms%n",max);
-		System.out.format("Tiempo mínimo: %f us%n",min);
+            if (percentError > 0.5) {
+                System.out.format("Error %g%%. Esperado %f y se obtuvo %f %n", percentError, doubleVal[5], result);
+                System.out.format("Entrada: %f %f %f %f %f %s%n", doubleVal[0], doubleVal[1], doubleVal[2], doubleVal[3], doubleVal[4], str);
+                //return;
+            }
+        }
+        //double totalMeanTime = (System.nanoTime() - totalStartTime) / 1000000;
+
+        System.out.println("Tamaño dataset: " + lines.size());
+        System.out.format("Tiempo total prueba: %f ms%n", meanTime);
+        System.out.format("Tiempo medio en dataset: %f ms%n", meanTime / lines.size());
+        System.out.format("Tiempo máximo: %f ms%n", max);
+        System.out.format("Tiempo mínimo: %f us%n", min);
 
 		/*long startTime = System.nanoTime();
-		int nTest = 10;
+        int nTest = 10;
 		for (int i = 0; i < nTest; i++) {
 			//long localTime = System.nanoTime();
 			double result = model.compute(9.0554, 1.0176, 181.9, 18.93, 18,
@@ -274,5 +274,5 @@ public class QModeloFfriction {
 
 		System.out.println("Número de pruebas: " + nTest);
 		System.out.println("Tiempo total prueba repetida: " + meanTime + "ms");*/
-	}
+    }
 }

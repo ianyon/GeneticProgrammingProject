@@ -16,9 +16,9 @@ import ec.gp.GPData;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
-public class X extends GPNode
+public class PhenomenologicalConstantVmf extends GPNode
     {
-    public String toString() { return "x"; }
+    public String toString() { return "(Vmf(i)/Vinicio)"; }
 
 /*
   public void checkConstraints(final EvolutionState state,
@@ -43,7 +43,7 @@ public class X extends GPNode
         final Problem problem)
         {
         PhenomenologicalData rd = ((PhenomenologicalData)(input));
-        rd.x = ((PhenomenologicalModel)problem).currentX;
+        rd.x = rd.vmf*rd.initialVelocity;
         }
     }
 

@@ -153,6 +153,7 @@ public class QModeloFfriction {
                 rem.set(i, iniRem);
 
                 /***************************************** Calculo de la presion **************************************/
+                //TODO: Update variables
                 individual.trees[0].child.eval(stateBean.state, stateBean.threadnum, stateBean.input, stateBean.stack,
                         individual, stateBean.phenomenologicalModel);
                 double ffrictionX = stateBean.input.x;

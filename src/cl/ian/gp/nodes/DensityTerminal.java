@@ -8,7 +8,6 @@
 package cl.ian.gp.nodes;
 
 import cl.ian.gp.PhenomenologicalData;
-import cl.ian.gp.PhenomenologicalModel;
 import ec.EvolutionState;
 import ec.Problem;
 import ec.gp.ADFStack;
@@ -16,9 +15,9 @@ import ec.gp.GPData;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
-public class PhenomenologicalConstantVmf extends GPNode
+public class DensityTerminal extends GPNode
     {
-    public String toString() { return "(Vmf(i)/Vinicio)"; }
+    public String toString() { return "(Df(i)/1.205)"; }
 
 /*
   public void checkConstraints(final EvolutionState state,
@@ -43,7 +42,7 @@ public class PhenomenologicalConstantVmf extends GPNode
         final Problem problem)
         {
         PhenomenologicalData rd = ((PhenomenologicalData)(input));
-        rd.x = rd.vmf*rd.initialVelocity;
+        rd.x = rd.df/1.205;
         }
     }
 

@@ -13,20 +13,36 @@ gp.fs.0 = ec.gp.GPFunctionSet
 # We'll call the function set "f0".
 gp.fs.0.name = f0
 
-# We have five functions in the function set.  They are:
-gp.fs.0.size = 6
-gp.fs.0.func.0 = ec.app.tutorial4.X
-gp.fs.0.func.0.nc = nc0
-gp.fs.0.func.1 = ec.app.tutorial4.Y
-gp.fs.0.func.1.nc = nc0
-gp.fs.0.func.2 = ec.app.tutorial4.Add
+
+gp.fs.0.size = 11
+
+# We have six functions in the function set:
+gp.fs.0.func.0 = ec.app.tutorial4.Add
+gp.fs.0.func.0.nc = nc2
+gp.fs.0.func.1 = ec.app.tutorial4.Sub
+gp.fs.0.func.1.nc = nc2
+gp.fs.0.func.2 = ec.app.tutorial4.Mul
 gp.fs.0.func.2.nc = nc2
-gp.fs.0.func.3 = ec.app.tutorial4.Sub
+gp.fs.0.func.3 = cl.ian.gp.nodes.Div
 gp.fs.0.func.3.nc = nc2
-gp.fs.0.func.4 = ec.app.tutorial4.Mul
+gp.fs.0.func.4 = cl.ian.gp.nodes.Square
 gp.fs.0.func.4.nc = nc2
-gp.fs.0.func.5 = cl.ian.gp.nodes.MyERC
-gp.fs.0.func.5.nc = nc0
+gp.fs.0.func.5 = cl.ian.gp.nodes.Power
+gp.fs.0.func.5.nc = nc2
+
+# We have five terminals:
+gp.fs.0.func.6 = cl.ian.gp.nodes.MyERC
+gp.fs.0.func.6.nc = nc0
+gp.fs.0.func.7 = cl.ian.gp.nodes.MeanVelocityTerminal
+gp.fs.0.func.7.nc = nc0
+gp.fs.0.func.8 = cl.ian.gp.nodes.DensityTerminal
+gp.fs.0.func.8.nc = nc0
+gp.fs.0.func.9 = cl.ian.gp.nodes.SeparationTerminal
+gp.fs.0.func.9.nc = nc0
+gp.fs.0.func.10 = cl.ian.gp.nodes.MeanReynoldsTerminal
+gp.fs.0.func.10.nc = nc0
+
+
 
 eval.problem = cl.ian.gp.PhenomenologicalModel
 eval.problem.data = cl.ian.gp.PhenomenologicalData

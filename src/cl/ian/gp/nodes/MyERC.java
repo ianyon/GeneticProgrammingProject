@@ -14,7 +14,9 @@ import ec.gp.GPIndividual;
 public class MyERC extends RegERC {
 
     public void resetNode(final EvolutionState state, final int thread)
-    { value = state.random[thread].nextDouble() * 2 - 1.0; }
+    {
+        //TODO: cambiar limites para las constantes
+        value = state.random[thread].nextDouble() * 2 - 1.0; }
 
     public void eval(final EvolutionState state,
                      final int thread,

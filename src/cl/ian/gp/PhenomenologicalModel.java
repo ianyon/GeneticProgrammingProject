@@ -1,10 +1,3 @@
-/*
-  Copyright 2006 by Sean Luke
-  Licensed under the Academic Free License version 3.0
-  See the file "LICENSE" for more information
-*/
-
-
 package cl.ian.gp;
 
 import cl.ian.QModeloFfriction;
@@ -147,7 +140,8 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         double result;
         for (int i = 0; i < trainingSetSize; i++) {
             currentValue = fakeInputs[i];
-            computeModel(currentValue, state, threadnum, input, stack, ((GPIndividual) ind), this);
+            input.x = model.compute(currentValue[0], currentValue[1], currentValue[2], currentValue[3], currentValue[4],
+                    (GPIndividual) ind, new EvolutionStateBean(state, threadnum, input, stack, this));
 
             // It's possible to get NaN because cos(infinity) and
             // sin(infinity) are undefined (hence cos(exp(3000)) zings ya!)
@@ -183,12 +177,6 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         f.hits = hits;
         ind.evaluated = true;
 
-    }
-
-    private void computeModel(double[] currentValue, EvolutionState state, int threadnum, PhenomenologicalData input,
-                              ADFStack stack, GPIndividual ind, PhenomenologicalModel phenomenologicalModel) {
-        ((PhenomenologicalData) input).x = model.compute(currentValue[0], currentValue[1], currentValue[2], currentValue[3], currentValue[4], "");
-        ((GPIndividual) ind).trees[0].child.eval(state, threadnum, input, stack, ((GPIndividual) ind), this);
     }
 }
 

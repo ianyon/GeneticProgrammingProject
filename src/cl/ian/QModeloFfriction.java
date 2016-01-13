@@ -1,5 +1,7 @@
 package cl.ian;
 
+import cl.ian.gp.EvolutionStateBean;
+import ec.gp.GPIndividual;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.data.FixedMatrix3_64F;
 
@@ -46,9 +48,10 @@ public class QModeloFfriction {
         }*/
     }
 
-    public double compute(double current, double separation, double flow, double initTemperature, double cellDiameter, String evolvedExpression) {
+    public double compute(double current, double separation, double flow, double initTemperature, double cellDiameter, GPIndividual individual, EvolutionStateBean stateBean) {
 
-        if (initTemperature == 0 && cellDiameter == 0 && evolvedExpression.equals("")) {
+        //TODO: This can happen? individual.trees[0].child.toString().equals("")
+        if (initTemperature == 0 && cellDiameter == 0 && individual.trees[0].child.toString().equals("")) {
             initTemperature = 20;
             cellDiameter = 18;
         }
@@ -150,8 +153,11 @@ public class QModeloFfriction {
                 rem.set(i, iniRem);
 
                 /***************************************** Calculo de la presion **************************************/
-                double ffrictionX = engine.eval(
-                        evolvedExpression, initialVelocity, iniFluidMedVel, iniFluidDensity, separation, iniRem);
+                individual.trees[0].child.eval(stateBean.state, stateBean.threadnum, stateBean.input, stateBean.stack,
+                        individual, stateBean.phenomenologicalModel);
+                double ffrictionX = stateBean.input.x;
+                //double ffrictionX = engine.eval(
+                //        stateBean, initialVelocity, iniFluidMedVel, iniFluidDensity, separation, iniRem);
                 // Caída de presion en intercambiadores de calor
                 // Note:salía (+) antes pero la ecuación dice que es con menos.
                 // Además es necesario usar los valores de la columna apropiada
@@ -238,7 +244,7 @@ public class QModeloFfriction {
             doubleVal[5] = Double.parseDouble(elements[6]);
 
             long startTime = System.nanoTime();
-            double result = model.compute(doubleVal[0], doubleVal[1], doubleVal[2], doubleVal[3], doubleVal[4], str);
+            double result = 0;//model.compute(doubleVal[0], doubleVal[1], doubleVal[2], doubleVal[3], doubleVal[4], individual, str);
             double elapsed = (System.nanoTime() - startTime) / 1000;
             min = min(min, elapsed);
             max = max(max, elapsed / 1000);

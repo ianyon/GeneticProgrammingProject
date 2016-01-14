@@ -39,6 +39,13 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
     public static final QModeloFfriction model = new QModeloFfriction();
 
+    /******************* Variables used in the evaluation of the individual********************************************/
+    public double rem;
+    public double separation;
+    public double normalizedMeanVelocity;
+    public double normalizedFluidDensity;
+    /******************************************************************************************************************/
+
     // don't bother cloning the inputs and outputs; they're read-only :-)
     // don't bother cloning the currentValue; it's transitory
 

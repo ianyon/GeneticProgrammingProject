@@ -8,6 +8,7 @@
 package cl.ian.gp.nodes;
 
 import cl.ian.gp.PhenomenologicalData;
+import cl.ian.gp.PhenomenologicalModel;
 import ec.EvolutionState;
 import ec.Problem;
 import ec.gp.ADFStack;
@@ -42,7 +43,7 @@ public class SeparationTerminal extends GPNode
         final Problem problem)
         {
         PhenomenologicalData rd = ((PhenomenologicalData)(input));
-        rd.x = rd.s;
+        rd.x = ((PhenomenologicalModel)problem).separation;
         }
     }
 

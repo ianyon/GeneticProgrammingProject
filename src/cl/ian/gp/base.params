@@ -4,16 +4,12 @@
 
 parent.0 = libs/ecj/ec/gp/koza/koza.params
 
-# the next four items are already defined in koza.params, but we
-# put them here to be clear.
-
+# the next four items are already defined in koza.params, but we put them here to be clear.
 # We have one function set, of class GPFunctionSet
 gp.fs.size = 1
 gp.fs.0 = ec.gp.GPFunctionSet
 # We'll call the function set "f0".
 gp.fs.0.name = f0
-
-
 gp.fs.0.size = 11
 
 # We have six functions in the function set:
@@ -43,7 +39,7 @@ gp.fs.0.func.10 = cl.ian.gp.nodes.MeanReynoldsTerminal
 gp.fs.0.func.10.nc = nc0
 
 
-
+# The class of the problem
 eval.problem = cl.ian.gp.PhenomenologicalModel
 eval.problem.data = cl.ian.gp.PhenomenologicalData
 

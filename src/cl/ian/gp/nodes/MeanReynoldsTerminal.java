@@ -1,13 +1,7 @@
-/*
-  Copyright 2006 by Sean Luke
-  Licensed under the Academic Free License version 3.0
-  See the file "LICENSE" for more information
-*/
-
-
 package cl.ian.gp.nodes;
 
 import cl.ian.gp.PhenomenologicalData;
+import cl.ian.gp.PhenomenologicalModel;
 import ec.EvolutionState;
 import ec.Problem;
 import ec.gp.ADFStack;
@@ -42,7 +36,7 @@ public class MeanReynoldsTerminal extends GPNode
         final Problem problem)
         {
         PhenomenologicalData rd = ((PhenomenologicalData)(input));
-        rd.x = rd.rem;
+        rd.x = ((PhenomenologicalModel)problem).rem;
         }
     }
 

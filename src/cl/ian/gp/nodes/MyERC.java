@@ -13,19 +13,23 @@ import ec.gp.GPIndividual;
  */
 public class MyERC extends RegERC {
 
-    public void resetNode(final EvolutionState state, final int thread)
-    {
-        //TODO: cambiar limites para las constantes
-        value = state.random[thread].nextDouble() * 2 - 1.0; }
+    /**
+     * Creates a random constant in the interval (0,1)
+     *
+     * @param state
+     * @param thread
+     */
+    public void resetNode(final EvolutionState state, final int thread) {
+        value = state.random[thread].nextDouble(false, false) * 2 - 1.0;
+    }
 
     public void eval(final EvolutionState state,
                      final int thread,
                      final GPData input,
                      final ADFStack stack,
                      final GPIndividual individual,
-                     final Problem problem)
-    {
-        PhenomenologicalData rd = ((PhenomenologicalData)(input));
+                     final Problem problem) {
+        PhenomenologicalData rd = ((PhenomenologicalData) (input));
         rd.x = value;
     }
 }

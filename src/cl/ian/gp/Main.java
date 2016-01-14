@@ -13,9 +13,16 @@ import org.ejml.ops.SpecializedOps;
 public class Main {
 
     public static void main(String[] args) {
-        //generate fitness cases
 
-        int maxGen = 10;
+
+
+
+
+
+
+
+        //generate fitness cases
+/*        int maxGen = 10;
         // examples=50;
         // x(1,:)=10*rand(1,examples);
         // x(2,:)=10*rand(1,examples);
@@ -66,7 +73,7 @@ public class Main {
 
         //evolution done (objective or max generations reached)
         System.out.println("winner tree: " + evo.evoStats.bestSoFar.toString());
-        /*MultiOutput singleOutput = (MultiOutput) evo.getRawOutput(evo.evoStats.bestSoFar);
+        *//*MultiOutput singleOutput = (MultiOutput) evo.getRawOutput(evo.evoStats.bestSoFar);
         double[] outputX = singleOutput.getArray(0);
         double[][] output = new double[1][outputX.length];
         output[0] = outputX;
@@ -74,7 +81,7 @@ public class Main {
         DenseMatrix64F EJMLOutput = new DenseMatrix64F(output);
         CommonOps.subtract(CommonOps.transpose(EJMLOutput , null), y, diff);
         DenseMatrix64F diffPower = new DenseMatrix64F();
-        CommonOps.elementPower(diff, 2, diffPower);*/
+        CommonOps.elementPower(diff, 2, diffPower);*//*
         System.out.println("fitness: " + evo.evoStats.bestSoFar.readFitness() );
                 //+ ", MSE:"+ Math.sqrt(CommonOps.elementSum(diffPower)));
 
@@ -82,9 +89,10 @@ public class Main {
         // out=evo.getRawOutput(evo.evoStats.bestSoFar)
         // out.getArray(0)
         meanTime = (System.nanoTime() - startTime) / 1000;
-        System.out.println("Tiempo medio: " + meanTime + "us");
+        System.out.println("Tiempo medio: " + meanTime + "us");*/
     }
 
+    /*
     static public void geneticProgrammingFrictionFactor(int individualCount, int generations){
         Config config = new Config("Config.txt");
         config.saveFileName = "evo.bin";
@@ -122,26 +130,36 @@ public class Main {
         // TODO review: Opción no disponible: config.percentchange = .25;
         // TODO review: Opción no disponible: config.minprob=0.01/3;
 
-        /* limits for constants: */
+        */
+/* limits for constants: *//*
+
         config.constLowLimit = -100;
         config.constUpLimit = 100;
 
         config.maxCrossoverTries = 10;
 
-        /* When selecting for crossover, use these probs */
+        */
+/* When selecting for crossover, use these probs *//*
+
         config.upLimitProbSelectTerminal = .1;
         config.upLimitProbSelectNonTerminal = 1;
         config.upLimitProbSelectRoot = 0;
         //The rest is for select any node
 
         // -------------- Selection ---------------
-        /* Tree selection methods: tournament, roulette, proportional, SUS */
+        */
+/* Tree selection methods: tournament, roulette, proportional, SUS *//*
+
         //config.sampling = 'lexictour'; //roulette, sus, tournament, lexictour, doubletour,, 'tournament'
         config.selectionMethod = "gpalta.ops.IndSelectorTournament";
-        /* for tournament selection: */
+        */
+/* for tournament selection: *//*
+
         config.tournamentSize = 2;
         config.SUSPointerDistance = 0.1; // This shouldn't be used because we are not using SUS
-        /* Population ranking adjustment (unused in case of tournament selection method): Raw, LFR */
+        */
+/* Population ranking adjustment (unused in case of tournament selection method): Raw, LFR *//*
+
         config.rankingType = "gpalta.ops.RankingRaw";
 
         //hijos esperados por individuo Solo util para sampling como roulette
@@ -156,7 +174,9 @@ public class Main {
         // TODO: Review config.lowerisbetter = 1;//binario
         // TODO: Hacer. config.calcfitness = 'q_fitness_tree_ffriction';//'regfitness'
 
-        /* stop if fitness reaches this value: */
+        */
+/* stop if fitness reaches this value: *//*
+
         config.stopFitness = 0.95;
         config.sizePenalization = 0;
 
@@ -168,7 +188,9 @@ public class Main {
         config.useVect = true;
         config.rememberLastEval = true; // config.adaptwindowsize = 150;
 
-       /* These two for non interactive mode */
+       */
+/* These two for non interactive mode *//*
+
         config.nonInteractive = false;
         config.nDaysToRun = 1;
 
@@ -207,8 +229,6 @@ public class Main {
         Evolution evo = new Evolution(config, data, zeros, zeros2, true);
 
     }
+*/
 
-    public void newMain(){
-
-    }
 }

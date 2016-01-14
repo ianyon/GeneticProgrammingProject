@@ -153,7 +153,10 @@ public class QModeloFfriction {
                 rem.set(i, iniRem);
 
                 /***************************************** Calculo de la presion **************************************/
-                //TODO: Update variables
+                stateBean.phenomenologicalModel.rem = rem.get(i);
+                stateBean.phenomenologicalModel.separation = separation;
+                stateBean.phenomenologicalModel.normalizedMeanVelocity = vmf.get(i)/initialVelocity;
+                stateBean.phenomenologicalModel.normalizedFluidDensity = df.get(i)/1.205;
                 individual.trees[0].child.eval(stateBean.state, stateBean.threadnum, stateBean.input, stateBean.stack,
                         individual, stateBean.phenomenologicalModel);
                 double ffrictionX = stateBean.input.x;
@@ -201,10 +204,11 @@ public class QModeloFfriction {
             }
         }
 
-        if (Double.MAX_VALUE == pf.get(0) || Double.isNaN(pf.get(0)))//TODO || ~isreal(pf[1]))
+        // This happens if the result is NaN, Infinite or not real
+        if (Double.MAX_VALUE == pf.get(0) || Double.isNaN(pf.get(0)))
             return 0;
-        else
-            return -pf.get(0);
+
+        return -pf.get(0);
     }
 
     public static void main(String[] args) throws ScriptException {

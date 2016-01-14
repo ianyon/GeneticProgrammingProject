@@ -99,7 +99,7 @@ public class CustomOperators {
     public static double myPower(double x1, double x2) {
         //y(find(imag(y)))=0;
         double value = Math.pow(x1, x2);
-        // TODO:  || imag(y) (~isreal(y))
+        // This happens if the result is NaN, Infinite or not real
         if (Double.isNaN(value) || Double.isInfinite(value))
             return 0;
         else
@@ -245,7 +245,7 @@ public class CustomOperators {
         //y(find(isnan(y) | isinf(y) | imag(y)))=0;
         for (int i = 0; i < size; i++) {
             double value = Math.pow(x1.get(i), x2.get(i));
-            // TODO:  || imag(y) (~isreal(y))
+            // This happens if the result is NaN, Infinite or not real
             if (Double.isNaN(value) || Double.isInfinite(value))
                 y.set(i, 0);
             else
@@ -282,7 +282,7 @@ public class CustomOperators {
         //y(find(isnan(y) | isinf(y) | imag(y)))=0;
         for (int i = 0; i < size; i++) {
             double value = Math.pow(x1.get(i), exp);
-            // TODO:  || imag(y) (~isreal(y))
+            // This happens if the result is NaN, Infinite or not real
             if (Double.isNaN(value) || Double.isInfinite(value))
                 y.set(i, 0);
             else

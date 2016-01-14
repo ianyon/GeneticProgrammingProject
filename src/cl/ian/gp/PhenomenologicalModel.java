@@ -111,10 +111,8 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         }
     }
 
-    public void evaluate(final EvolutionState state,
-                         final Individual ind,
-                         final int subpopulation,
-                         final int threadnum) {
+    public void evaluate(final EvolutionState state, final Individual ind,
+                         final int subpopulation, final int threadnum) {
         if (ind.evaluated)  // don't bother reevaluating
             return;
 

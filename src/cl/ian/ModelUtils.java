@@ -13,7 +13,8 @@ public class ModelUtils {
 	 * @return
 	 */
 	public static double q_cdr3(double Re) {
-		if (Re < 0 || Double.isNaN(Re)) { //TODO || ~isreal(Re){
+		// This happens if the result is NaN or not real
+		if (Re < 0 || Double.isNaN(Re)) {
 			return -1;
 		}
 		double c = 3.3481;
@@ -37,7 +38,8 @@ public class ModelUtils {
 
 		double c, m, n;
 
-		if (re <= 0 || Double.isNaN(re)) { // TODO || ~isreal(re)
+		// This happens if the result is NaN or not real
+		if (re <= 0 || Double.isNaN(re)) {
 			return 0.0001;
 		}
 

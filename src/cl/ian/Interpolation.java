@@ -141,7 +141,8 @@ public class Interpolation {
 		T += 273.15;
 
 		// Check bounds
-		if (T < 0 || Double.isNaN(T)) // TODO || ~isreal(T))
+		// This happens if the result is NaN or not real
+		if (T < 0 || Double.isNaN(T))
 			return 0.0001;
 
 		// General case
@@ -157,7 +158,7 @@ public class Interpolation {
 	 */
 	public static double q_densidad(double T) {
 
-		//TODO if (~isreal(T)) return 1;
+		// This happens if the result is NaN or not real
 		if (Double.isNaN(T)) return 1;
 
 		// General case
@@ -173,7 +174,7 @@ public class Interpolation {
 	 */
 	public static double q_viscosidad(double T) {
 
-		//TODO if (~isreal(T)) return 0;
+		// This happens if the result is NaN or not real
 		if (Double.isNaN(T)) return 0;
 
 		T += 273.15;
@@ -191,7 +192,8 @@ public class Interpolation {
 	 */
 	public static double q_cznusselt(int T, double Re) {
 
-		if (Re < 0 || Double.isNaN(Re)) // TODO || ~isreal(Re))
+		// This happens if the result is NaN or not real
+		if (Re < 0 || Double.isNaN(Re))
 			return 0.0001;
 
 		if (T > 20 || Re < 1e3) return 1;
@@ -209,7 +211,7 @@ public class Interpolation {
 	 */
 	public static double q_cp(double T) {
 
-		//TODO if (~isreal(T)) return 1;
+		// This happens if the result is NaN or not real
 		if (Double.isNaN(T)) return 1;
 
 		T += 273.15;

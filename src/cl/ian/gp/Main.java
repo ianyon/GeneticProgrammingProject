@@ -1,6 +1,8 @@
 package cl.ian.gp;
 
 import cl.ian.MatlabUtils;
+import com.sun.deploy.util.ArrayUtil;
+import com.sun.org.apache.xml.internal.utils.LocaleUtility;
 import gpalta.core.Config;
 import gpalta.core.Evolution;
 import gpalta.core.SingleOutput;
@@ -10,14 +12,155 @@ import org.ejml.equation.Equation;
 import org.ejml.ops.CommonOps;
 import org.ejml.ops.SpecializedOps;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
 public class Main {
+
+    //for arrays
+    public static <T, U> U[] convertArray(List<T> from, Function<T, U> func,
+                                          IntFunction<U[]> generator){
+        return from.stream().map(func).toArray(generator);
+    }
 
     public static void main(String[] args) {
 
+        double[] qwe=new double[100000000];
+        for (int i = 0; i < 100000000; i++) {
+            qwe[i]=i;
+        }
+        double[] results = new double[500];
+
+        try {
+            results = Files.readAllLines(Paths.get("TrainingData\\salidas_P500train_sort.txt")).stream()
+                    .mapToDouble(s -> Double.parseDouble(s)).toArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        long meanTime;
+        long startTime = System.nanoTime();
+
+        startTime = System.nanoTime();
+        try {
+            results = Files.readAllLines(Paths.get("TrainingData\\salidas_P500train_sort.txt")).stream()
+                    .mapToDouble(s -> Double.parseDouble(s)).toArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        meanTime = (System.nanoTime() - startTime) / 1000;
+        System.out.println("Tiempo medio functional: " + meanTime + " us");
+
+        startTime = System.nanoTime();
+        try {
+            results = Files.readAllLines(Paths.get("TrainingData\\salidas_P500train_sort.txt")).stream().parallel()
+                    .mapToDouble(s -> Double.parseDouble(s)).toArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        meanTime = (System.nanoTime() - startTime) / 1000;
+        System.out.println("Tiempo medio functional paralelo: " + meanTime + " us");
+
+        startTime = System.nanoTime();
+
+        try {
+            Double[] doubleArr = convertArray(Files.readAllLines(Paths.get("TrainingData\\salidas_P500train_sort.txt")),
+                    Double::parseDouble, Double[]::new);
+            for (int i = 0; i < 500; i++) {
+                results[i]=doubleArr[i];
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // try {
+//            results = Files.readAllLines(Paths.get("TrainingData\\salidas_P500train_sort.txt")).stream()
+//                    .map(Double::parseDouble).toArray(s -> doubles()(double)Double[]::new);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        meanTime = (System.nanoTime() - startTime) / 1000;
+        System.out.println("Tiempo medio functional v2: " + meanTime + " us");
 
 
+        startTime = System.nanoTime();
+        File filename = new File("TrainingData\\salidas_P500train_sort.txt");
+        Scanner inputScan = null;
+        try {
+            inputScan = new Scanner(filename);
+            for (int i = 0; i < 500; i++) {
+                if (inputScan.hasNextDouble())
+                    results[i] = inputScan.nextDouble();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        meanTime = (System.nanoTime() - startTime) / 1000;
+        System.out.println("Tiempo medio scanner: " + meanTime + " us");
+
+        startTime = System.nanoTime();
+        try {
+            BufferedReader sad= new BufferedReader(new FileReader("TrainingData\\salidas_P500train_sort.txt"),4096);
+            Scanner scan = new Scanner(sad);
+            for (int i = 0; i < 500; i++) {
+                if (scan.hasNextDouble())
+                    results[i] = scan.nextDouble();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        meanTime = (System.nanoTime() - startTime) / 1000;
+        System.out.println("Tiempo medio scanner v2: " + meanTime + " us");
 
 
+        startTime = System.nanoTime();
+        try {
+            List<String> c = Files.readAllLines(Paths.get("TrainingData\\salidas_P500train_sort.txt"));
+
+            for (int i = 0; i < c.size(); i++) {
+                results[i] = Double.parseDouble(c.get(i));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        meanTime = (System.nanoTime() - startTime) / 1000;
+
+
+        double [][]inputs=new double[500][5];
+        String[] inputValues;
+        startTime = System.nanoTime();
+        try {
+            List<String> lines = Files.readAllLines(Paths.get("TrainingData\\doe500train_sort.txt"));
+            for (int i = 0; i < lines.size(); i++) {
+                inputValues = lines.get(i).split(",");
+                inputs[i] = Arrays.stream(inputValues).mapToDouble(Double::parseDouble).toArray();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        meanTime = (System.nanoTime() - startTime) / 1000;
+        System.out.println("Tiempo medio arraylist with stream: " + meanTime + " us");
+
+        startTime = System.nanoTime();
+        try {
+            List<String> lines = Files.readAllLines(Paths.get("TrainingData\\doe500train_sort.txt"));
+            for (int i = 0; i < lines.size(); i++) {
+                inputValues = lines.get(i).split(",");
+                for (int j = 0; j < 5; j++) {
+                    inputs[i][j] = Double.parseDouble(inputValues[j]);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        meanTime = (System.nanoTime() - startTime) / 1000;
+        System.out.println("Tiempo medio arraylist with for: " + meanTime + " us");
 
 
 
@@ -89,7 +232,7 @@ public class Main {
         // out=evo.getRawOutput(evo.evoStats.bestSoFar)
         // out.getArray(0)
         meanTime = (System.nanoTime() - startTime) / 1000;
-        System.out.println("Tiempo medio: " + meanTime + "us");*/
+        System.out.println("Tiempo medio: " + meanTime + " us");*/
     }
 
     /*

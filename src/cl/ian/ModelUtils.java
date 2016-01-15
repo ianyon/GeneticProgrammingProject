@@ -65,10 +65,4 @@ public class ModelUtils {
 		return c * Math.pow(re, m) * Math.pow(Pr, n) * Math.pow(Pr / Pr_w, 0.25);
 	}
 
-	public static double max(double... array) {
-		double max = array[0];
-		for (int i = 1; i < array.length; i++)
-			max = Math.max(max, array[i]);
-		return max;
-	}
 }

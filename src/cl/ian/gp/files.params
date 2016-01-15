@@ -3,11 +3,11 @@ parent.0 = base.params
 gp.fs.0.size = 11
 
 # We have six functions in the function set:
-gp.fs.0.func.0 = ec.app.tutorial4.Add
+gp.fs.0.func.0 = ec.app.regression.func.Add
 gp.fs.0.func.0.nc = nc2
-gp.fs.0.func.1 = ec.app.tutorial4.Sub
+gp.fs.0.func.1 = ec.app.regression.func.Sub
 gp.fs.0.func.1.nc = nc2
-gp.fs.0.func.2 = ec.app.tutorial4.Mul
+gp.fs.0.func.2 = ec.app.regression.func.Mul
 gp.fs.0.func.2.nc = nc2
 gp.fs.0.func.3 = cl.ian.gp.nodes.Div
 gp.fs.0.func.3.nc = nc2
@@ -33,4 +33,17 @@ eval.problem = cl.ian.gp.PhenomenologicalModel
 eval.problem.data = cl.ian.gp.PhenomenologicalData
 
 # The size of our training set, by default, is 20
-eval.problem.size = 20
+# Set to the value in the slice in q_fitness_tree_ffriction
+# eval.problem.size = 125
+eval.problem.size = 500
+
+# Load input and output data for training
+eval.problem.inputfile = ../TrainingData/doe500train_sort.txt
+eval.problem.outputfile = ../TrainingData/salidas_P500train_sort.txt
+
+# Default HalfBuilder (ramped half/half tree building) parameters
+gp.tc.0.init = cl.ian.gp.QRampedInit
+# Min and Max level for initial individuals
+gp.tc.0.init.min-depth = 2
+gp.tc.0.init.max-depth = 6
+gp.tc.0.init.growp = 0.5

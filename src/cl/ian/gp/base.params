@@ -31,7 +31,10 @@ breed = ec.simple.SimpleBreeder
 eval = ec.simple.SimpleEvaluator
 
 # The Statistics (ec.simple.SimpleStatistics)
-stat = ec.gp.koza.KozaStatistics
+stat = ec.gp.koza.KozaShortStatistics
+stat.child.0.do-depth = true
+stat.child.0.do-time = true
+stat.child.0.do-size = true
 stat.file = $out.stat
 
 # Evolution Parameters
@@ -43,7 +46,7 @@ pop = ec.Population
 pop.subpops = 1
 pop.subpop.0 = ec.Subpopulation
 pop.subpop.0.size = 1000
-pop.subpop.0.duplicate-retries = 100
+pop.subpop.0.duplicate-retries = 20
 
 # By default elitism isn't done (top 10 individuals in subpopulation 0):
 # breed.elite.0 = 10
@@ -85,13 +88,16 @@ gp.koza.mutate.ns.0 = ec.gp.koza.KozaNodeSelector
 gp.koza.mutate.build.0 = ec.gp.koza.GrowBuilder
 gp.koza.mutate.maxdepth = 17
 gp.koza.mutate.tries = 1
+# Since GROW is only used for subtree mutation, ECJ uses the Koza-standard subtree mutation GROW values for the
+# default for GROW as a whole.  This default is min-depth=max-depth=5, which I don't like very much,
+# but hey, that's the standard. This means that if someone decided to use GROW to generate
+# new individual trees, it's also use the defaults below unless he overrided them locally.
+gp.koza.grow.min-depth = 5
+gp.koza.grow.max-depth = 5
+
 
 # Default Tournament Selection tournament size
 select.tournament.size = 7
-
-
-gp.koza.grow.min-depth = 5
-gp.koza.grow.max-depth = 5
 
 gp.problem.stack = ec.gp.ADFStack
 gp.adf-stack.context = ec.gp.ADFContext
@@ -111,12 +117,6 @@ gp.tc.0 = ec.gp.GPTreeConstraints
 gp.tc.0.name = tc0
 gp.tc.0.fset = f0
 gp.tc.0.returns = nil
-
-# Default HalfBuilder (ramped half/half tree building) parameters
-gp.tc.0.init = ec.gp.koza.HalfBuilder
-gp.koza.half.min-depth = 2
-gp.koza.half.max-depth = 6
-gp.koza.half.growp = 0.5
 
 # Standard Node Constraints for untyped GP with nodes of various arity sizes
 gp.nc.size = 3

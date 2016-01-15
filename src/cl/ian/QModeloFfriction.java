@@ -198,8 +198,8 @@ public class QModeloFfriction {
                 // Transferencia de energia
                 tc.setValue(i, cellTempError, heatPerArea / h + (iniFluidTemp + endFluidTemp) / 2);
             }
-            if (ModelUtils.max(cellTempError) <= errmax && ModelUtils.max(fluidTempError) <= errmax &&
-                    ModelUtils.max(pressureError) <= errmax && ModelUtils.max(velocityError) <= errmax) {
+            if (MatlabUtils.max(cellTempError) <= errmax && MatlabUtils.max(fluidTempError) <= errmax &&
+                    MatlabUtils.max(pressureError) <= errmax && MatlabUtils.max(velocityError) <= errmax) {
                 break;
             }
         }

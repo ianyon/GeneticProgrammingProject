@@ -1,5 +1,6 @@
-parent.0 = base.params
-
+gp.fs.size = 1
+gp.fs.0 = ec.gp.GPFunctionSet
+gp.fs.0.name = f0
 gp.fs.0.size = 11
 
 # We have six functions in the function set:
@@ -31,6 +32,8 @@ gp.fs.0.func.10.nc = nc0
 # The class of the problem
 eval.problem = cl.ian.gp.PhenomenologicalModel
 eval.problem.data = cl.ian.gp.PhenomenologicalData
+eval.problem.stack = ec.gp.ADFStack
+eval.problem.stack.context = ec.gp.ADFContext
 
 # The size of our training set, by default, is 20
 # Set to the value in the slice in q_fitness_tree_ffriction
@@ -41,7 +44,7 @@ eval.problem.size = 500
 eval.problem.inputfile = ../TrainingData/doe500train_sort.txt
 eval.problem.outputfile = ../TrainingData/salidas_P500train_sort.txt
 
-# Default HalfBuilder (ramped half/half tree building) parameters
+# QRampedInit (modified ramped half/half tree building) parameters
 gp.tc.0.init = cl.ian.gp.QRampedInit
 # Min and Max level for initial individuals
 gp.tc.0.init.min-depth = 2

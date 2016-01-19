@@ -1,26 +1,2 @@
-Tamaño de arboles
-TODO: p.fixedlevel = 1; %binario
-TODO: p.realmaxlevel = 17; %maximo nivel global
-TODO: p.dynamiclevel = '0'; %0: fixed, 1: dynamic 2: heavy dynamic
-TODO: p.veryheavy = 0;%binario
-TODO: p.inicdynlevel = 6;
-
-Operadores
-TODO: p.adaptwindowsize = 150;
-TODO: p.adaptinterval = 1;
-TODO: p.percentchange = .25;
-TODO: p.minprob=0.01/3;
-
-seleccion
-TODO: p.sampling = 'lexictour'; %roulette, sus, tournament, lexictour, doubletour,, 'tournament'
-TODO: p.tournamentsize = 2;
-
- Cantidad de individuos para pasar a la siguiente generaci�n
-TODO: p.gengap = floor(nIndividuals);
-
-Sobrevivencia
-TODO: p.elitism = 'keepbest';% replace, keepbest, halfelitism, totalelitism
-TODO: p.survival = 'fixedpopsize';%fixedpopsize,resources,rivotfixe
-
 Condiciones de termino
 TODO: p.hits = [100 5]; %[porcentaje que cumple condicion, delta error]

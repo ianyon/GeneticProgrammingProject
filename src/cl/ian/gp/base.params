@@ -1,10 +1,21 @@
 # parent.0 = libs/ecj/ec/gp/koza/koza.params
 
-gp.fs.size = 1
-gp.fs.0 = ec.gp.GPFunctionSet
-gp.fs.0.name = f0
+parent.0 = files.params
+parent.1 = breeding.params
+parent.2 = types.params
 
-####################################### In ec.params ######################################
+gp.tree.print-style = c
+
+# Garbage collection (Apparently where eliminated in version 14)
+gc = false
+aggressive = true
+gc-modulo = 1
+
+# Outputting Stuff
+nostore = false
+flush = true
+verbosity = 0
+####################################### In ec.params #####################################
 # Number of threads and random number generator seeds
 breedthreads = 3
 evalthreads = 3
@@ -31,11 +42,15 @@ breed = ec.simple.SimpleBreeder
 eval = ec.simple.SimpleEvaluator
 
 # The Statistics (ec.simple.SimpleStatistics)
-stat = ec.gp.koza.KozaShortStatistics
+stat = ec.simple.SimpleStatistics
+stat.file = $out.stat
+stat.num-children = 1
+stat.child.0 = ec.gp.koza.KozaShortStatistics
+stat.child.0.gather-full = true
+stat.child.0.file = $out2.stat
 stat.child.0.do-depth = true
 stat.child.0.do-time = true
 stat.child.0.do-size = true
-stat.file = $out.stat
 
 # Evolution Parameters
 generations = 51
@@ -51,101 +66,3 @@ pop.subpop.0.duplicate-retries = 20
 # By default elitism isn't done (top 10 individuals in subpopulation 0):
 # breed.elite.0 = 10
 ###########################################################################################
-
-##################################### In koza.params ######################################
-eval.problem = ec.app.regression.Regression
-eval.problem.data = ec.app.regression.RegressionData
-eval.problem.stack = ec.gp.ADFStack
-eval.problem.stack.context = ec.gp.ADFContext
-eval.problem.stack.context.data = ec.app.regression.RegressionData
-
-pop.subpop.0.fitness = ec.gp.koza.KozaFitness
-pop.subpop.0.species = ec.gp.GPSpecies
-pop.subpop.0.species.ind = ec.gp.GPIndividual
-pop.subpop.0.species.ind.numtrees = 1
-pop.subpop.0.species.ind.tree.0 = ec.gp.GPTree
-pop.subpop.0.species.ind.tree.0.tc = tc0
-
-pop.subpop.0.species.numpipes = 2
-pop.subpop.0.species.pipe.0 = ec.gp.koza.CrossoverPipeline
-pop.subpop.0.species.pipe.0.prob = 0.9
-pop.subpop.0.species.pipe.1 = ec.gp.koza.ReproductionPipeline
-pop.subpop.0.species.pipe.1.prob = 0.1
-
-breed.reproduce.source.0 = ec.select.TournamentSelection
-
-# Default Crossover operator parameters
-gp.koza.xover.maxdepth = 17
-gp.koza.xover.ns.0 = ec.gp.koza.KozaNodeSelector
-gp.koza.xover.ns.1 = same
-gp.koza.xover.source.0 = ec.select.TournamentSelection
-gp.koza.xover.source.1 = same
-gp.koza.xover.tries = 1
-
-# Mutation parameters
-gp.koza.mutate.source.0 = ec.select.TournamentSelection
-gp.koza.mutate.ns.0 = ec.gp.koza.KozaNodeSelector
-gp.koza.mutate.build.0 = ec.gp.koza.GrowBuilder
-gp.koza.mutate.maxdepth = 17
-gp.koza.mutate.tries = 1
-# Since GROW is only used for subtree mutation, ECJ uses the Koza-standard subtree mutation GROW values for the
-# default for GROW as a whole.  This default is min-depth=max-depth=5, which I don't like very much,
-# but hey, that's the standard. This means that if someone decided to use GROW to generate
-# new individual trees, it's also use the defaults below unless he overrided them locally.
-gp.koza.grow.min-depth = 5
-gp.koza.grow.max-depth = 5
-
-
-# Default Tournament Selection tournament size
-select.tournament.size = 7
-
-gp.problem.stack = ec.gp.ADFStack
-gp.adf-stack.context = ec.gp.ADFContext
-
-gp.koza.ns.terminals = 0.1
-gp.koza.ns.nonterminals = 0.9
-gp.koza.ns.root = 0.0
-
-# GP Types
-gp.type.a.size = 1
-gp.type.a.0.name = nil
-gp.type.s.size = 0
-
-# Tree Constraints
-gp.tc.size = 1
-gp.tc.0 = ec.gp.GPTreeConstraints
-gp.tc.0.name = tc0
-gp.tc.0.fset = f0
-gp.tc.0.returns = nil
-
-# Standard Node Constraints for untyped GP with nodes of various arity sizes
-gp.nc.size = 3
-gp.nc.0 = ec.gp.GPNodeConstraints
-gp.nc.0.name = nc0
-gp.nc.0.returns = nil
-gp.nc.0.size = 0
-gp.nc.1 = ec.gp.GPNodeConstraints
-gp.nc.1.name = nc1
-gp.nc.1.returns = nil
-gp.nc.1.size = 1
-gp.nc.1.child.0 = nil
-gp.nc.2 = ec.gp.GPNodeConstraints
-gp.nc.2.name = nc2
-gp.nc.2.returns = nil
-gp.nc.2.size = 2
-gp.nc.2.child.0 = nil
-gp.nc.2.child.1 = nil
-###########################################################################################
-
-# Garbage collection (Apparently where eliminated in version 14)
-gc = false
-aggressive = true
-gc-modulo = 1
-
-# Outputting Stuff
-nostore = false
-flush = true
-verbosity = 0
-
-# Default Reproduction operator parameters
-gp.koza.reproduce.source.0 = ec.select.TournamentSelection

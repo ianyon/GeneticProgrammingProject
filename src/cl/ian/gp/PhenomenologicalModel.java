@@ -5,21 +5,15 @@ import ec.EvolutionState;
 import ec.Individual;
 import ec.gp.GPIndividual;
 import ec.gp.GPProblem;
-import ec.gp.koza.KozaFitness;
 import ec.simple.SimpleProblemForm;
 import ec.util.Parameter;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
-import java.util.StringTokenizer;
 
 public class PhenomenologicalModel extends GPProblem implements SimpleProblemForm {
     private static final long serialVersionUID = 1;
@@ -93,10 +87,8 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         if (inputs.length != outputs.length) state.output.fatal("Input and output has different sizes");
     }
 
-    public void evaluate(final EvolutionState state, final Individual ind,
-                         final int subpopulation, final int threadnum) {
-        if (ind.evaluated)  // don't bother reevaluating
-            return;
+    public void evaluate(final EvolutionState state, final Individual ind, final int subpop, final int threadnum) {
+        if (ind.evaluated)  return; // don't bother reevaluating
 
         PhenomenologicalData input = (PhenomenologicalData) (this.input);
 
@@ -112,10 +104,12 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
              ind.nodes=nodes(ind.tree);
          end */
 
+        // the fitness better be KozaFitness!
+        HitLevelKozaFitness f = ((HitLevelKozaFitness) ind.fitness);
+
         int hits = 0;
         double sum = 0.0;
         double result;
-        final double HIT_LEVEL = 0.01;
         final double PROBABLY_ZERO = 1.11E-15;
         final double BIG_NUMBER = 1.0e15;  // the same as lilgp uses
 
@@ -125,16 +119,19 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
                     (GPIndividual) ind, new EvolutionStateBean(state, threadnum, input, stack, this));
 
             result = outputs[i] - input.x;
+
+            // math errors can creep in when evaluating two equivalent by differently-ordered functions
+            // like x * (x*x*x + x*x)  vs. x*x*x*x + x*x*x
+            if (result < PROBABLY_ZERO)  // slightly off
+                result = 0.0;
+
+            // Check if the result is within hitLevel percent of the desired result
+            if (Math.abs(result)< Math.abs(outputs[i])*f.hitLevel) hits++;
+
             result *= result;
 
             if (!(result < BIG_NUMBER))   // *NOT* (input.x >= BIG_NUMBER)
                 result = BIG_NUMBER;
-                // math errors can creep in when evaluating two equivalent by differently-ordered functions
-                // like x * (x*x*x + x*x)  vs. x*x*x*x + x*x*x
-            else if (result < PROBABLY_ZERO)  // slightly off
-                result = 0.0;
-
-            if (result <= HIT_LEVEL) hits++;  // whatever!
 
             sum += result;
         }
@@ -150,10 +147,8 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         // Limit fitness precision, to eliminate rounding error problem. 12 decimals default precision in GPlab
         L1Distance = (double) Math.round(L1Distance * 1000000000000d) / 1000000000000d;
 
-        // the fitness better be KozaFitness!
-        KozaFitness f = ((KozaFitness) ind.fitness);
         f.setStandardizedFitness(state, L1Distance);
-        f.hits = hits;
+        f.meetsCondition = hits/trainingSetSize;
         ind.evaluated = true;
 
     }

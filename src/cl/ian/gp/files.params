@@ -35,6 +35,10 @@ eval.problem.data = cl.ian.gp.PhenomenologicalData
 eval.problem.stack = ec.gp.ADFStack
 eval.problem.stack.context = ec.gp.ADFContext
 
+pop.subpop.0.species.fitness = cl.ian.gp.HitLevelKozaFitness
+pop.subpop.0.species.fitness.acepted-error = 5
+pop.subpop.0.species.fitness.required-meeting-condition = 100
+
 # The size of our training set, by default, is 20
 # Set to the value in the slice in q_fitness_tree_ffriction
 # eval.problem.size = 125

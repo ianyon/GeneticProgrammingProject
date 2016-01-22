@@ -59,6 +59,9 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         InputStream inputFile = state.parameters.getResource(base.push(INPUT_FILE), null);
         InputStream outputFile = state.parameters.getResource(base.push(OUTPUT_FILE), null);
 
+        String inputFilePath = state.parameters.getString(base.push(INPUT_FILE), null).replace("$","");
+        String outputFilePath = state.parameters.getString(base.push(OUTPUT_FILE), null).replace("$","");
+
         if (inputFile == null || outputFile == null)
             state.output.fatal("Training data files doesn't exist", base.push(INPUT_FILE), base.push(OUTPUT_FILE));
 
@@ -68,18 +71,18 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         String[] inputValues;
 
         try {
-            List<String> lines = Files.readAllLines(Paths.get(base.push(INPUT_FILE).toString()));
+            List<String> lines = Files.readAllLines(Paths.get(inputFilePath));
             for (int i = 0; i < lines.size(); i++) {
                 inputValues = lines.get(i).split(",");
                 for (int j = 0; j < 5; j++) inputs[i][j] = Double.parseDouble(inputValues[j]);
             }
 
-            lines = Files.readAllLines(Paths.get(base.push(OUTPUT_FILE).toString()));
+            lines = Files.readAllLines(Paths.get(outputFilePath));
             for (int i = 0; i < lines.size(); i++) {
                 outputs[i] = Double.parseDouble(lines.get(i));
             }
         } catch (IOException e) {
-            state.output.fatal("Error reading the file", base.push(INPUT_FILE), base.push(OUTPUT_FILE));
+            state.output.fatal("Error reading the file: "+e.toString(), base.push(INPUT_FILE), base.push(OUTPUT_FILE));
         } catch (IndexOutOfBoundsException e) {
             state.output.fatal("Error in input file. There mis be 5 values by example", base.push(INPUT_FILE));
         }
@@ -148,7 +151,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         L1Distance = (double) Math.round(L1Distance * 1000000000000d) / 1000000000000d;
 
         f.setStandardizedFitness(state, L1Distance);
-        f.meetsCondition = hits/trainingSetSize;
+        f.meetsCondition = (double)hits/trainingSetSize;
         ind.evaluated = true;
 
     }

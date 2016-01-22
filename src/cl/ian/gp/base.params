@@ -17,8 +17,8 @@ flush = true
 verbosity = 0
 ####################################### In ec.params #####################################
 # Number of threads and random number generator seeds
-breedthreads = 3
-evalthreads = 3
+breedthreads = auto
+evalthreads = auto
 # seed.0 = 4357
 seed.0 = time
 
@@ -35,32 +35,35 @@ init = ec.gp.GPInitializer
 finish = ec.simple.SimpleFinisher
 exch = ec.simple.SimpleExchanger
 breed = ec.simple.SimpleBreeder
+breed.minimum-size = 10
 
 # The Evaluator and the Problem (ADF stuff is always loaded but not used in this case)
 eval = ec.simple.SimpleEvaluator
 
 # The Statistics (ec.simple.SimpleStatistics)
-stat = ec.simple.SimpleStatistics
+stat = ec.gp.koza.KozaShortStatistics
 stat.file = $out.stat
-stat.num-children = 1
-stat.child.0 = ec.gp.koza.KozaShortStatistics
-stat.child.0.gather-full = true
-stat.child.0.file = $out2.stat
-stat.child.0.do-depth = true
-stat.child.0.do-time = true
-stat.child.0.do-size = true
+stat.do-depth = true
+stat.do-time = true
+stat.do-size = true
+
+#stat = ec.simple.SimpleStatistics
+#stat.file = $out.stat
+#stat.num-children = 1
+#stat.child.0 = ec.gp.koza.KozaShortStatistics
+#stat.child.0.file = $out2.stat
+#stat.child.0.do-depth = true
+#stat.child.0.do-time = true
+#stat.child.0.do-size = true
 
 # Evolution Parameters
-generations = 51
+generations = 5
 quit-on-run-complete = true
 
 # The Population, and its one subpopulation, species, breeding pipelines and individuals
 pop = ec.Population
 pop.subpops = 1
 pop.subpop.0 = ec.Subpopulation
-pop.subpop.0.size = 1000
+pop.subpop.0.size = 10
 pop.subpop.0.duplicate-retries = 20
-
-# By default elitism isn't done (top 10 individuals in subpopulation 0):
-# breed.elite.0 = 10
 ###########################################################################################

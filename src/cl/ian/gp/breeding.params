@@ -2,9 +2,10 @@
 pop.subpop.0.species.pipe = ec.breed.MultiBreedingPipeline
 pop.subpop.0.species.pipe.generate-max = false
 pop.subpop.0.species.pipe.num-sources = 2
-pop.subpop.0.species.pipe.source.0 = cl.ian.gp.KeepBestCrossoverPipeline
+#pop.subpop.0.species.pipe.source.0 = cl.ian.gp.KeepBestCrossoverPipeline
+pop.subpop.0.species.pipe.source.0 = ec.gp.koza.CrossoverPipeline
 pop.subpop.0.species.pipe.source.0.prob = 0.9
-pop.subpop.0.species.pipe.source.1 = cl.ian.gp.KeepBestMutateOneNodePipeline
+pop.subpop.0.species.pipe.source.1 = ec.gp.breed.MutateOneNodePipeline
 pop.subpop.0.species.pipe.source.1.prob = 0.1
 ################################## Crossover parameters ###################################
 # Default Crossover operator parameters (The ns.0 shouldn't exist)
@@ -17,9 +18,13 @@ gp.koza.xover.ns.1 = same
 gp.koza.xover.source.0 = ec.parsimony.LexicographicTournamentSelection
 gp.koza.xover.source.1 = same
 ################################### Mutation parameters ###################################
-gp.breed.keep-best-mutate-one-node.ns.0 = ec.gp.koza.KozaNodeSelector
+#cl.ian.gp.keep-best-mutate-one-node.source.0 = ec.parsimony.LexicographicTournamentSelection
+#cl.ian.gp.keep-best-mutate-one-node.ns.0 = ec.gp.koza.KozaNodeSelector
+gp.breed.mutate-one-node.source.0 = ec.parsimony.LexicographicTournamentSelection
+gp.breed.mutate-one-node.ns.0 = ec.gp.koza.KozaNodeSelector
 ###########################################################################################
 # Default Tournament Selection tournament size
+#select.tournament.size = 2
 select.lexicographic-tournament.size = 2
 
 # Probability of selecting a type of node when performing breeding

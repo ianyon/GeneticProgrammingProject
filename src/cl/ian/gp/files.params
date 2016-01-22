@@ -4,11 +4,11 @@ gp.fs.0.name = f0
 gp.fs.0.size = 11
 
 # We have six functions in the function set:
-gp.fs.0.func.0 = ec.app.regression.func.Add
+gp.fs.0.func.0 = cl.ian.gp.nodes.Add
 gp.fs.0.func.0.nc = nc2
-gp.fs.0.func.1 = ec.app.regression.func.Sub
+gp.fs.0.func.1 = cl.ian.gp.nodes.Sub
 gp.fs.0.func.1.nc = nc2
-gp.fs.0.func.2 = ec.app.regression.func.Mul
+gp.fs.0.func.2 = cl.ian.gp.nodes.Mul
 gp.fs.0.func.2.nc = nc2
 gp.fs.0.func.3 = cl.ian.gp.nodes.Div
 gp.fs.0.func.3.nc = nc2
@@ -36,7 +36,7 @@ eval.problem.stack = ec.gp.ADFStack
 eval.problem.stack.context = ec.gp.ADFContext
 
 pop.subpop.0.species.fitness = cl.ian.gp.HitLevelKozaFitness
-pop.subpop.0.species.fitness.acepted-error = 5
+pop.subpop.0.species.fitness.accepted-error = 5
 pop.subpop.0.species.fitness.required-meeting-condition = 100
 
 # The size of our training set, by default, is 20
@@ -45,8 +45,8 @@ pop.subpop.0.species.fitness.required-meeting-condition = 100
 eval.problem.size = 500
 
 # Load input and output data for training
-eval.problem.inputfile = ../TrainingData/doe500train_sort.txt
-eval.problem.outputfile = ../TrainingData/salidas_P500train_sort.txt
+eval.problem.inputfile = $TrainingData/doe500train_sort.txt
+eval.problem.outputfile = $TrainingData/salidas_P500train_sort.txt
 
 # QRampedInit (modified ramped half/half tree building) parameters
 gp.tc.0.init = cl.ian.gp.QRampedInit

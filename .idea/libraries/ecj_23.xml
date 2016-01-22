@@ -2,7 +2,6 @@
   <library name="ecj.23">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/libs/ecj/jar/ecj.23.jar!/" />
-      <root url="file://$PROJECT_DIR$/libs/ecj/ec" />
     </CLASSES>
     <JAVADOC>
       <root url="file://$PROJECT_DIR$/libs/ecj/docs/classdocs" />

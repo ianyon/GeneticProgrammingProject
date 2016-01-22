@@ -5,10 +5,7 @@ import ec.EvolutionState;
 import ec.Individual;
 import ec.gp.*;
 import ec.gp.breed.GPBreedDefaults;
-import ec.gp.breed.MutateOneNodePipeline;
 import ec.util.Parameter;
-
-import java.util.Arrays;
 
 /**
  * Created by Ian on 19/01/2016.
@@ -30,7 +27,7 @@ public class KeepBestMutateOneNodePipeline extends GPBreedingPipeline {
     int tree;
 
     public Parameter defaultBase() {
-        return GPBreedDefaults.base().push(P_KEEPBESTMUTATEONENODEPIPELINE);
+        return new Parameter("cl.ian.gp").push(P_KEEPBESTMUTATEONENODEPIPELINE);
     }
 
     public int numSources() {
@@ -223,7 +220,7 @@ public class KeepBestMutateOneNodePipeline extends GPBreedingPipeline {
             }
 
             // add the new individual, replacing its previous source. Check if the parent has better fitness
-            inds[q] = j.fitness.betterThan(i.fitness)?j:i;
+            inds[q] = j.fitness.betterThan(i.fitness) ? j : i;
         }
         return n;
     }

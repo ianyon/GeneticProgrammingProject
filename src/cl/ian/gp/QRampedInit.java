@@ -1,10 +1,10 @@
 package cl.ian.gp;
 
 import cl.ian.gp.nodes.MeanReynoldsTerminal;
+import cl.ian.gp.nodes.Mul;
 import cl.ian.gp.nodes.MyERC;
 import cl.ian.gp.nodes.Power;
 import ec.EvolutionState;
-import ec.app.regression.func.Mul;
 import ec.gp.*;
 import ec.gp.koza.HalfBuilder;
 

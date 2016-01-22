@@ -41,11 +41,6 @@ public class QModeloFfriction {
     static final double doubleE = 2 * e;
 
     public QModeloFfriction() {
-        /*try {
-            mEngine = new JavascriptEngine();
-        } catch (ScriptException e) {
-            e.printStackTrace();
-        }*/
     }
 
     public double compute(double current, double separation, double flow, double initTemperature, double cellDiameter, GPIndividual individual, EvolutionStateBean stateBean) {
@@ -127,7 +122,6 @@ public class QModeloFfriction {
         final double heatPerArea = q / superficialArea;
         final double initialFFTerm = 0.5 * dfMultiplicationTerm * initialVelocity;
         final double fluidTempTerm = q / m_punto;
-        final JavascriptEngine engine = this.mEngine;
 
         // Ecuaciones
         for (int x = 0; x < 10; x++) {
@@ -155,8 +149,8 @@ public class QModeloFfriction {
                 /***************************************** Calculo de la presion **************************************/
                 stateBean.phenomenologicalModel.rem = rem.get(i);
                 stateBean.phenomenologicalModel.separation = separation;
-                stateBean.phenomenologicalModel.normalizedMeanVelocity = vmf.get(i)/initialVelocity;
-                stateBean.phenomenologicalModel.normalizedFluidDensity = df.get(i)/1.205;
+                stateBean.phenomenologicalModel.normalizedMeanVelocity = vmf.get(i) / initialVelocity;
+                stateBean.phenomenologicalModel.normalizedFluidDensity = df.get(i) / 1.205;
                 individual.trees[0].child.eval(stateBean.state, stateBean.threadnum, stateBean.input, stateBean.stack,
                         individual, stateBean.phenomenologicalModel);
                 double ffrictionX = stateBean.input.x;

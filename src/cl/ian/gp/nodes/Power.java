@@ -10,7 +10,7 @@ import ec.gp.GPNode;
 
 public class Power extends GPNode {
     public String toString() {
-        return "-";
+        return "^";
     }
 
     /*

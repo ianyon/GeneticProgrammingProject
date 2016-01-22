@@ -8,14 +8,9 @@ import ec.gp.GPData;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
-/**
- * @author Ian Yon
- * @version 1.1
- */
-
-public class Div extends GPNode {
+public class Sub extends GPNode {
     public String toString() {
-        return "/";
+        return "-";
     }
 
     /*
@@ -41,20 +36,14 @@ public class Div extends GPNode {
                      final ADFStack stack,
                      final GPIndividual individual,
                      final Problem problem) {
+        double result;
         PhenomenologicalData rd = ((PhenomenologicalData) (input));
 
-        // evaluate children[1] first to determine if the demoniator is 0
-        children[1].eval(state, thread, input, stack, individual, problem);
-        if (rd.x == 0.0)
-            // the answer is children[0] since the denominator was 0.0
-            children[0].eval(state, thread, input, stack, individual, problem);
-        else {
-            double result;
-            result = rd.x;
+        children[0].eval(state, thread, input, stack, individual, problem);
+        result = rd.x;
 
-            children[0].eval(state, thread, input, stack, individual, problem);
-            rd.x = rd.x / result;
-        }
+        children[1].eval(state, thread, input, stack, individual, problem);
+        rd.x = result - rd.x;
     }
 }
 

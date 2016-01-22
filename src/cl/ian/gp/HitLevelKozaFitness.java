@@ -9,7 +9,7 @@ import ec.util.Parameter;
  */
 public class HitLevelKozaFitness extends KozaFitness {
 
-    public static final String P_ACCEPTEDERROR = "acepted-error";
+    public static final String P_ACCEPTEDERROR = "accepted-error";
     public static final String P_REQUIREDMEETINGCONDITION = "required-meeting-condition";
 
     public double hitLevel;

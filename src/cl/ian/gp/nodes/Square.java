@@ -16,7 +16,7 @@ import ec.gp.GPNode;
  */
 public class Square extends GPNode {
     public String toString() {
-        return "square";
+        return "pow2";
     }
 
     /*

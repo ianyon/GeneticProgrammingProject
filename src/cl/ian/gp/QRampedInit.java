@@ -8,9 +8,6 @@ import ec.EvolutionState;
 import ec.gp.*;
 import ec.gp.koza.HalfBuilder;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * Created by Ian on 15/01/2016.
  */
@@ -22,17 +19,19 @@ public class QRampedInit extends HalfBuilder {
                                 final GPFunctionSet set,
                                 final int argposition,
                                 final int requestedSize) {
-        // First decide if we'll use the known approximation or Ramped Half Half
-        final int max = state.random[thread].nextInt(maxDepth - minDepth + 1) + minDepth;
+        // First half use known approximation
         if (state.random[thread].nextDouble() < 0.5)
-            return knownApproximation(state, max, type, thread, parent, argposition, set);
+            return knownApproximation(state, type, thread, parent, argposition, set);
+
+        final int max = state.random[thread].nextInt(maxDepth - minDepth + 1) + minDepth;
+        // The other half use Ramped Half Half
         if (state.random[thread].nextDouble() < pickGrowProbability)
             return growNode(state, 0, max, type, thread, parent, argposition, set);
         else
             return fullNode(state, 0, max, type, thread, parent, argposition, set);
     }
 
-    private GPNode knownApproximation(EvolutionState state, int max, GPType type, int thread,
+    private GPNode knownApproximation(EvolutionState state, GPType type, int thread,
                                       GPNodeParent parent, int argposition, GPFunctionSet set) {
         int t = type.type;
         GPNode[] terminals = set.terminals[t];

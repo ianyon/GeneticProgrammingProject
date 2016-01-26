@@ -11,7 +11,7 @@ import ec.gp.GPNode;
 
 public class MeanVelocityTerminal extends GPNode {
     public String toString() {
-        return "(Vmf(i)/Vinicio)";
+        return "Vmf(i)/Vinicio";
     }
 
     /*

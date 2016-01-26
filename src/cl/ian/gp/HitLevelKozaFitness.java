@@ -12,9 +12,9 @@ public class HitLevelKozaFitness extends KozaFitness {
     public static final String P_ACCEPTEDERROR = "accepted-error";
     public static final String P_REQUIREDMEETINGCONDITION = "required-meeting-condition";
 
-    public double hitLevel;
+    public static double hitLevel;
     public double meetsCondition;
-    public double requiredMeetingCondition;
+    public static double requiredMeetingCondition;
 
     @Override
     public void setup(EvolutionState state, Parameter base) {
@@ -31,6 +31,12 @@ public class HitLevelKozaFitness extends KozaFitness {
                     base.push(P_REQUIREDMEETINGCONDITION), def.push(P_REQUIREDMEETINGCONDITION));
         requiredMeetingCondition = state.parameters.getDouble(base.push(P_REQUIREDMEETINGCONDITION),
                 def.push(P_REQUIREDMEETINGCONDITION))/100;
+    }
+
+    @Override
+    public String fitnessToStringForHumans()
+    {
+        return "[Standardized=" + standardizedFitness + " Adjusted=" + adjustedFitness() + " Hits=" + hits+"]";
     }
 
     @Override

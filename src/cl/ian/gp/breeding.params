@@ -12,7 +12,7 @@ pop.subpop.0.species.pipe.source.1.prob = 0.1
 gp.koza.xover.tries = 1
 gp.koza.xover.maxdepth = 17
 # Return only one children (the other is thrown away)
-pop.subpop.0.species.pipe.0.toss = false
+gp.koza.xover.toss = false
 gp.koza.xover.ns.0 = ec.gp.koza.KozaNodeSelector
 gp.koza.xover.ns.1 = same
 gp.koza.xover.source.0 = ec.parsimony.LexicographicTournamentSelection
@@ -24,10 +24,12 @@ gp.breed.mutate-one-node.source.0 = ec.parsimony.LexicographicTournamentSelectio
 gp.breed.mutate-one-node.ns.0 = ec.gp.koza.KozaNodeSelector
 ###########################################################################################
 # Default Tournament Selection tournament size
-#select.tournament.size = 2
+# select.tournament.size = 2
 select.lexicographic-tournament.size = 2
 
 # Probability of selecting a type of node when performing breeding
 gp.koza.ns.terminals = 0.1
 gp.koza.ns.nonterminals = 0.9
 gp.koza.ns.root = 0.0
+
+breed.elite-fraction.0 = 0.1

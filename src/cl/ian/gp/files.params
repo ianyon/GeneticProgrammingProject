@@ -39,10 +39,8 @@ pop.subpop.0.species.fitness = cl.ian.gp.HitLevelKozaFitness
 pop.subpop.0.species.fitness.accepted-error = 5
 pop.subpop.0.species.fitness.required-meeting-condition = 100
 
-# The size of our training set, by default, is 20
-# Set to the value in the slice in q_fitness_tree_ffriction
-# eval.problem.size = 125
-eval.problem.size = 500
+# Random segments used to test the individuals (500 elements dataset)
+eval.problem.number-of-slices = 4
 
 # Load input and output data for training
 eval.problem.inputfile = $TrainingData/doe500train_sort.txt

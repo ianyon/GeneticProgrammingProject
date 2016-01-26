@@ -1,8 +1,8 @@
 package cl.ian.gp.nodes;
 
+import cl.ian.gp.PhenomenologicalData;
 import ec.EvolutionState;
 import ec.Problem;
-import ec.app.regression.RegressionData;
 import ec.gp.ADFStack;
 import ec.gp.GPData;
 import ec.gp.GPIndividual;
@@ -42,9 +42,9 @@ public class Square extends GPNode {
                      final ADFStack stack,
                      final GPIndividual individual,
                      final Problem problem) {
-        RegressionData rd = ((RegressionData) (input));
+        PhenomenologicalData rd = ((PhenomenologicalData) (input));
 
-        children[0].eval(state,thread,input,stack,individual,problem);
+        children[0].eval(state, thread, input, stack, individual, problem);
         rd.x = rd.x * rd.x;
 
         // This happens if the result is NaN, Infinite or not real

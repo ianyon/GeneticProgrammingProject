@@ -1,20 +1,11 @@
-# parent.0 = libs/ecj/ec/gp/koza/koza.params
-
 parent.0 = files.params
-parent.1 = breeding.params
-parent.2 = types.params
+parent.1 = types.params
+parent.2 = breeding.params
 
-gp.tree.print-style = c
+#parent.0 = ../../../../libs/ecj/ec/gp/koza/koza.params
 
-# Garbage collection (Apparently where eliminated in version 14)
-gc = false
-aggressive = true
-gc-modulo = 1
+# gp.tree.print-style = c
 
-# Outputting Stuff
-nostore = false
-flush = true
-verbosity = 0
 ####################################### In ec.params #####################################
 # Number of threads and random number generator seeds
 breedthreads = auto
@@ -35,35 +26,36 @@ init = ec.gp.GPInitializer
 finish = ec.simple.SimpleFinisher
 exch = ec.simple.SimpleExchanger
 breed = ec.simple.SimpleBreeder
-breed.minimum-size = 10
+breed.minimum-size.0 = 2000
 
 # The Evaluator and the Problem (ADF stuff is always loaded but not used in this case)
 eval = ec.simple.SimpleEvaluator
 
 # The Statistics (ec.simple.SimpleStatistics)
-stat = ec.gp.koza.KozaShortStatistics
+stat = cl.ian.gp.SimpleGPStatistics
+stat.do-final = true
 stat.file = $out.stat
-stat.do-depth = true
-stat.do-time = true
-stat.do-size = true
-
-#stat = ec.simple.SimpleStatistics
-#stat.file = $out.stat
-#stat.num-children = 1
-#stat.child.0 = ec.gp.koza.KozaShortStatistics
-#stat.child.0.file = $out2.stat
-#stat.child.0.do-depth = true
-#stat.child.0.do-time = true
-#stat.child.0.do-size = true
+stat.num-children = 1
+# stat.child.0 = cl.ian.gp.MyKozaShortStatistics
+stat.child.0 = ec.gp.koza.KozaShortStatistics
+stat.child.0.file = $out2.stat
+stat.child.0.do-depth = true
+stat.child.0.do-time = true
+stat.child.0.do-size = true
 
 # Evolution Parameters
-generations = 5
-quit-on-run-complete = true
+generations = 300
+quit-on-run-complete = false
 
 # The Population, and its one subpopulation, species, breeding pipelines and individuals
 pop = ec.Population
 pop.subpops = 1
 pop.subpop.0 = ec.Subpopulation
-pop.subpop.0.size = 10
+pop.subpop.0.size = 4000
 pop.subpop.0.duplicate-retries = 20
 ###########################################################################################
+#print-all-params = true
+#print-accessed-params = true
+#print-used-params = true
+#print-unaccessed-params = true
+#print-unused-params = true

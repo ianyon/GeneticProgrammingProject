@@ -18,7 +18,7 @@ import ec.gp.GPNode;
 
 public class DensityTerminal extends GPNode
     {
-    public String toString() { return "(Df(i)/1.205)"; }
+    public String toString() { return "Df(i)/1.205"; }
 
 /*
   public void checkConstraints(final EvolutionState state,

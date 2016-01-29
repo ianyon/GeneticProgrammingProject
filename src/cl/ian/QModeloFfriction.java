@@ -22,7 +22,6 @@ import static java.lang.Math.*;
  */
 
 public class QModeloFfriction {
-    JavascriptEngine mEngine;
 
     // Cantidad de celdas
     static final int col_fluido = 2;

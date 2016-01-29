@@ -127,6 +127,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         final double BIG_NUMBER = 1.0e15;  // the same as lilgp uses
 
         for (int i = sliceLimits[slice]; i < sliceLimits[slice + 1]; i++) {
+        //for (int i = 0; i < inputs.length; i++) {
             currentValue = inputs[i];
             input.x = model.compute(currentValue[0], currentValue[1], currentValue[2], currentValue[3], currentValue[4],
                     (GPIndividual) ind, new EvolutionStateBean(state, threadnum, input, stack, this));

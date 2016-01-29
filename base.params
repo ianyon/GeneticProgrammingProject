@@ -1,0 +1,122 @@
+parent.0 = libs/ecj/ec/gp/koza/koza.params
+###########################################################################################
+# Number of threads and random number generator seeds
+breedthreads = auto
+evalthreads = auto
+# seed.0 = 4357
+
+# The Statistics
+stat = cl.ian.gp.SimpleGPStatistics
+stat.do-final = true
+stat.file = $out.stat
+stat.num-children = 1
+# stat.child.0 = cl.ian.gp.MyKozaShortStatistics
+stat.child.0 = ec.gp.koza.KozaShortStatistics
+stat.child.0.file = $out2.stat
+stat.child.0.do-depth = true
+stat.child.0.do-time = true
+stat.child.0.do-size = true
+# gp.tree.print-style = c
+
+#print-all-params = true
+#print-accessed-params = true
+#print-used-params = true
+print-unaccessed-params = true
+#print-unused-params = true
+# print-params = true
+###########################################################################################
+# Load input and output data for training
+eval.problem.inputfile = $TrainingData/doe500train_sort.txt
+eval.problem.outputfile = $TrainingData/salidas_P500train_sort.txt
+
+# Evolution Parameters
+generations = 60
+quit-on-run-complete = false
+
+# The Population
+pop.subpop.0.size = 4000
+pop.subpop.0.duplicate-retries = 20
+breed.minimum-size.0 = 2000
+
+############################### Functions and terminals #############################################################
+gp.fs.0.size = 11
+# We have six functions in the function set:
+gp.fs.0.func.0 = cl.ian.gp.nodes.Add
+gp.fs.0.func.0.nc = nc2
+gp.fs.0.func.1 = cl.ian.gp.nodes.Sub
+gp.fs.0.func.1.nc = nc2
+gp.fs.0.func.2 = cl.ian.gp.nodes.Mul
+gp.fs.0.func.2.nc = nc2
+gp.fs.0.func.3 = cl.ian.gp.nodes.Div
+gp.fs.0.func.3.nc = nc2
+gp.fs.0.func.4 = cl.ian.gp.nodes.Square
+gp.fs.0.func.4.nc = nc1
+gp.fs.0.func.5 = cl.ian.gp.nodes.Power
+gp.fs.0.func.5.nc = nc2
+
+# We have five terminals:
+gp.fs.0.func.6 = cl.ian.gp.nodes.MyERC
+gp.fs.0.func.6.nc = nc0
+gp.fs.0.func.7 = cl.ian.gp.nodes.MeanVelocityTerminal
+gp.fs.0.func.7.nc = nc0
+gp.fs.0.func.8 = cl.ian.gp.nodes.DensityTerminal
+gp.fs.0.func.8.nc = nc0
+gp.fs.0.func.9 = cl.ian.gp.nodes.SeparationTerminal
+gp.fs.0.func.9.nc = nc0
+gp.fs.0.func.10 = cl.ian.gp.nodes.MeanReynoldsTerminal
+gp.fs.0.func.10.nc = nc0
+###########################################################################################
+# The class of the problem
+eval.problem = cl.ian.gp.PhenomenologicalModel
+eval.problem.data = cl.ian.gp.PhenomenologicalData
+
+pop.subpop.0.species.ind = cl.ian.gp.MyGPIndividual
+pop.subpop.0.species.fitness = cl.ian.gp.HitLevelKozaFitness
+pop.subpop.0.species.fitness.accepted-error = 5
+pop.subpop.0.species.fitness.required-meeting-condition = 100
+
+# Vertical slicing: Random segments used to test the individuals (500 elements dataset)
+eval.problem.number-of-slices = 4
+
+# QRampedInit (modified ramped half/half tree building) parameters
+gp.tc.0.init = cl.ian.gp.QRampedInit
+# Min and Max level for initial individuals
+gp.tc.0.init.min-depth = 2
+gp.tc.0.init.max-depth = 6
+gp.tc.0.init.growp = 0.5
+################################## Breeding pipelines #####################################
+pop.subpop.0.species.pipe = ec.breed.MultiBreedingPipeline
+pop.subpop.0.species.pipe.generate-max = false
+pop.subpop.0.species.pipe.num-sources = 2
+#pop.subpop.0.species.pipe.source.0 = cl.ian.gp.KeepBestCrossoverPipeline
+pop.subpop.0.species.pipe.source.0 = ec.gp.koza.CrossoverPipeline
+pop.subpop.0.species.pipe.source.0.prob = 0.9
+pop.subpop.0.species.pipe.source.1 = ec.gp.breed.MutateOneNodePipeline
+pop.subpop.0.species.pipe.source.1.prob = 0.1
+# Crossover parameters
+gp.koza.xover.tries = 1
+gp.koza.xover.maxdepth = 17
+# Return only one children (the other is thrown away)
+gp.koza.xover.toss = false
+gp.koza.xover.ns.0 = ec.gp.koza.KozaNodeSelector
+gp.koza.xover.ns.1 = same
+gp.koza.xover.source.0 = ec.parsimony.LexicographicTournamentSelection
+gp.koza.xover.source.1 = same
+# Mutation parameters
+#cl.ian.gp.keep-best-mutate-one-node.source.0 = ec.parsimony.LexicographicTournamentSelection
+#cl.ian.gp.keep-best-mutate-one-node.ns.0 = ec.gp.koza.KozaNodeSelector
+gp.breed.mutate-one-node.source.0 = ec.parsimony.LexicographicTournamentSelection
+gp.breed.mutate-one-node.ns.0 = ec.gp.koza.KozaNodeSelector
+
+# select.tournament.size = 2
+select.lexicographic-tournament.size = 2
+
+# Probability of selecting a type of node when performing breeding
+gp.koza.ns.terminals = 0.1
+gp.koza.ns.nonterminals = 0.9
+gp.koza.ns.root = 0.0
+
+breed.elite-fraction.0 = 0.25
+###########################################################################################
+
+

@@ -1,3 +1,7 @@
+The class Main executes the evolutionary process. It uses ".param" files for friction factor, drag coefficient and nusselt number.
+The param files controls almost every parameter of the evolutionary process.
+
+Instrucciones para el código original en Matlab:
 Para comenzar a utilizar el código, diríjanse a la carpeta:
 \matlab code\GPlab\FfrictionMSEreg01
 Ejecuten el archivo:

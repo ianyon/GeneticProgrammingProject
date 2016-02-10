@@ -31,7 +31,14 @@ public class ModelUtils {
 		return rho * v * Diam / visc;
 	}
 
-	public static double q_nusselt2(double re, double a) {
+	/**
+	 * Part of the phenomenological expression of the nusselt number the other part is q_cznusselt in class
+	 * Interpolation
+	 * @param re Reinolds number
+	 * @param a3
+     * @return
+     */
+	public static double q_nusselt2(double re, double a3) {
 		//   Prandlt = 0.7 y Pr = 0.689
 		double Pr = 0.713;
 		double Pr_w = 0.689;
@@ -45,20 +52,19 @@ public class ModelUtils {
 
 		if (re <= 1E2) {
 			c = 0.9;
-			m = a;
+			m = a3;
 			n = 0.37;
 		} else if (re > 1E2 && re <= 1E3) {
 			c = 0.51;
-			m = a;
+			m = a3;
 			n = 0.37;
 		} else if (re > 1E3 && re <= 2E5) {
 			c = 0.35;
-			m = a;
+			m = a3;
 			n = 0.37;
-		} else {
-			// re > 2E5
+		} else {			// re > 2E5
 			c = 0.023;
-			m = a;
+			m = a3;
 			n = 0.37;
 		}
 

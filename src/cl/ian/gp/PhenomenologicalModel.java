@@ -1,6 +1,10 @@
 package cl.ian.gp;
 
-import cl.ian.QModeloFfriction;
+import cl.ian.GeneralModelEvaluator;
+import cl.ian.InputVariables;
+import cl.ian.problemtype.DragCoefficientEvaluator;
+import cl.ian.problemtype.FrictionFactorEvaluator;
+import cl.ian.problemtype.NusseltNumberEvaluator;
 import ec.EvolutionState;
 import ec.Individual;
 import ec.gp.GPIndividual;
@@ -8,7 +12,6 @@ import ec.gp.GPProblem;
 import ec.simple.SimpleProblemForm;
 import ec.util.Parameter;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -21,27 +24,51 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     public static final String P_NUMBER_OF_SLICES = "number-of-slices";
     public static final String INPUT_FILE = "inputfile";
     public static final String OUTPUT_FILE = "outputfile";
+    public static final String REGULARIZATION_FACTOR = "regularization-factor";
+    public static final String PROBLEM_CASE = "problem-case";
 
-    public double[] currentValue = new double[5];
+    public enum Case {
+        FRICTION_FACTOR("FrictionFactor"),
+        DRAG_COEFFICIENT("DragCoefficient"),
+        NUSSELT_NUMBER("NusseltNumber");
+
+        public final String text;
+
+        Case(final String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return text;
+        }
+    }
+
+    public final InputVariables currentValue = new InputVariables();
+    public final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
     public int slicesCount;
     private int slice;
     private int[] sliceLimits;
-    public File file;
 
     public double inputs[][];
     public double outputs[];
 
-    public static final QModeloFfriction model = new QModeloFfriction();
+    public static GeneralModelEvaluator model;
+
+    // Regularization factor
+    public double alpha;
 
     /**
      * Variables used in the evaluation of the individual
      **/
-    public double rem;
+    public double reynolds;
     public double separation;
-    public double normalizedMeanVelocity;
-    public double normalizedFluidDensity;
-    private static int lastGeneration;
+    public double normalizedVelocity;
+    public double normalizedDensity;
+    public double normalizedArea;
+    public double fluidColumn;
 
+    private static int lastGeneration;
 
     /******************************************************************************************************************/
 
@@ -98,6 +125,18 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
         // Used to mark the advance in time
         lastGeneration = -1;
+
+        alpha = state.parameters.getDouble(base.push(REGULARIZATION_FACTOR), null, 0.0);
+
+        String problemCase = state.parameters.getString(base.push(PROBLEM_CASE), null);
+
+        if (problemCase.equalsIgnoreCase(Case.FRICTION_FACTOR.text)) {
+            model = new GeneralModelEvaluator(new FrictionFactorEvaluator());
+        } else if (problemCase.equalsIgnoreCase(Case.DRAG_COEFFICIENT.text)) {
+            model = new GeneralModelEvaluator(new DragCoefficientEvaluator());
+        } else if (problemCase.equalsIgnoreCase(Case.NUSSELT_NUMBER.text)) {
+            model = new GeneralModelEvaluator(new NusseltNumberEvaluator());
+        }
     }
 
     public void evaluate(final EvolutionState state, final Individual ind, final int subpop, final int threadnum) {
@@ -123,14 +162,19 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         int hits = 0;
         double quadraticErrorSum = 0.0;
         double error;
-        final double PROBABLY_ZERO = 1.11E-15;
-        final double BIG_NUMBER = 1.0e15;  // the same as lilgp uses
 
         for (int i = sliceLimits[slice]; i < sliceLimits[slice + 1]; i++) {
-        //for (int i = 0; i < inputs.length; i++) {
-            currentValue = inputs[i];
-            input.x = model.compute(currentValue[0], currentValue[1], currentValue[2], currentValue[3], currentValue[4],
-                    (GPIndividual) ind, new EvolutionStateBean(state, threadnum, input, stack, this));
+            //for (int i = 0; i < inputs.length; i++) {
+            currentValue.set(inputs[i]);
+            evolutionStateBean.set(state, threadnum, input, stack, this);
+            input.x = model.compute(
+                    currentValue.current,
+                    currentValue.separation,
+                    currentValue.flow,
+                    currentValue.initTemperature,
+                    currentValue.cellDiameter,
+                    (GPIndividual) ind,
+                    evolutionStateBean);
 
             error = outputs[i] - input.x;
 
@@ -145,12 +189,9 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
             quadraticErrorSum += error * error;
         }
 
-        // Regularization factor
-        final double alpha = 0.1;
-        final double regularizationExpression = alpha * Math.sqrt(ind.size());
         // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
         int testCount = sliceLimits[slice + 1] - sliceLimits[slice];
-        double MSEWithRegularization = quadraticErrorSum / testCount + regularizationExpression;
+        double MSEWithRegularization = quadraticErrorSum / testCount + alpha * Math.sqrt(ind.size());
 
         //ind.error=0;
         if (Double.isNaN(MSEWithRegularization))
@@ -163,6 +204,30 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         f.meetsCondition = (double) hits / testCount;
         ind.evaluated = true;
 
+    }
+
+    public void setFrictionFactorModelVariables(double reynolds,
+                                                double separation,
+                                                double normalizedVelocity,
+                                                double normalizedDensity) {
+        this.reynolds = reynolds;
+        this.separation = separation;
+        this.normalizedVelocity = normalizedVelocity;
+        this.normalizedDensity = normalizedDensity;
+    }
+
+    public void setDragCoefficientModelVariables(double reynolds,
+                                                 double normalizedArea,
+                                                 double normalizedDensity,
+                                                 double fluidColumn) {
+        this.reynolds = reynolds;
+        this.normalizedArea = normalizedArea;
+        this.normalizedDensity = normalizedDensity;
+        this.fluidColumn = fluidColumn;
+    }
+
+    public void setNusseltNumberModelVariables(double rem) {
+        this.reynolds = rem;
     }
 }
 

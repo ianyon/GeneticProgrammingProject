@@ -3,8 +3,8 @@ package cl.ian.gp;
 import ec.EvolutionState;
 import ec.Individual;
 import ec.gp.GPIndividual;
-import ec.simple.SimpleProblemForm;
 import ec.simple.SimpleStatistics;
+import ec.util.Parameter;
 
 /**
  * Created by Ian on 26/01/2016.
@@ -13,7 +13,17 @@ public class SimpleGPStatistics extends SimpleStatistics {
     protected boolean warned = false;
 
     @Override
+    public void setup(EvolutionState state, Parameter base) {
+        super.setup(state, base);
+
+        if(children.length!=0 && children[0] instanceof MyKozaShortStatistics){
+            ((MyKozaShortStatistics)children[0]).printHeader(state);
+        }
+    }
+
+    @Override
     public void postEvaluationStatistics(final EvolutionState state) {
+        super.postEvaluationStatistics(state);
         // for now we just print the best fitness per subpopulation.
         Individual[] best_i = new Individual[state.population.subpops.length];  // quiets compiler complaints
         for (int x = 0; x < state.population.subpops.length; x++) {

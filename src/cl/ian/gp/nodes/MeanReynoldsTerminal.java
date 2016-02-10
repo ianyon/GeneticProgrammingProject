@@ -36,7 +36,7 @@ public class MeanReynoldsTerminal extends GPNode
         final Problem problem)
         {
         PhenomenologicalData rd = ((PhenomenologicalData)(input));
-        rd.x = ((PhenomenologicalModel)problem).rem;
+        rd.x = ((PhenomenologicalModel)problem).reynolds;
         }
     }
 

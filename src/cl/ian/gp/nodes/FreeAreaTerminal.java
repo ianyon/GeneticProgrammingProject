@@ -9,9 +9,9 @@ import ec.gp.GPData;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
-public class MeanVelocityTerminal extends GPNode {
+public class FreeAreaTerminal extends GPNode {
     public String toString() {
-        return "Vmf(i)/Vinicio";
+        return "A_sup/A_vol";
     }
 
     /*
@@ -38,7 +38,7 @@ public class MeanVelocityTerminal extends GPNode {
                      final GPIndividual individual,
                      final Problem problem) {
         PhenomenologicalData rd = ((PhenomenologicalData) (input));
-        rd.x = ((PhenomenologicalModel)problem).normalizedVelocity;
+        rd.x = ((PhenomenologicalModel)problem).normalizedArea;
     }
 }
 

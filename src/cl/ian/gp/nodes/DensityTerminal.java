@@ -43,7 +43,7 @@ public class DensityTerminal extends GPNode
         final Problem problem)
         {
         PhenomenologicalData rd = ((PhenomenologicalData)(input));
-        rd.x = ((PhenomenologicalModel)problem).normalizedFluidDensity;
+        rd.x = ((PhenomenologicalModel)problem).normalizedDensity;
         }
     }
 

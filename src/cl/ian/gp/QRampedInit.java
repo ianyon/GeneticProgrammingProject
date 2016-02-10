@@ -79,9 +79,9 @@ public class QRampedInit extends HalfBuilder {
     }
 
     private static GPNode returnNode(GPNode[] nodes, Class id, EvolutionState state) {
-        for (int i = 0; i < nodes.length; i++) {
-            if (nodes[i].getClass() == id)
-                return nodes[i].lightClone();
+        for (GPNode node : nodes) {
+            if (node.getClass() == id)
+                return node.lightClone();
         }
         state.output.fatal("Custom initialization doesn't found required node");
 

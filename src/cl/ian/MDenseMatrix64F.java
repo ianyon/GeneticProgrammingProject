@@ -9,17 +9,13 @@ import static java.lang.Math.abs;
  * Created by ian on 6/16/15.
  */
 public class MDenseMatrix64F extends DenseMatrix64F {
-	public MDenseMatrix64F(int rows, int cols, double value) {
-		super(rows, cols);
+	public MDenseMatrix64F(int cols, double value) {
+		super(1, cols);
 		CommonOps.fill(this, value);
 	}
 
-	public MDenseMatrix64F(int rows, int cols) {
-		super(rows, cols);
-	}
-
-	public void set(int index, DenseMatrix64F matrix) {
-		set(index, matrix.get(index));
+	public MDenseMatrix64F(int cols) {
+		super(1, cols);
 	}
 
 	public void setValue(int index, double[] error, double value) {

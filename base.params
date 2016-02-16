@@ -22,13 +22,13 @@ stat.child.0.do-size = true
 #print-all-params = true
 #print-accessed-params = true
 #print-used-params = true
-print-unaccessed-params = true
+#print-unaccessed-params = true
 #print-unused-params = true
-# print-params = true
+#print-params = true
 ###########################################################################################
 # Evolution Parameters
-generations = 10
-quit-on-run-complete = false
+generations = 30
+quit-on-run-complete = true
 
 # The Population
 pop.subpop.0.size = 200
@@ -86,5 +86,5 @@ gp.koza.ns.terminals = 0.1
 gp.koza.ns.nonterminals = 0.9
 gp.koza.ns.root = 0.0
 
-breed.elite-fraction.0 = 0.25
+# breed.elite-fraction.0 = 0.25
 ###########################################################################################

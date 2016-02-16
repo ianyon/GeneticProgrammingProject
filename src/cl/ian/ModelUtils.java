@@ -9,7 +9,7 @@ public class ModelUtils {
 	/**
 	 * Drag en función del Reynolds
 	 *
-	 * @param Re Reynolds function?
+	 * @param Re Reynolds
 	 * @return
 	 */
 	public static double q_cdr3(double Re) {

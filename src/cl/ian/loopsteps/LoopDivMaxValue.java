@@ -9,13 +9,19 @@ import java.util.ArrayList;
 /**
  * Created by Ian on 16/02/2016.
  */
-public class LoopDivMaxValue extends ECJCallable {
+public class LoopDivMaxValue extends LoopCallable {
 
 
-  public LoopDivMaxValue(ParameterDatabase database, EvolutionState state, ArrayList<ECJCallable> loopSteps, int index) {
+  public LoopDivMaxValue(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     super(database, state, loopSteps, index);
     parametersHeader.set(index, "UseDivMaxVal=");
   }
+
+  @Override
+  public int numberOfLoops() {
+    return 2;
+  }
+
 
   @Override
   public Void call() throws Exception {
@@ -26,7 +32,7 @@ public class LoopDivMaxValue extends ECJCallable {
       else value = "cl.ian.gp.nodes.DivMaxDouble";
 
       database.set(new Parameter("gp.fs.0.func.3"), value);
-      parametersValue.set(index, "" + value);
+      parametersValue.set(index, "" + (useMaxDoubleDiv == 1));
 
       doExecutionOrContinueWithNextStep();
     }

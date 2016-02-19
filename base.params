@@ -8,6 +8,8 @@ evalthreads = auto
 # The Statistics
 stat = cl.ian.gp.SimpleGPStatistics
 stat.do-final = true
+# stat.only-final = true
+# stat.silent = true
 stat.file = $out.stat
 stat.num-children = 1
 stat.child.0 = cl.ian.gp.MyKozaShortStatistics

@@ -5,8 +5,8 @@ eval.problem.outputfile = $TrainingData/salidas_P500train_sort.txt
 eval.problem.problem-case = FrictionFactor
 eval.problem.regularization-factor = 0.1
 
-stat.file = $frictionOut.stat
-stat.child.0.file = $frictionOut2.stat
+stat.file = $Results/frictionOut.stat
+stat.child.0.file = $Results/frictionOut2.stat
 ############################### Functions and terminals #############################################################
 gp.fs.0.size = 11
 # We have six functions in the function set:

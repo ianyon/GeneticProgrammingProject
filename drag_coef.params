@@ -5,8 +5,8 @@ eval.problem.outputfile = $TrainingData/salidas_V500train_sort.txt
 eval.problem.problem-case = DragCoefficient
 eval.problem.regularization-factor = 0.5
 
-stat.file = $dragOut.stat
-stat.child.0.file = $dragOut2.stat
+stat.file = $Results/dragOut.stat
+stat.child.0.file = $Results/dragOut2.stat
 ############################### Functions and terminals #############################################################
 gp.fs.0.size = 11
 # We have six functions in the function set:

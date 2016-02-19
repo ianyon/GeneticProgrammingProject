@@ -9,18 +9,23 @@ import java.util.ArrayList;
 /**
  * Created by Ian on 16/02/2016.
  */
-public class LoopPopulation extends ECJCallable {
+public class LoopPopulation extends LoopCallable {
 
 
-  public LoopPopulation(ParameterDatabase database, EvolutionState state, ArrayList<ECJCallable> loopSteps, int index) {
+  public LoopPopulation(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     super(database, state, loopSteps, index);
     parametersHeader.set(index, "Pop=");
   }
 
   @Override
+  public int numberOfLoops() {
+    return 2;
+  }
+
+  @Override
   public Void call() throws Exception {
     // Loop through the population size 2000,4000
-    for (int popSize = 200; popSize <= 400; popSize += 200) {//TODO Cambiar valores
+    for (int popSize = 2000; popSize <= 4000; popSize += 2000) {//TODO Cambiar valores
       // Population size
       database.set(new Parameter("pop.subpop.0.size"), "" + popSize);
       parametersValue.set(index, "" + popSize);

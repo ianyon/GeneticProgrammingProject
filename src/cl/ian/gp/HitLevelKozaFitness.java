@@ -36,7 +36,7 @@ public class HitLevelKozaFitness extends KozaFitness {
     @Override
     public String fitnessToStringForHumans()
     {
-        return "[Standardized=" + standardizedFitness + " Adjusted=" + adjustedFitness() + " Hits=" + hits+"]";
+        return "" + standardizedFitness + " (Adjusted=" + adjustedFitness() + ", Hits=" + hits+")";
     }
 
     @Override

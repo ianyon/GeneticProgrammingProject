@@ -3,6 +3,7 @@ package cl.ian;
 import cl.ian.loopsteps.*;
 import ec.EvolutionState;
 import ec.Evolve;
+import ec.app.edge.func.Loop;
 import ec.util.ParameterDatabase;
 
 import java.util.ArrayList;
@@ -14,20 +15,21 @@ public class Main {
     ParameterDatabase frictionDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "friction_factor.params"});
     EvolutionState frictionState = Evolve.initialize(frictionDatabase, 0);
 
-    ArrayList<ECJCallable> loopSteps = new ArrayList<>();
-    //loopSteps.add(new LoopPopulation(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
-//    loopSteps.add(new LoopCrossoverRate(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
-//    loopSteps.add(new LoopMaxInitialTreeDepth(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
+    ArrayList<LoopCallable> loopSteps = new ArrayList<>();
+    loopSteps.add(new LoopPopulation(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopCrossoverRate(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopMaxInitialTreeDepth(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopMaxTreeDepth(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
-    //loopSteps.add(new LoopDivMaxValue(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopDivMaxValue(frictionDatabase, frictionState, loopSteps, loopSteps.size()));
 
+    System.out.println("Friction factor, number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
     long startFrictionTime = System.nanoTime();
-
     try {
       loopSteps.get(0).call();
     } catch (Exception e) {
       System.out.println("Exception during loop call");
       e.printStackTrace();
+      System.exit(-1);
     }
     System.out.println("Terminado factor de fricción (" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");
 

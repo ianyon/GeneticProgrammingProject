@@ -12,8 +12,6 @@ import java.util.concurrent.Callable;
  * Created by Ian on 16/02/2016.
  */
 public abstract class LoopCallable implements Callable {
-  private static int totalExecutionLoops;
-  private static int completedExecutionLoops;
   public final ArrayList<LoopCallable> loopSteps;
   public final int index;
   public ParameterDatabase database;
@@ -22,6 +20,11 @@ public abstract class LoopCallable implements Callable {
   // Fields to show the actual loop information
   public static final ArrayList<String> parametersHeader = new ArrayList<>();
   public static final ArrayList<String> parametersValue = new ArrayList<>();
+
+  private static int totalExecutionLoops;
+  private static int completedExecutionLoops;
+  private static double meanExecutionTime;
+  private static double estimatedRemainingTime;
 
   public LoopCallable(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     this.database = database;
@@ -33,14 +36,38 @@ public abstract class LoopCallable implements Callable {
     completedExecutionLoops = 0;
   }
 
+  public static ArrayList<LoopCallable> populateLoops(ParameterDatabase database, EvolutionState state) {
+    ArrayList<LoopCallable> loopSteps = new ArrayList<>();
+    loopSteps.add(new LoopPopulation(database, state, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopDivMaxValue(database, state, loopSteps, loopSteps.size()));
+    return loopSteps;
+  }
+
+  public static void InititateLoops(ArrayList<LoopCallable> loopSteps) {
+    try {
+      loopSteps.get(0).call();
+    } catch (Exception e) {
+      System.out.println("Exception during loop call");
+      e.printStackTrace();
+      System.exit(-1);
+    }
+  }
+
   protected void doExecution() {
     printHeader();
 
     long startTime = System.nanoTime();
     state.run(EvolutionState.C_STARTED_FRESH);
     Evolve.cleanup(state);
-    System.out.println("Tiempo ejecución:" + (System.nanoTime() - startTime) / 1000000000.0 + " s\n");
+    double thisTime = (System.nanoTime() - startTime) / 1000000000.0;
     completedExecutionLoops++;
+    meanExecutionTime =
+        (meanExecutionTime * (completedExecutionLoops - 1) + thisTime) / completedExecutionLoops;
+    estimatedRemainingTime = Math.round(meanExecutionTime * (totalExecutionLoops - completedExecutionLoops));
+    System.out.println("Execution time:" + thisTime + " s\n");
   }
 
   private void printHeader() {
@@ -49,9 +76,23 @@ public abstract class LoopCallable implements Callable {
       message += " " + parametersHeader.get(i) + parametersValue.get(i) + ",";
 
     // Delete the trailing comma
-    System.out.println("Ejecución " + (completedExecutionLoops + 1) + "/" + totalExecutionLoops +
-        " (" + 100 * completedExecutionLoops / totalExecutionLoops + "%)");
-    System.out.println("Parámetros:" + message.substring(0, message.length() - 1));
+    String progressMessage = "Execution " + (completedExecutionLoops + 1) + "/" + totalExecutionLoops +
+        " (" + 100 * completedExecutionLoops / totalExecutionLoops + "%)";
+
+    // Format the remaining time
+    if (completedExecutionLoops != 0) {
+      int hr = (int) estimatedRemainingTime / 3600;
+      int min = (int) (estimatedRemainingTime - 3600 * hr) / 60;
+      int sec = (int) (estimatedRemainingTime - 3600 * hr - 60 * min);
+      progressMessage += ": Estimated remaining time  " + String.format("%02d:%02d:%02d", hr, min, sec);
+      hr = (int) (estimatedRemainingTime * 3) / 3600;
+      min = (int) ((estimatedRemainingTime * 3) - 3600 * hr) / 60;
+      sec = (int) ((estimatedRemainingTime * 3) - 3600 * hr - 60 * min);
+      progressMessage += " (" + String.format("%02d:%02d:%02d", hr, min, sec) + ")";
+    }
+    System.out.println(progressMessage);
+
+    System.out.println("\nParameters:" + message.substring(0, message.length() - 1));
     database.set(new Parameter("stat.file.suffix"), message.substring(0, message.length() - 1));
   }
 

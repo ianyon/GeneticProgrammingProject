@@ -29,7 +29,7 @@ stat.child.0.do-size = true
 #print-params = true
 ###########################################################################################
 # Evolution Parameters
-generations = 30
+generations = 300
 quit-on-run-complete = true
 
 # The Population

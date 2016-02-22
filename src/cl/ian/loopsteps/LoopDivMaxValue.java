@@ -14,7 +14,7 @@ public class LoopDivMaxValue extends LoopCallable {
 
   public LoopDivMaxValue(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     super(database, state, loopSteps, index);
-    parametersHeader.set(index, "UseDivMaxVal=");
+    parametersHeader.add("UseDivMaxVal=");
   }
 
   @Override

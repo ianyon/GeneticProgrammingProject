@@ -14,7 +14,7 @@ public class LoopCrossoverRate extends LoopCallable {
 
   public LoopCrossoverRate(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     super(database, state, loopSteps, index);
-    parametersHeader.set(index, "CrossoverRate=");
+    parametersHeader.add("CrossoverRate=");
   }
 
   @Override

@@ -14,7 +14,7 @@ public class LoopPopulation extends LoopCallable {
 
   public LoopPopulation(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     super(database, state, loopSteps, index);
-    parametersHeader.set(index, "Pop=");
+    parametersHeader.add("Pop=");
   }
 
   @Override

@@ -30,10 +30,11 @@ public abstract class LoopCallable implements Callable {
     this.database = database;
     this.state = state;
     this.loopSteps = loopSteps;
-    parametersHeader.add("");
     parametersValue.add("");
     this.index = index;
     completedExecutionLoops = 0;
+    meanExecutionTime = 0;
+    estimatedRemainingTime = 0;
   }
 
   public static ArrayList<LoopCallable> populateLoops(ParameterDatabase database, EvolutionState state) {
@@ -46,7 +47,7 @@ public abstract class LoopCallable implements Callable {
     return loopSteps;
   }
 
-  public static void InititateLoops(ArrayList<LoopCallable> loopSteps) {
+  public static void InitiateLoops(ArrayList<LoopCallable> loopSteps) {
     try {
       loopSteps.get(0).call();
     } catch (Exception e) {
@@ -73,7 +74,7 @@ public abstract class LoopCallable implements Callable {
   private void printHeader() {
     String message = "";
     for (int i = 0; i < parametersHeader.size(); i++)
-      message += " " + parametersHeader.get(i) + parametersValue.get(i) + ",";
+      message += " " + parametersHeader.get(i) + parametersValue.get(i);
 
     // Delete the trailing comma
     String progressMessage = "Execution " + (completedExecutionLoops + 1) + "/" + totalExecutionLoops +
@@ -92,8 +93,8 @@ public abstract class LoopCallable implements Callable {
     }
     System.out.println(progressMessage);
 
-    System.out.println("\nParameters:" + message.substring(0, message.length() - 1));
-    database.set(new Parameter("stat.file.suffix"), message.substring(0, message.length() - 1));
+    System.out.println("\nParameters:" + message);
+    database.set(new Parameter("stat.file.suffix"), message);
   }
 
   protected void doExecutionOrContinueWithNextStep() throws Exception {

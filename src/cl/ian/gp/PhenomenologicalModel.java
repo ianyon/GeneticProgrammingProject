@@ -161,7 +161,10 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
         int hits = 0;
         double quadraticErrorSum = 0.0;
+        double errorSum = 0.0;
         double error;
+        double resultAvg = 0.0;
+        double quadraticResultSum = 0.0;
 
         for (int i = sliceLimits[slice]; i < sliceLimits[slice + 1]; i++) {
             //for (int i = 0; i < inputs.length; i++) {
@@ -178,6 +181,9 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
             error = outputs[i] - input.x;
 
+            errorSum += error;
+            quadraticResultSum += input.x * input.x;
+            resultAvg += input.x;
             // math errors can creep in when evaluating two equivalent by differently-ordered functions
             // like x * (x*x*x + x*x)  vs. x*x*x*x + x*x*x
             /*if (error < PROBABLY_ZERO)  // slightly off
@@ -192,6 +198,9 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
         int testCount = sliceLimits[slice + 1] - sliceLimits[slice];
         double MSEWithRegularization = quadraticErrorSum / testCount + alpha * Math.sqrt(ind.size());
+
+        f.errorAvg = errorSum / testCount;
+        f.variance = (quadraticResultSum / testCount) - resultAvg;
 
         //ind.error=0;
         if (Double.isNaN(MSEWithRegularization))

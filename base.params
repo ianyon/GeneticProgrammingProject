@@ -6,13 +6,13 @@ evalthreads = auto
 # seed.0 = 4357
 
 # The Statistics
-stat = cl.ian.gp.SimpleGPStatistics
+stat = cl.ian.gp.statistics.SimpleGPStatistics
 stat.do-final = true
 # stat.only-final = true
 # stat.silent = true
 stat.file = $out.stat
 stat.num-children = 1
-stat.child.0 = cl.ian.gp.MyKozaShortStatistics
+stat.child.0 = cl.ian.gp.statistics.MyKozaShortStatistics
 #stat.child.0 = ec.gp.koza.KozaShortStatistics
 stat.child.0.file = $out2.stat
 stat.child.0.do-depth = true
@@ -29,7 +29,8 @@ stat.child.0.do-size = true
 #print-params = true
 ###########################################################################################
 # Evolution Parameters
-generations = 300
+generations = 100
+breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 
 # The Population
@@ -87,6 +88,4 @@ select.lexicographic-tournament.size = 2
 gp.koza.ns.terminals = 0.1
 gp.koza.ns.nonterminals = 0.9
 gp.koza.ns.root = 0.0
-
-# breed.elite-fraction.0 = 0.25
 ###########################################################################################

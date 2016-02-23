@@ -5,11 +5,14 @@ import ec.EvolutionState;
 import ec.Evolve;
 import ec.util.ParameterDatabase;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class Main {
 
   public static void main(String[] args) {
+
+    createDirIfNotExist();
 
     ParameterDatabase frictionDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "friction_factor.params"});
     EvolutionState frictionState = Evolve.initialize(frictionDatabase, 0);
@@ -39,4 +42,22 @@ public class Main {
   }
 
 
+  public static void createDirIfNotExist() {
+
+    String results = "Results";
+    File theDir = new File(results);
+
+    // if the directory does not exist, create it
+    if (!theDir.exists()) {
+      System.out.println("Creating directory: " + results);
+      boolean result = false;
+
+      try {
+        theDir.mkdir();
+        result = true;
+      } catch (SecurityException se) {
+        System.out.println("Couldn't create " + results + " directory. Please create it manually to continue");
+      }
+    }
+  }
 }

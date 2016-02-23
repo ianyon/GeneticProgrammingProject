@@ -1,13 +1,10 @@
-package cl.ian.gp;
+package cl.ian.gp.statistics;
 
 import ec.EvolutionState;
 import ec.Individual;
 import ec.Statistics;
 import ec.gp.GPIndividual;
-import ec.simple.SimpleProblemForm;
-import ec.simple.SimpleStatistics;
 import ec.steadystate.SteadyStateStatisticsForm;
-import ec.util.Log;
 import ec.util.Output;
 import ec.util.Parameter;
 
@@ -125,8 +122,11 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     // overrides the changes of this class
     for (Statistics aChildren : children) aChildren.postEvaluationStatistics(state);
 
+    assert state.population.subpops[0].individuals.length == 2000 ||
+        state.population.subpops[0].individuals.length == 4000;
+
     // for now we just print the best fitness per subpopulation.
-    Individual[] best_i = new Individual[state.population.subpops.length];  // quiets compiler complaints
+    Individual[] best_i = new Individual[1];
     best_i[0] = state.population.subpops[0].individuals[0];
     for (int y = 1; y < state.population.subpops[0].individuals.length; y++) {
       if (state.population.subpops[0].individuals[y] == null) {

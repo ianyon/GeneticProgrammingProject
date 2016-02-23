@@ -25,8 +25,8 @@ public class LoopCrossoverRate extends LoopCallable {
 
   @Override
   public Void call() throws Exception {
-    // Loop through the crossover rate 0.5:0.25:1.0
-    for (float crossoverRate = 0.5f; crossoverRate <= 1.0; crossoverRate += 0.25f) {
+    // Loop through the crossover rate 0.7:0.1:0.9
+    for (float crossoverRate = 0.7f; crossoverRate <= 0.9; crossoverRate += 0.1f) {
       // Crossover rate
       database.set(new Parameter("pop.subpop.0.species.pipe.source.0.prob"), "" + crossoverRate);
       // Mutation rate

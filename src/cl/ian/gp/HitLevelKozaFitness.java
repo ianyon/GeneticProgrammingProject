@@ -15,6 +15,8 @@ public class HitLevelKozaFitness extends KozaFitness {
     public static double hitLevel;
     public double meetsCondition;
     public static double requiredMeetingCondition;
+    public double errorAvg;
+    public double variance;
 
     @Override
     public void setup(EvolutionState state, Parameter base) {
@@ -24,19 +26,19 @@ public class HitLevelKozaFitness extends KozaFitness {
 
         if (!state.parameters.exists(base.push(P_ACCEPTEDERROR), def.push(P_ACCEPTEDERROR)))
             state.output.fatal("Need to define accepted error.", base.push(P_ACCEPTEDERROR), def.push(P_ACCEPTEDERROR));
-        hitLevel = state.parameters.getDouble(base.push(P_ACCEPTEDERROR), def.push(P_ACCEPTEDERROR), 0.0)/100;
+        hitLevel = state.parameters.getDouble(base.push(P_ACCEPTEDERROR), def.push(P_ACCEPTEDERROR), 0.0) / 100;
 
         if (!state.parameters.exists(base.push(P_REQUIREDMEETINGCONDITION), def.push(P_REQUIREDMEETINGCONDITION)))
             state.output.fatal("Need to define percentage of samples that meet condition.",
                     base.push(P_REQUIREDMEETINGCONDITION), def.push(P_REQUIREDMEETINGCONDITION));
         requiredMeetingCondition = state.parameters.getDouble(base.push(P_REQUIREDMEETINGCONDITION),
-                def.push(P_REQUIREDMEETINGCONDITION))/100;
+                def.push(P_REQUIREDMEETINGCONDITION)) / 100;
     }
 
     @Override
-    public String fitnessToStringForHumans()
-    {
-        return "" + standardizedFitness + " (Adjusted=" + adjustedFitness() + ", Hits=" + hits+")";
+    public String fitnessToStringForHumans() {
+        return "Avg=" + errorAvg + "Var="+variance+"(Hits=" + hits + ")";
+        //return "" + standardizedFitness + " (Adjusted=" + adjustedFitness() + ", Hits=" + hits+")";
     }
 
     @Override

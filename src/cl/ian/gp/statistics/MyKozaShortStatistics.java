@@ -1,4 +1,4 @@
-package cl.ian.gp;
+package cl.ian.gp.statistics;
 
 import ec.EvolutionState;
 import ec.gp.koza.KozaShortStatistics;

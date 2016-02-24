@@ -1,7 +1,7 @@
 package cl.ian.gp.nodes;
 
-import cl.ian.gp.PhenomenologicalData;
-import cl.ian.gp.PhenomenologicalModel;
+import ec.app.regression.RegressionData;
+import cl.ian.gp.PhenomenologicalModelVerticalSlicing;
 import ec.EvolutionState;
 import ec.Problem;
 import ec.gp.ADFStack;
@@ -35,8 +35,8 @@ public class MeanReynoldsTerminal extends GPNode
         final GPIndividual individual,
         final Problem problem)
         {
-        PhenomenologicalData rd = ((PhenomenologicalData)(input));
-        rd.x = ((PhenomenologicalModel)problem).reynolds;
+        RegressionData rd = ((RegressionData)(input));
+        rd.x = ((PhenomenologicalModelVerticalSlicing)problem).reynolds;
         }
     }
 

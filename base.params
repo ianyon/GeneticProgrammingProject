@@ -30,7 +30,7 @@ stat.child.0.do-size = true
 ###########################################################################################
 # Evolution Parameters
 generations = 100
-breed.elite-fraction.0 = 0.05
+# breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 
 # The Population
@@ -39,8 +39,8 @@ pop.subpop.0.duplicate-retries = 20
 # breed.minimum-size.0 = 2000
 
 # The class of the problem
-eval.problem = cl.ian.gp.PhenomenologicalModel
-eval.problem.data = cl.ian.gp.PhenomenologicalData
+eval.problem = cl.ian.gp.PhenomenologicalModelVerticalSlicing
+eval.problem.data = ec.app.regression.RegressionData
 # Load input and output data for training
 eval.problem.inputfile = $TrainingData/doe500train_sort.txt
 # Vertical slicing: Random segments used to test the individuals (500 elements dataset)
@@ -52,7 +52,7 @@ pop.subpop.0.species.fitness.accepted-error = 5
 pop.subpop.0.species.fitness.required-meeting-condition = 100
 
 # QRampedInit (modified ramped half/half tree building) parameters
-gp.tc.0.init = cl.ian.gp.QRampedInit
+gp.tc.0.init = cl.ian.gp.KnownApproximationRampedHalHalfInit
 # Min and Max level for initial individuals
 gp.tc.0.init.min-depth = 2
 gp.tc.0.init.max-depth = 6

@@ -1,6 +1,6 @@
 package cl.ian.gp.nodes;
 
-import cl.ian.gp.PhenomenologicalData;
+import ec.app.regression.RegressionData;
 import ec.EvolutionState;
 import ec.Problem;
 import ec.gp.ADFStack;
@@ -41,7 +41,7 @@ public class DivMaxDouble extends GPNode {
                    final ADFStack stack,
                    final GPIndividual individual,
                    final Problem problem) {
-    PhenomenologicalData rd = ((PhenomenologicalData) (input));
+    RegressionData rd = ((RegressionData) (input));
 
     // evaluate children[1] first to determine if the denominator is 0
     children[1].eval(state, thread, input, stack, individual, problem);

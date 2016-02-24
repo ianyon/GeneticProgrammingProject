@@ -25,7 +25,7 @@ public class LoopPopulation extends LoopCallable {
   @Override
   public Void call() throws Exception {
     // Loop through the population size 2000,4000
-    for (int popSize = 2000; popSize <= 4000; popSize += 2000) {//TODO Cambiar valores
+    for (int popSize = 20; popSize <= 40; popSize += 20) {//TODO Cambiar valores
       // Population size
       database.set(new Parameter("pop.subpop.0.size"), "" + popSize);
       parametersValue.set(index, "" + popSize);

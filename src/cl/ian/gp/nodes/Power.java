@@ -1,6 +1,6 @@
 package cl.ian.gp.nodes;
 
-import cl.ian.gp.PhenomenologicalData;
+import ec.app.regression.RegressionData;
 import ec.EvolutionState;
 import ec.Problem;
 import ec.gp.ADFStack;
@@ -37,7 +37,7 @@ public class Power extends GPNode {
                      final GPIndividual individual,
                      final Problem problem) {
         double firstParam;
-        PhenomenologicalData rd = ((PhenomenologicalData) (input));
+        RegressionData rd = ((RegressionData) (input));
 
         children[0].eval(state, thread, input, stack, individual, problem);
         firstParam = rd.x;

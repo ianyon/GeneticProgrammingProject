@@ -1,6 +1,6 @@
 package cl.ian.gp.nodes;
 
-import cl.ian.gp.PhenomenologicalData;
+import ec.app.regression.RegressionData;
 import ec.EvolutionState;
 import ec.Problem;
 import ec.app.regression.func.RegERC;
@@ -29,7 +29,7 @@ public class MyERC extends RegERC {
                      final ADFStack stack,
                      final GPIndividual individual,
                      final Problem problem) {
-        PhenomenologicalData rd = ((PhenomenologicalData) (input));
+        RegressionData rd = ((RegressionData) (input));
         rd.x = value;
     }
 }

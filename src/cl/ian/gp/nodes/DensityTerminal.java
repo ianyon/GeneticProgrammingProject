@@ -7,43 +7,32 @@
 
 package cl.ian.gp.nodes;
 
-import cl.ian.gp.PhenomenologicalData;
-import cl.ian.gp.PhenomenologicalModel;
+import cl.ian.gp.PhenomenologicalModelVerticalSlicing;
 import ec.EvolutionState;
 import ec.Problem;
+import ec.app.regression.RegressionData;
 import ec.gp.ADFStack;
 import ec.gp.GPData;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
-public class DensityTerminal extends GPNode
-    {
-    public String toString() { return "Df(i)/1.205"; }
-
-/*
-  public void checkConstraints(final EvolutionState state,
-  final int tree,
-  final GPIndividual typicalIndividual,
-  final Parameter individualBase)
-  {
-  super.checkConstraints(state,tree,typicalIndividual,individualBase);
-  if (children.length!=0)
-  state.output.error("Incorrect number of children for node " + 
-  toStringForError() + " at " +
-  individualBase);
+public class DensityTerminal extends GPNode {
+  public String toString() {
+    return "Df(i)/1.205";
   }
-*/
-    public int expectedChildren() { return 0; }
 
-    public void eval(final EvolutionState state,
-        final int thread,
-        final GPData input,
-        final ADFStack stack,
-        final GPIndividual individual,
-        final Problem problem)
-        {
-        PhenomenologicalData rd = ((PhenomenologicalData)(input));
-        rd.x = ((PhenomenologicalModel)problem).normalizedDensity;
-        }
-    }
+  public int expectedChildren() {
+    return 0;
+  }
+
+  public void eval(final EvolutionState state,
+                   final int thread,
+                   final GPData input,
+                   final ADFStack stack,
+                   final GPIndividual individual,
+                   final Problem problem) {
+    RegressionData rd = ((RegressionData) (input));
+    rd.x = ((PhenomenologicalModelVerticalSlicing) problem).normalizedDensity;
+  }
+}
 

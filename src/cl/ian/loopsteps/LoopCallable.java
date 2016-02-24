@@ -39,6 +39,7 @@ public abstract class LoopCallable implements Callable {
 
   public static ArrayList<LoopCallable> populateLoops(ParameterDatabase database, EvolutionState state) {
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
+    loopSteps.add(new LoopElitism(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopPopulation(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopCrossoverRate(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps, loopSteps.size()));

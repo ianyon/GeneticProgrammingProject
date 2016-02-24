@@ -1,9 +1,13 @@
 package cl.ian.gp.statistics;
 
+import cl.ian.gp.KnownApproximationRampedHalHalfInit;
+import cl.ian.gp.MyGPIndividual;
 import ec.EvolutionState;
 import ec.Individual;
 import ec.Statistics;
 import ec.gp.GPIndividual;
+import ec.gp.GPInitializer;
+import ec.gp.GPNode;
 import ec.steadystate.SteadyStateStatisticsForm;
 import ec.util.Output;
 import ec.util.Parameter;
@@ -100,20 +104,42 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
 
   }
 
+  @Override
+  public void preEvaluationStatistics(EvolutionState state) {
+    super.preEvaluationStatistics(state);
+
+    double meanDepth = 0, meanSize = 0, varianceDepth, varianceSize;
+    long quadracticSizeSum = 0, quadracticDepthSum = 0;
+    for (Individual individual : state.population.subpops[0].individuals) {
+      final int nodesCount = ((MyGPIndividual) individual).trees[0].child.numNodes(GPNode.NODESEARCH_ALL);
+      meanSize += nodesCount;
+      quadracticSizeSum += nodesCount * nodesCount;
+
+      final int depth = ((MyGPIndividual) individual).trees[0].child.depth();
+      meanDepth += depth;
+      quadracticDepthSum += depth * depth;
+    }
+
+    final int individualsCount = state.population.subpops[0].individuals.length;
+    meanDepth /= individualsCount;
+    meanSize /= individualsCount;
+    varianceDepth = (quadracticDepthSum / individualsCount) - meanDepth*meanDepth;
+    varianceSize = (quadracticSizeSum / individualsCount) - meanSize*meanSize;
+    state.output.message(String.format("New Gen stats [%d]: AvgDepth=%s (Var=%.2f) AvgSize=%s (Var=%.2f)",
+        individualsCount, meanDepth, varianceDepth, meanSize, varianceSize));
+  }
+
   public void postInitializationStatistics(final EvolutionState state) {
     super.postInitializationStatistics(state);
 
     // set up our best_of_run array -- can't do this in setup, because
     // we don't know if the number of subpopulations has been determined yet
     best_of_run = new Individual[state.population.subpops.length];
-  }
 
-  /**
-   * Allows MultiObjectiveStatistics etc. to call super.super.finalStatistics(...) without
-   * calling super.finalStatistics(...)
-   */
-  protected void bypassFinalStatistics(EvolutionState state, int result) {
-    super.finalStatistics(state, result);
+    KnownApproximationRampedHalHalfInit init = (KnownApproximationRampedHalHalfInit) ((GPIndividual)
+        state.population.subpops[0].individuals[0]).trees[0].constraints((GPInitializer) state.initializer).init;
+    state.output.message(String.format("Initializer: full=%d grow=%d known=%d",
+        init.fullCount, init.growCount, init.knownApproxCount));
   }
 
   @Override
@@ -153,16 +179,17 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     // print the best-of-generation individual
     if (doGeneration) state.output.println("\nBest Individual Generation " + state.generation + ":", statisticslog);
     if (doGeneration) best_i[0].printIndividualForHumans(state, statisticslog);
-    if (doGeneration)
-      state.output.message("Depth: " + ((GPIndividual) best_i[0]).trees[0].child.depth() + " Size: " + best_i[0].size());
-    if (doMessage && !silentPrint) state.output.message("Best fitness: " +
-        (best_i[0].evaluated ? " " : " (not evaluated): ") +
-        best_i[0].fitness.fitnessToStringForHumans());
+
+    if (doMessage && !silentPrint) state.output.message(String.format("Best individual fitness%s: %s Depth=%d Size=%d",
+        best_i[0].evaluated ? "" : " (not evaluated)",
+        best_i[0].fitness.fitnessToStringForHumans(),
+        ((GPIndividual) best_i[0]).trees[0].child.depth(),
+        best_i[0].size()));
 
   }
 
   @Override
-  public void finalStatistics(final EvolutionState state, final int result) {//TODO: avoid overwriting logs
+  public void finalStatistics(final EvolutionState state, final int result) {
     // for now we just print the best fitness
     if (doFinal) state.output.print("\nBest Individual of Run:", statisticslog);
     if (doFinal) best_of_run[0].printIndividualForHumans(state, statisticslog);
@@ -171,5 +198,14 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
             " Size: " + best_of_run[0].size(), statisticslog);
     if (doMessage && !silentPrint)
       state.output.message("Best fitness of run: " + best_of_run[0].fitness.fitnessToStringForHumans());
+  }
+
+
+  /**
+   * Allows MultiObjectiveStatistics etc. to call super.super.finalStatistics(...) without
+   * calling super.finalStatistics(...)
+   */
+  protected void bypassFinalStatistics(EvolutionState state, int result) {
+    super.finalStatistics(state, result);
   }
 }

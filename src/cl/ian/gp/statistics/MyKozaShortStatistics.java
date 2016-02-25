@@ -19,7 +19,8 @@ public class MyKozaShortStatistics extends KozaShortStatistics {
   public void setup(EvolutionState state, Parameter base) {
     super.setup(state, base);
 
-    state.output.removeLog(statisticslog);
+    if (state.output.numLogs() > statisticslog && statisticslog >= 0)
+      state.output.removeLog(statisticslog);
 
     String filenameBase = state.parameters.getString(base.push(P_STATISTICS_FILE), null).substring(1);
     String executionParameters = state.parameters.getString(base.push(P_STATISTICS_FILE).push(P_STATISTICS_FILE_SUFFIX), null);

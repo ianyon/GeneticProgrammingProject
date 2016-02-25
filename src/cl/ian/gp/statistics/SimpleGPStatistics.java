@@ -28,6 +28,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
    * log file parameter
    */
   public static final String P_STATISTICS_FILE = "file";
+  public static final String P_SUMMARY_FILE = "file";
   public static final String P_STATISTICS_FILE_SUFFIX = "suffix";
 
   /**
@@ -50,6 +51,8 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
    * The Statistics' log
    */
   public int statisticslog = 0;  // stdout
+
+  public int summarylog = 0;
 
   /**
    * The best individual we've found so far
@@ -78,6 +81,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     // Remove the initial $ and append extension to the end
     final String finalFilename = filenameBase.replace(".stat", " " + executionParameters).substring(1) + ".stat";
     File statisticsFile = new File(finalFilename);
+    File summaryFile = new File("Summary.stat");
 
     doFinal = state.parameters.getBoolean(base.push(P_DO_FINAL), null, true);
     doGeneration = state.parameters.getBoolean(base.push(P_DO_GENERATION), null, true);
@@ -87,14 +91,25 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
 
     if (silentFile) {
       statisticslog = Output.NO_LOGS;
-    } else if (statisticsFile != null) {
-      try {
-        statisticslog = state.output.addLog(statisticsFile, !compress, compress);
-      } catch (IOException i) {
-        state.output.fatal("An IOException occurred while trying to create the log " + statisticsFile + ":\n" + i);
-      }
-    } else
-      state.output.warning("No statistics file specified, printing to stdout at end.", base.push(P_STATISTICS_FILE));
+      summarylog = Output.NO_LOGS;
+    } else {
+      if (statisticsFile != null) {
+        try {
+          statisticslog = state.output.addLog(statisticsFile, !compress, compress);
+        } catch (IOException i) {
+          state.output.fatal("An IOException occurred while trying to create the log " + statisticsFile + ":\n" + i);
+        }
+      } else
+        state.output.warning("No statistics file specified, printing to stdout at end.", base.push(P_STATISTICS_FILE));
+      if (summaryFile != null) {
+        try {
+          summarylog = state.output.addLog(summaryFile, !compress, compress);
+        } catch (IOException i) {
+          state.output.fatal("An IOException occurred while trying to create the log " + summaryFile + ":\n" + i);
+        }
+      } else
+        state.output.warning("No summary file specified, printing to stdout at end.", base.push(P_SUMMARY_FILE));
+    }
 
     onlyFinal = state.parameters.getBoolean(base.push(P_ONLY_FINAL), null, false);
 
@@ -123,10 +138,10 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     final int individualsCount = state.population.subpops[0].individuals.length;
     meanDepth /= individualsCount;
     meanSize /= individualsCount;
-    varianceDepth = (quadracticDepthSum / individualsCount) - meanDepth*meanDepth;
-    varianceSize = (quadracticSizeSum / individualsCount) - meanSize*meanSize;
-    state.output.message(String.format("New Gen stats [%d]: AvgDepth=%s (Var=%.2f) AvgSize=%s (Var=%.2f)",
-        individualsCount, meanDepth, varianceDepth, meanSize, varianceSize));
+    varianceDepth = (quadracticDepthSum / individualsCount) - meanDepth * meanDepth;
+    varianceSize = (quadracticSizeSum / individualsCount) - meanSize * meanSize;
+    state.output.message(String.format("New Gen stats: AvgDepth=%s (Var=%.2f) AvgSize=%s (Var=%.2f)",
+        meanDepth, varianceDepth, meanSize, varianceSize));
   }
 
   public void postInitializationStatistics(final EvolutionState state) {
@@ -138,8 +153,8 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
 
     KnownApproximationRampedHalHalfInit init = (KnownApproximationRampedHalHalfInit) ((GPIndividual)
         state.population.subpops[0].individuals[0]).trees[0].constraints((GPInitializer) state.initializer).init;
-    state.output.message(String.format("Initializer: full=%d grow=%d known=%d",
-        init.fullCount, init.growCount, init.knownApproxCount));
+    state.output.message(String.format("Initializer [%d]: full=%d grow=%d known=%d",
+        state.population.subpops[0].individuals.length, init.fullCount, init.growCount, init.knownApproxCount));
   }
 
   @Override
@@ -196,8 +211,15 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     if (doFinal) state.output.println(
         "Depth: " + ((GPIndividual) best_of_run[0]).trees[0].child.depth() +
             " Size: " + best_of_run[0].size(), statisticslog);
-    if (doMessage && !silentPrint)
-      state.output.message("Best fitness of run: " + best_of_run[0].fitness.fitnessToStringForHumans());
+    if (doMessage && !silentPrint) {
+      state.output.message(String.format("\nBest fitness of run: %s\n%s\n",
+          best_of_run[0].fitness.fitnessToStringForHumans(),
+          ((MyGPIndividual) best_of_run[0]).stringRootedTreeForHumans()));
+    }
+
+    state.output.println(String.format("\nBest fitness of run: %s\n%s",
+        best_of_run[0].fitness.fitnessToStringForHumans(),
+        ((MyGPIndividual) best_of_run[0]).stringRootedTreeForHumans()), summarylog);
   }
 
 

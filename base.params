@@ -13,12 +13,12 @@ stat.do-final = true
 stat.file = $out.stat
 stat.num-children = 1
 stat.child.0 = cl.ian.gp.statistics.MyKozaShortStatistics
-#stat.child.0 = ec.gp.koza.KozaShortStatistics
+stat.child.0.silent = true
 stat.child.0.file = $out2.stat
 stat.child.0.do-depth = true
 stat.child.0.do-time = true
 stat.child.0.do-size = true
-#stat.child.0.do-subpops = true
+stat.child.0.do-subpops = true
 # gp.tree.print-style = c
 
 #print-all-params = true
@@ -29,7 +29,7 @@ stat.child.0.do-size = true
 #print-params = true
 ###########################################################################################
 # Evolution Parameters
-generations = 100
+generations = 50
 # breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 
@@ -40,6 +40,7 @@ pop.subpop.0.duplicate-retries = 20
 
 # The class of the problem
 eval.problem = cl.ian.gp.PhenomenologicalModelVerticalSlicing
+# eval.problem = cl.ian.gp.PhenomenologicalModel
 eval.problem.data = ec.app.regression.RegressionData
 # Load input and output data for training
 eval.problem.inputfile = $TrainingData/doe500train_sort.txt
@@ -59,15 +60,16 @@ gp.tc.0.init.max-depth = 6
 gp.tc.0.init.growp = 0.5
 ################################## Breeding pipelines #####################################
 pop.subpop.0.species.pipe = ec.breed.MultiBreedingPipeline
-pop.subpop.0.species.pipe.generate-max = false
+pop.subpop.0.species.pipe.generate-max = true
 pop.subpop.0.species.pipe.num-sources = 2
-#pop.subpop.0.species.pipe.source.0 = cl.ian.gp.KeepBestCrossoverPipeline
-pop.subpop.0.species.pipe.source.0 = ec.gp.koza.CrossoverPipeline
-pop.subpop.0.species.pipe.source.0.prob = 0.9
-pop.subpop.0.species.pipe.source.1 = ec.gp.breed.MutateOneNodePipeline
-pop.subpop.0.species.pipe.source.1.prob = 0.1
+pop.subpop.0.species.pipe.source.0 = cl.ian.gp.RetriesCrossoverPipeline
+pop.subpop.0.species.pipe.source.0.prob = 0.8
+pop.subpop.0.species.pipe.source.1 = ec.gp.koza.MutationPipeline
+pop.subpop.0.species.pipe.source.1.prob = 0.2
+
 # Crossover parameters
 gp.koza.xover.tries = 1
+gp.koza.xover.duplicate-retries = 20
 gp.koza.xover.maxdepth = 17
 # Return only one children (the other is thrown away)
 gp.koza.xover.toss = false
@@ -75,16 +77,20 @@ gp.koza.xover.ns.0 = ec.gp.koza.KozaNodeSelector
 gp.koza.xover.ns.1 = same
 gp.koza.xover.source.0 = ec.parsimony.LexicographicTournamentSelection
 gp.koza.xover.source.1 = same
+
 # Mutation parameters
-#cl.ian.gp.keep-best-mutate-one-node.source.0 = ec.parsimony.LexicographicTournamentSelection
-#cl.ian.gp.keep-best-mutate-one-node.ns.0 = ec.gp.koza.KozaNodeSelector
-gp.breed.mutate-one-node.source.0 = ec.parsimony.LexicographicTournamentSelection
-gp.breed.mutate-one-node.ns.0 = ec.gp.koza.KozaNodeSelector
+gp.koza.mutate.tries = 1
+gp.koza.mutate.maxdepth = 17
+gp.koza.mutate.pipe.ns = ec.gp.koza.KozaNodeSelector
+gp.koza.mutate.build.0 = ec.gp.koza.GrowBuilder
+gp.koza.mutate.source.0 = ec.parsimony.LexicographicTournamentSelection
+gp.koza.mutate.build.0.min-depth = 5
+gp.koza.mutate.build.0.max-depth = 5
 
 # select.tournament.size = 2
 select.lexicographic-tournament.size = 2
 
-# Probability of selecting a type of node when performing breeding
+# KozaNodeSelector Probability of selecting a type of node when performing breeding. Set to zero to pick any node
 gp.koza.ns.terminals = 0.1
 gp.koza.ns.nonterminals = 0.9
 gp.koza.ns.root = 0.0

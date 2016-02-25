@@ -165,8 +165,8 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     final long quadraticErrorAvg = quadraticErrorSum / testCount;
     double MSEWithRegularization = quadraticErrorAvg + alpha * Math.sqrt(ind.size());
 
-    f.errorAvg = errorSum / testCount;
-    f.variance = quadraticErrorAvg - f.errorAvg * f.errorAvg;
+    f.errorAvg = Math.abs(errorSum / testCount);
+    f.variance = quadraticErrorAvg - Math.pow(f.errorAvg ,2);
 
     //ind.error=0;
     if (Double.isNaN(MSEWithRegularization))

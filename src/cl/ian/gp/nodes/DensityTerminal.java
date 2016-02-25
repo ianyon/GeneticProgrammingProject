@@ -7,7 +7,7 @@
 
 package cl.ian.gp.nodes;
 
-import cl.ian.gp.PhenomenologicalModelVerticalSlicing;
+import cl.ian.gp.PhenomenologicalModel;
 import ec.EvolutionState;
 import ec.Problem;
 import ec.app.regression.RegressionData;
@@ -32,7 +32,7 @@ public class DensityTerminal extends GPNode {
                    final GPIndividual individual,
                    final Problem problem) {
     RegressionData rd = ((RegressionData) (input));
-    rd.x = ((PhenomenologicalModelVerticalSlicing) problem).normalizedDensity;
+    rd.x = ((PhenomenologicalModel) problem).normalizedDensity;
   }
 }
 

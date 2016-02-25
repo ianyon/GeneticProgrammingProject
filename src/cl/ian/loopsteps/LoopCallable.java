@@ -38,13 +38,16 @@ public abstract class LoopCallable implements Callable {
   }
 
   public static ArrayList<LoopCallable> populateLoops(ParameterDatabase database, EvolutionState state) {
+    LoopCallable.parametersHeader.clear();
+    LoopCallable.parametersValue.clear();
+
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
     loopSteps.add(new LoopElitism(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopPopulation(database, state, loopSteps, loopSteps.size()));
-    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps, loopSteps.size()));
+    /*loopSteps.add(new LoopCrossoverRate(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps, loopSteps.size()));
-    loopSteps.add(new LoopDivMaxValue(database, state, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopDivMaxValue(database, state, loopSteps, loopSteps.size()));*/
     return loopSteps;
   }
 
@@ -95,7 +98,7 @@ public abstract class LoopCallable implements Callable {
     System.out.println(progressMessage);
 
     System.out.println("\nParameters:" + message);
-    database.set(new Parameter("stat.file.suffix"), message);
+    database.set(new Parameter("stat.child.0.file.suffix"), message);
   }
 
   protected void doExecutionOrContinueWithNextStep() throws Exception {

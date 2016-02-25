@@ -14,7 +14,7 @@ public class LoopElitism extends LoopCallable {
 
   public LoopElitism(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     super(database, state, loopSteps, index);
-    parametersHeader.add("Elitism=");
+    parametersHeader.add("Elite=");
   }
 
   @Override
@@ -49,8 +49,8 @@ public class LoopElitism extends LoopCallable {
    * @throws Exception
    */
   private void eliteCount() throws Exception {
-    int[] eliteCountValues = new int[]{0, 5, 50};
-    for (int eliteCount = 0; eliteCount <= eliteCountValues.length; eliteCount++) {
+    int[] eliteCountValues = new int[]{5, 0, 50};
+    for (int eliteCount = 0; eliteCount < eliteCountValues.length; eliteCount++) {
       database.set(new Parameter("breed.elite.0"), "" + eliteCountValues[eliteCount]);
       parametersValue.set(index, "" + eliteCountValues[eliteCount]);
       doExecutionOrContinueWithNextStep();

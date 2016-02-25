@@ -16,7 +16,7 @@ import ec.util.Parameter;
  * Method used to initialize the individuals of a population. Half the individuals are initialized using some
  * known structure and the other half are initialized using Ramped-Half-Half
  */
-public class KnownApproximationRampedHalHalfInit extends HalfBuilder {
+public class KnownApproxRampedHalfHalfInit extends HalfBuilder {
 
   public static final String P_KNOWNHALFBUILDER = "known-half-builder";
   public static final String P_USEKNOWNAPPROX = "use-known-approx";

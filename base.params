@@ -29,7 +29,7 @@ stat.child.0.do-subpops = true
 #print-params = true
 ###########################################################################################
 # Evolution Parameters
-generations = 50
+generations = 30
 # breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 
@@ -53,10 +53,10 @@ pop.subpop.0.species.fitness.accepted-error = 5
 pop.subpop.0.species.fitness.required-meeting-condition = 100
 
 # QRampedInit (modified ramped half/half tree building) parameters
-gp.tc.0.init = cl.ian.gp.KnownApproximationRampedHalHalfInit
+gp.tc.0.init = cl.ian.gp.KnownApproxRampedHalfHalfInit
 # Min and Max level for initial individuals
 gp.tc.0.init.min-depth = 2
-gp.tc.0.init.max-depth = 6
+gp.tc.0.init.max-depth = 12
 gp.tc.0.init.growp = 0.5
 ################################## Breeding pipelines #####################################
 pop.subpop.0.species.pipe = ec.breed.MultiBreedingPipeline
@@ -64,12 +64,11 @@ pop.subpop.0.species.pipe.generate-max = true
 pop.subpop.0.species.pipe.num-sources = 2
 pop.subpop.0.species.pipe.source.0 = cl.ian.gp.RetriesCrossoverPipeline
 pop.subpop.0.species.pipe.source.0.prob = 0.8
-pop.subpop.0.species.pipe.source.1 = ec.gp.koza.MutationPipeline
+pop.subpop.0.species.pipe.source.1 = cl.ian.gp.RetriesMutationPipeline
 pop.subpop.0.species.pipe.source.1.prob = 0.2
 
 # Crossover parameters
-gp.koza.xover.tries = 1
-gp.koza.xover.duplicate-retries = 20
+gp.koza.xover.tries = 20
 gp.koza.xover.maxdepth = 17
 # Return only one children (the other is thrown away)
 gp.koza.xover.toss = false
@@ -79,13 +78,13 @@ gp.koza.xover.source.0 = ec.parsimony.LexicographicTournamentSelection
 gp.koza.xover.source.1 = same
 
 # Mutation parameters
-gp.koza.mutate.tries = 1
+gp.koza.mutate.tries = 20
 gp.koza.mutate.maxdepth = 17
 gp.koza.mutate.pipe.ns = ec.gp.koza.KozaNodeSelector
 gp.koza.mutate.build.0 = ec.gp.koza.GrowBuilder
 gp.koza.mutate.source.0 = ec.parsimony.LexicographicTournamentSelection
-gp.koza.mutate.build.0.min-depth = 5
-gp.koza.mutate.build.0.max-depth = 5
+gp.koza.grow.min-depth = 2
+gp.koza.grow.max-depth = 12
 
 # select.tournament.size = 2
 select.lexicographic-tournament.size = 2

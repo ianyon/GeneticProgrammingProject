@@ -1,6 +1,6 @@
 package cl.ian.gp.statistics;
 
-import cl.ian.gp.KnownApproximationRampedHalHalfInit;
+import cl.ian.gp.KnownApproxRampedHalfHalfInit;
 import cl.ian.gp.MyGPIndividual;
 import ec.EvolutionState;
 import ec.Individual;
@@ -151,7 +151,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     // we don't know if the number of subpopulations has been determined yet
     best_of_run = new Individual[state.population.subpops.length];
 
-    KnownApproximationRampedHalHalfInit init = (KnownApproximationRampedHalHalfInit) ((GPIndividual)
+    KnownApproxRampedHalfHalfInit init = (KnownApproxRampedHalfHalfInit) ((GPIndividual)
         state.population.subpops[0].individuals[0]).trees[0].constraints((GPInitializer) state.initializer).init;
     state.output.message(String.format("Initializer [%d]: full=%d grow=%d known=%d",
         state.population.subpops[0].individuals.length, init.fullCount, init.growCount, init.knownApproxCount));

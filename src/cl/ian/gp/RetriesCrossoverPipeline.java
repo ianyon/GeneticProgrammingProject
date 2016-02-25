@@ -9,9 +9,11 @@ package cl.ian.gp;
 
 import ec.EvolutionState;
 import ec.Individual;
-import ec.gp.*;
+import ec.gp.GPIndividual;
+import ec.gp.GPInitializer;
+import ec.gp.GPNode;
+import ec.gp.GPTree;
 import ec.gp.koza.CrossoverPipeline;
-import ec.gp.koza.GPKozaDefaults;
 import ec.util.Parameter;
 
 /* 
@@ -107,43 +109,22 @@ import ec.util.Parameter;
 public class RetriesCrossoverPipeline extends CrossoverPipeline {
   private static final long serialVersionUID = 1;
 
-  public static final String P_DUPLICATE_RETRIES = "duplicate-retries";
-
-  public int duplicateRetries;
-  private static int equalTrees;
-  private static int equalNodes;
+  public static int equalTrees;
+  public static int equalNodes;
   private static boolean breakTree;
-  private static boolean breakNode;
 
   public void setup(final EvolutionState state, final Parameter base) {
     super.setup(state, base);
 
-    Parameter def = defaultBase();
-    duplicateRetries = state.parameters.getInt(base.push(P_DUPLICATE_RETRIES),
-        def.push(P_DUPLICATE_RETRIES), 1);
-    if (duplicateRetries == 0)
-      state.output.fatal("GPCrossover Pipeline has an invalid number of tries (it must be >= 1).",
-          base.push(P_DUPLICATE_RETRIES), def.push(P_DUPLICATE_RETRIES));
-
     equalTrees = equalNodes = 0;
-
-  }
-
-  /**
-   * Returns 2 * minimum number of typical individuals produced by any sources, else
-   * 1* minimum number if tossSecondParent is true.
-   */
-  public int typicalIndsProduced() {
-    return (tossSecondParent ? minChildProduction() : minChildProduction() * 2);
   }
 
   /**
    * Returns true if inner1 can feasibly be swapped into inner2's position and if inner1 is different of inner2.
    */
   public boolean verifyPoints(final GPInitializer initializer, final GPNode inner1, final GPNode inner2) {
-    return super.verifyPoints(initializer, inner1, inner2) && !inner1.equals(inner2);
+    return super.verifyPoints(initializer, inner1, inner2) && !inner1.rootedTreeEquals(inner2);
   }
-
 
   public int produce(final int min, final int max, final int start, final int subpopulation,
                      final Individual[] inds, final EvolutionState state, final int thread) {
@@ -160,7 +141,7 @@ public class RetriesCrossoverPipeline extends CrossoverPipeline {
     for (int q = start; q < n + start; /* no increment */) { // keep on going until we're filled up
       int t1 = 0, t2 = 0;
 
-      for (int retries = 0; retries < duplicateRetries; retries++) {
+      for (int retries = 0; retries < numTries; retries++) {
         // grab two individuals from our sources
         if (sources[0] == sources[1])  // grab from the same source
           sources[0].produce(2, 2, 0, subpopulation, parents, state, thread);
@@ -172,25 +153,14 @@ public class RetriesCrossoverPipeline extends CrossoverPipeline {
         // at this point, parents[] contains our two selected individuals
         // are our tree values valid?
         if (tree1 != TREE_UNFIXED && (tree1 < 0 || tree1 >= parents[0].trees.length))
-          // uh oh
           state.output.fatal("GP Crossover Pipeline attempted to fix tree.0 to a value which was out of bounds of the array of the individual's trees.  Check the pipeline's fixed tree values -- they may be negative or greater than the number of trees in an individual");
         if (tree2 != TREE_UNFIXED && (tree2 < 0 || tree2 >= parents[1].trees.length))
-          // uh oh
           state.output.fatal("GP Crossover Pipeline attempted to fix tree.1 to a value which was out of bounds of the array of the individual's trees.  Check the pipeline's fixed tree values -- they may be negative or greater than the number of trees in an individual");
 
         if (tree1 == TREE_UNFIXED || tree2 == TREE_UNFIXED) {
           do { // pick random trees  -- their GPTreeConstraints must be the same
-            if (tree1 == TREE_UNFIXED)
-              if (parents[0].trees.length > 1)
-                t1 = state.random[thread].nextInt(parents[0].trees.length);
-              else t1 = 0;
-            else t1 = tree1;
-
-            if (tree2 == TREE_UNFIXED)
-              if (parents[1].trees.length > 1)
-                t2 = state.random[thread].nextInt(parents[1].trees.length);
-              else t2 = 0;
-            else t2 = tree2;
+            t1 = getSelectedTree(state, thread, parents[0], tree1);
+            t2 = getSelectedTree(state, thread, parents[1], tree2);
           } while (parents[0].trees[t1].constraints(initializer) != parents[1].trees[t2].constraints(initializer));
         } else {
           t1 = tree1;
@@ -200,13 +170,13 @@ public class RetriesCrossoverPipeline extends CrossoverPipeline {
             state.output.fatal("GP Crossover Pipeline's two tree choices are both specified by the user -- but their GPTreeConstraints are not the same");
         }
 
-        if (!parents[0].trees[t1].treeEquals(parents[1].trees[t2])){
-          breakTree=true;
+        if (!parents[0].trees[t1].treeEquals(parents[1].trees[t2])) {
+          breakTree = true;
           break;
         }
       }
 
-      if(!breakTree) equalTrees++;
+      if (!breakTree) equalTrees++;
 
       // validity results...
       boolean res1 = false, res2 = false;
@@ -217,33 +187,28 @@ public class RetriesCrossoverPipeline extends CrossoverPipeline {
 
       // pick some nodes
       GPNode p1 = null, p2 = null;
-      for (int retries = 0; retries < duplicateRetries; retries++) {
+      int counter = 0;
+      for (int x = 0; x < numTries; x++) {
+        // pick a node in individual 1
+        p1 = nodeselect1.pickNode(state, subpopulation, thread, parents[0], parents[0].trees[t1]);
 
-        for (int x = 0; x < numTries; x++) {
-          // pick a node in individual 1
-          p1 = nodeselect1.pickNode(state, subpopulation, thread, parents[0], parents[0].trees[t1]);
+        // pick a node in individual 2
+        p2 = nodeselect2.pickNode(state, subpopulation, thread, parents[1], parents[1].trees[t2]);
 
-          // pick a node in individual 2
-          p2 = nodeselect2.pickNode(state, subpopulation, thread, parents[1], parents[1].trees[t2]);
+        // check for depth and swap-compatibility limits
+        res1 = verifyPoints(initializer, p2, p1);  // p2 can fill p1's spot -- order is important!
+        if (n - (q - start) < 2 || tossSecondParent) res2 = true;
+        else res2 = verifyPoints(initializer, p1, p2);  // p1 can fill p2's spot -- order is important!
 
-          // check for depth and swap-compatibility limits
-          res1 = verifyPoints(initializer, p2, p1);  // p2 can fill p1's spot -- order is important!
-          if (n - (q - start) < 2 || tossSecondParent) res2 = true;
-          else res2 = verifyPoints(initializer, p1, p2);  // p1 can fill p2's spot -- order is important!
+        // did we get something that had both nodes verified?
+        // we reject if EITHER of them is invalid.  This is what lil-gp does.
+        // Koza only has numTries set to 1, so it's compatible as well.
+        if (res1 && res2) break;
 
-          // did we get something that had both nodes verified?
-          // we reject if EITHER of them is invalid.  This is what lil-gp does.
-          // Koza only has numTries set to 1, so it's compatible as well.
-          if (res1 && res2) break;
-        }
-
-        if (!p1.rootedTreeEquals(p2)){
-          breakNode=true;
-          break;
-        }
+        counter++;
       }
 
-      if(!breakNode) equalNodes++;
+      if (counter == numTries) equalNodes++;
 
       // at this point, res1 AND res2 are valid, OR either res1 OR res2 is valid and we ran out of tries, OR
       // neither is valid and we ran out of tries.  So now we will transfer to a tree which has res1 or
@@ -274,6 +239,18 @@ public class RetriesCrossoverPipeline extends CrossoverPipeline {
       if (q < n + start && !tossSecondParent) inds[q++] = j2;
     }
     return n;
+  }
+
+  protected int getSelectedTree(EvolutionState state, int thread, GPIndividual parent, int treeToSelect) {
+    int selectedTree;
+    if (treeToSelect == TREE_UNFIXED)
+      if (parent.trees.length > 1)
+        selectedTree = state.random[thread].nextInt(parent.trees.length);
+      else
+        selectedTree = 0;
+    else
+      selectedTree = tree1;
+    return selectedTree;
   }
 
   protected void SwapNodesOrParent(int tree, boolean res, GPNode oldSubTree, GPNode newSubtree, GPIndividual ind, int treePos) {

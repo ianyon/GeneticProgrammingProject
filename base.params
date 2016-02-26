@@ -11,14 +11,14 @@ stat.do-final = true
 # stat.only-final = true
 # stat.silent = true
 stat.file = $out.stat
-stat.num-children = 1
-stat.child.0 = cl.ian.gp.statistics.MyKozaShortStatistics
-stat.child.0.silent = true
-stat.child.0.file = $out2.stat
-stat.child.0.do-depth = true
-stat.child.0.do-time = true
-stat.child.0.do-size = true
-stat.child.0.do-subpops = true
+#stat.num-children = 1
+# stat.child.0 = cl.ian.gp.statistics.MyKozaShortStatistics
+# stat.child.0.silent = true
+# stat.child.0.file = $out2.stat
+# stat.child.0.do-depth = true
+# stat.child.0.do-time = true
+# stat.child.0.do-size = true
+# stat.child.0.do-subpops = true
 # gp.tree.print-style = c
 
 #print-all-params = true
@@ -56,7 +56,7 @@ pop.subpop.0.species.fitness.required-meeting-condition = 100
 gp.tc.0.init = cl.ian.gp.KnownApproxRampedHalfHalfInit
 # Min and Max level for initial individuals
 gp.tc.0.init.min-depth = 2
-gp.tc.0.init.max-depth = 12
+gp.tc.0.init.max-depth = 6
 gp.tc.0.init.growp = 0.5
 ################################## Breeding pipelines #####################################
 pop.subpop.0.species.pipe = ec.breed.MultiBreedingPipeline
@@ -84,13 +84,13 @@ gp.koza.mutate.pipe.ns = ec.gp.koza.KozaNodeSelector
 gp.koza.mutate.build.0 = ec.gp.koza.GrowBuilder
 gp.koza.mutate.source.0 = ec.parsimony.LexicographicTournamentSelection
 gp.koza.grow.min-depth = 2
-gp.koza.grow.max-depth = 12
+gp.koza.grow.max-depth = 6
 
 # select.tournament.size = 2
 select.lexicographic-tournament.size = 2
 
 # KozaNodeSelector Probability of selecting a type of node when performing breeding. Set to zero to pick any node
-gp.koza.ns.terminals = 0.1
-gp.koza.ns.nonterminals = 0.9
+gp.koza.ns.terminals = 0.0
+gp.koza.ns.nonterminals = 0.0
 gp.koza.ns.root = 0.0
 ###########################################################################################

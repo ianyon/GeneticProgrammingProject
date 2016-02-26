@@ -113,9 +113,9 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
 
     onlyFinal = state.parameters.getBoolean(base.push(P_ONLY_FINAL), null, false);
 
-    if (children.length != 0 && children[0] instanceof MyKozaShortStatistics) {
+    /*if (children.length != 0 && children[0] instanceof MyKozaShortStatistics) {
       ((MyKozaShortStatistics) children[0]).printHeader(state);
-    }
+    }*/
 
   }
 
@@ -123,23 +123,22 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   public void preEvaluationStatistics(EvolutionState state) {
     super.preEvaluationStatistics(state);
 
-    double meanDepth = 0, meanSize = 0, varianceDepth, varianceSize;
-    long quadracticSizeSum = 0, quadracticDepthSum = 0;
+    double meanDepth = 0, meanSize = 0, quadraticSizeSum = 0, quadraticDepthSum = 0, varianceDepth, varianceSize;
     for (Individual individual : state.population.subpops[0].individuals) {
       final int nodesCount = ((MyGPIndividual) individual).trees[0].child.numNodes(GPNode.NODESEARCH_ALL);
       meanSize += nodesCount;
-      quadracticSizeSum += nodesCount * nodesCount;
+      quadraticSizeSum += Math.pow(nodesCount, 2);
 
       final int depth = ((MyGPIndividual) individual).trees[0].child.depth();
       meanDepth += depth;
-      quadracticDepthSum += depth * depth;
+      quadraticDepthSum += Math.pow(depth, 2);
     }
 
     final int individualsCount = state.population.subpops[0].individuals.length;
     meanDepth /= individualsCount;
     meanSize /= individualsCount;
-    varianceDepth = (quadracticDepthSum / individualsCount) - meanDepth * meanDepth;
-    varianceSize = (quadracticSizeSum / individualsCount) - meanSize * meanSize;
+    varianceDepth = (quadraticDepthSum / individualsCount) - Math.pow(meanDepth, 2);
+    varianceSize = (quadraticSizeSum / individualsCount) - Math.pow(meanSize, 2);
     state.output.message(String.format("New Gen stats: AvgDepth=%s (Var=%.2f) AvgSize=%s (Var=%.2f)",
         meanDepth, varianceDepth, meanSize, varianceSize));
   }

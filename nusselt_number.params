@@ -6,7 +6,7 @@ eval.problem.problem-case = NusseltNumber
 eval.problem.regularization-factor = 0.4
 
 stat.file = $Results/nusseltOut.stat
-stat.child.0.file = $Results/nusseltOut2.stat
+#stat.child.0.file = $Results/nusseltOut2.stat
 ############################### Functions and terminals #############################################################
 gp.fs.0.size = 8
 # We have six functions in the function set:

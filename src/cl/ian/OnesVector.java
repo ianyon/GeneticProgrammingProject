@@ -35,4 +35,8 @@ public class OnesVector extends DenseMatrix64F {
     double functionValue = get(index);
     error[index] = abs(error[index] - functionValue) / functionValue;
   }
+
+  public double unsafe_get(int i) {
+    return unsafe_get(0, i);
+  }
 }

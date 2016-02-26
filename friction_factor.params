@@ -6,7 +6,7 @@ eval.problem.problem-case = FrictionFactor
 eval.problem.regularization-factor = 0.1
 
 stat.file = $Results/frictionOut.stat
-stat.child.0.file = $Results/frictionOut2.stat
+#stat.child.0.file = $Results/frictionOut2.stat
 ############################### Functions and terminals #############################################################
 gp.fs.0.size = 11
 # We have six functions in the function set:

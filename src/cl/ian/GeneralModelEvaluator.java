@@ -88,7 +88,7 @@ public class GeneralModelEvaluator {
     final OnesVector tc = new OnesVector(col_celda, initTemperature);                                  //[°C]
     final DenseMatrix64F ff = new DenseMatrix64F(1, col_fluido);                                       //N
     final DenseMatrix64F rem = new DenseMatrix64F(1, col_fluido);                                      //Adimensional
-    final DenseMatrix64F fluidK = new OnesVector(col_fluido, Interpolation.q_conductividad(tf.get(0)));//[W/m k]
+    final DenseMatrix64F fluidK = new OnesVector(col_fluido, Interpolation.q_conductividad(tf.unsafe_get(0)));//[W/m k]
     /******************************************** Errores en columnas ********************************************/
     final double[] cellTempError = filledArray(col_celda, Double.MAX_VALUE);
     final double[] TFError = filledArray(col_fluido, Double.MAX_VALUE);
@@ -103,7 +103,7 @@ public class GeneralModelEvaluator {
     df.set(0, Interpolation.q_densidad(initTemperature));     // Densidad de entrada [kg/m3]
     /**************************************************************************************************************/
     // Speedup cache variable
-    final double dfMultiplicationTerm = diamTimesZ * initVelocity * df.get(0);    // df(0) never changes
+    final double dfMultiplicationTerm = diamTimesZ * initVelocity * df.unsafe_get(0);    // df(0) never changes
 
     final double m_punto = sPlusOne * dfMultiplicationTerm;
 
@@ -124,7 +124,7 @@ public class GeneralModelEvaluator {
     for (int x = 0; x < 10; x++) { // Try 10 times
       // This gets updated with the first value from the last attempt to converge
       /**************************************** Calculo de la velocidad en 1 ***********************************/
-      double cdrag = eval.computeDragCoefficient(a.a1, rem.get(0), normalizedArea, df.get(0) / 1.205, col_fluido);
+      double cdrag = eval.computeDragCoefficient(a.a1, rem.unsafe_get(0, 0), normalizedArea, df.unsafe_get(0) / 1.205, col_fluido);
       double initialFF = initialFFTerm * cdrag;
       ff.set(0, initialFF);
       double actualVF = initVelocity - initialFF / m_punto;
@@ -132,28 +132,28 @@ public class GeneralModelEvaluator {
       /*************************************** Calculo de la presion en 1 **************************************/
       double actualVMF = sTerm * actualVF;
       vmf.set(0, actualVMF);
-      double actualDF = df.get(0);
-      double actualRem = ModelUtils.q_reynolds(actualVMF, tf.get(0), cellDiameter, actualDF);
+      double actualDF = df.unsafe_get(0);
+      double actualRem = ModelUtils.q_reynolds(actualVMF, tf.unsafe_get(0), cellDiameter, actualDF);
       rem.set(0, actualRem);
       double normalizedDF = actualDF / 1.205;
       double frictionFactor = eval.computeFrictionFactor(actualRem, separation, actualVMF / initVelocity, normalizedDF);
-      double nextPF = pf.get(1);
+      double nextPF = pf.unsafe_get(1);
       double actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
       pf.setValue(0, pressureError, actualPF);
 
       // Tf(0), pf(end), Df(0), vmf(end) and rem(0) aren't modified in the loop
       for (int i = 0; i < col_fluido - 1; i++) {
-        actualVF = vf.get(i);
+        actualVF = vf.unsafe_get(i);
         actualVMF = sTerm * actualVF;
         vmf.set(i, actualVMF);
-        final double actualTF = tf.get(i);
-        actualDF = df.get(i);
+        final double actualTF = tf.unsafe_get(i);
+        actualDF = df.unsafe_get(i);
         rem.set(i + 1, ModelUtils.q_reynolds(actualVMF, actualTF, cellDiameter, actualDF));
-        actualRem = rem.get(i);
+        actualRem = rem.unsafe_get(0, i);
         /***************************************** Calculo de la presion **************************************/
         normalizedDF = actualDF / 1.205;
-        frictionFactor = eval.computeFrictionFactor(actualRem, separation, vmf.get(i) / initVelocity, normalizedDF);
-        nextPF = pf.get(i + 1);
+        frictionFactor = eval.computeFrictionFactor(actualRem, separation, vmf.unsafe_get(0, i) / initVelocity, normalizedDF);
+        nextPF = pf.unsafe_get(i + 1);
         actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
         pf.setValue(i, pressureError, actualPF);
         /***************************************** Calculo de la velocidad ************************************/
@@ -186,7 +186,7 @@ public class GeneralModelEvaluator {
       }
     }
 
-    return eval.returnValue(pf.get(0), vf.get(1), tc.get(0));
+    return eval.returnValue(pf.unsafe_get(0), vf.unsafe_get(1), tc.unsafe_get(0));
   }
 
   public static double[] filledArray(int size, double value) {

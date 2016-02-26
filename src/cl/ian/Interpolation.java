@@ -116,12 +116,12 @@ public class Interpolation {
 
       if (dx <= 0) System.out.println("ERROR: X must be strictly monotonic.");
 
-      dy = Y.get(0, i + 1) - Y.get(0, i);
+      dy = Y.unsafe_get(0, i + 1) - Y.unsafe_get(0, i);
 
-      slope.set(0, i, dy / dx);
+      slope.unsafe_set(0, i, dy / dx);
 
-      intercept.set(0, i,
-          Y.get(0, i) - X[i] * slope.get(0, i));
+      intercept.unsafe_set(0, i,
+          Y.unsafe_get(0, i) - X[i] * slope.unsafe_get(0, i));
     }
   }
 
@@ -258,9 +258,9 @@ public class Interpolation {
                                            final RealMatrix64F intercept, final RealMatrix64F y,
                                            final double value) {
     // Check bounds for extrapolation
-    if (value < x[0]) return slope.get(0, 0) * value + intercept.get(0, 0);                   // Below bottom bound
+    if (value < x[0]) return slope.unsafe_get(0, 0) * value + intercept.unsafe_get(0, 0);                   // Below bottom bound
     else if (value > x[x.length - 1])                                                   // Over upper bound
-      return slope.get(slope.getNumCols(), 0) * value + intercept.get(intercept.getNumCols(), 0);
+      return slope.unsafe_get(slope.getNumCols(), 0) * value + intercept.unsafe_get(intercept.getNumCols(), 0);
     return interpolate(x, slope, intercept, y, value);
   }
 
@@ -280,8 +280,8 @@ public class Interpolation {
     int loc = Arrays.binarySearch(x, value);
     if (loc < -1) {                                                 // Value isn't in array
       loc = -loc - 2;
-      return slope.get(0, loc) * value + intercept.get(0, loc);
-    } else return y.get(0, loc);                                    // Value found in array
+      return slope.unsafe_get(0, loc) * value + intercept.unsafe_get(0, loc);
+    } else return y.unsafe_get(0, loc);                                    // Value found in array
 
   }
 }

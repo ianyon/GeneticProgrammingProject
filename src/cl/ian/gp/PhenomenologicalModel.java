@@ -15,6 +15,8 @@ import ec.util.Parameter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -134,9 +136,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     HitLevelKozaFitness f = ((HitLevelKozaFitness) ind.fitness);
 
     int hits = 0;
-    long quadraticErrorSum = 0;
-    double errorSum = 0.0;
-    double error;
+    double quadraticErrorSum = 0, errorSum = 0.0, error;
 
     for (int i = initLoop(); i < endLoop(); i++) {
       currentValue.set(inputs[i]);
@@ -151,29 +151,26 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
           evolutionStateBean);
 
       error = input.x - outputs[i];
-
       errorSum += error;
+      quadraticErrorSum += Math.pow(error, 2);
 
       // Check if the error is within hitLevel percent of the desired error
       if (Math.abs(error) <= Math.abs(outputs[i]) * HitLevelKozaFitness.hitLevel) hits++;
-
-      quadraticErrorSum += error * error;
     }
 
     // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
     final int testCount = getTestedElementsCount();
-    final long quadraticErrorAvg = quadraticErrorSum / testCount;
+    final double quadraticErrorAvg = quadraticErrorSum / testCount;
     double MSEWithRegularization = quadraticErrorAvg + alpha * Math.sqrt(ind.size());
 
     f.errorAvg = Math.abs(errorSum / testCount);
-    f.variance = quadraticErrorAvg - Math.pow(f.errorAvg ,2);
+    f.variance = quadraticErrorAvg - Math.pow(f.errorAvg, 2);
 
-    //ind.error=0;
-    if (Double.isNaN(MSEWithRegularization))
-      MSEWithRegularization = 100000000;
+    if (Double.isNaN(MSEWithRegularization) || Double.isInfinite(MSEWithRegularization))
+      MSEWithRegularization = Double.MAX_VALUE;
 
     // Limit fitness precision, to eliminate rounding error problem. 12 decimals default precision in GPlab
-    MSEWithRegularization = (double) Math.round(MSEWithRegularization * 1000000000000d) / 1000000000000d;
+    MSEWithRegularization = new BigDecimal(MSEWithRegularization).setScale(12, RoundingMode.HALF_UP).doubleValue();
 
     f.setStandardizedFitness(state, MSEWithRegularization);
     f.meetsCondition = (double) hits / testCount;

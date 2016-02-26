@@ -36,7 +36,6 @@ quit-on-run-complete = true
 # The Population
 pop.subpop.0.size = 200
 pop.subpop.0.duplicate-retries = 20
-# breed.minimum-size.0 = 2000
 
 # The class of the problem
 eval.problem = cl.ian.gp.PhenomenologicalModelVerticalSlicing

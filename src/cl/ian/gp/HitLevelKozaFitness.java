@@ -1,6 +1,7 @@
 package cl.ian.gp;
 
 import ec.EvolutionState;
+import ec.Fitness;
 import ec.gp.koza.KozaFitness;
 import ec.util.Parameter;
 
@@ -44,5 +45,13 @@ public class HitLevelKozaFitness extends KozaFitness {
   @Override
   public boolean isIdealFitness() {
     return meetsCondition >= requiredMeetingCondition;
+  }
+
+  public boolean errorBetterThan(final Fitness _fitness) {
+    // I am better than you if my standardized fitness is LOWER than you
+    // (that is, closer to zero, which is optimal)
+    // We're comparing standardized fitness because adjusted fitness can
+    // loose some precision in the division.
+    return (((HitLevelKozaFitness) _fitness).errorAvg + ((HitLevelKozaFitness) _fitness).variance) > (errorAvg + variance);
   }
 }

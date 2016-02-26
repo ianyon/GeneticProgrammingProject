@@ -24,7 +24,6 @@ public class Main {
     LoopCallable.InitiateLoops(loopSteps);
     System.out.println("Finished Friction Factor (" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");
 
-/*
     ParameterDatabase dragDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "drag_coef.params"});
     dragDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), "DragCoefficient");
     EvolutionState dragState = Evolve.initialize(dragDatabase, 0);
@@ -42,7 +41,7 @@ public class Main {
     System.out.println("Nusselt Number, number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
     startFrictionTime = System.nanoTime();
     LoopCallable.InitiateLoops(loopSteps);
-    System.out.println("Finished Nusselt Number(" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");*/
+    System.out.println("Finished Nusselt Number(" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");
   }
 
 

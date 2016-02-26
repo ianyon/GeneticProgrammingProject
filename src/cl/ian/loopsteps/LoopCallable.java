@@ -1,17 +1,28 @@
 package cl.ian.loopsteps;
 
+import cl.ian.gp.HitLevelKozaFitness;
+import cl.ian.gp.MyGPIndividual;
+import cl.ian.gp.statistics.SimpleGPStatistics;
 import ec.EvolutionState;
 import ec.Evolve;
 import ec.util.Parameter;
 import ec.util.ParameterDatabase;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.Callable;
 
 /**
  * Created by Ian on 16/02/2016.
  */
 public abstract class LoopCallable implements Callable {
+  private static String summaryActualName;
   public final ArrayList<LoopCallable> loopSteps;
   public final int index;
   public ParameterDatabase database;
@@ -25,6 +36,12 @@ public abstract class LoopCallable implements Callable {
   private static int completedExecutionLoops;
   private static double meanExecutionTime;
   private static double estimatedRemainingTime;
+
+  public static MyGPIndividual bestOfLoops;
+  public static String headerBestOfLoops;
+  public static String stringBestOfLoops;
+  private static final String summaryFilename = "Summary";
+  private static final String summaryExtension = ".stat";
 
   public LoopCallable(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     this.database = database;
@@ -44,14 +61,25 @@ public abstract class LoopCallable implements Callable {
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
     loopSteps.add(new LoopElitism(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopPopulation(database, state, loopSteps, loopSteps.size()));
-    /*loopSteps.add(new LoopCrossoverRate(database, state, loopSteps, loopSteps.size()));
+    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps, loopSteps.size()));
-    loopSteps.add(new LoopDivMaxValue(database, state, loopSteps, loopSteps.size()));*/
+    loopSteps.add(new LoopDivMaxValue(database, state, loopSteps, loopSteps.size()));
     return loopSteps;
   }
 
   public static void InitiateLoops(ArrayList<LoopCallable> loopSteps) {
+
+    // Create a new summary file
+    summaryActualName = summaryFilename + " " + new SimpleDateFormat("yyyyMMddhhmm'" + summaryExtension + "'")
+        .format(new Date());
+    try {
+      new File(summaryActualName).createNewFile();
+    } catch (IOException e) {
+      loopSteps.get(0).state.output.warning("Couldn't create summary file");
+      e.printStackTrace();
+    }
+
     try {
       loopSteps.get(0).call();
     } catch (Exception e) {
@@ -59,10 +87,18 @@ public abstract class LoopCallable implements Callable {
       e.printStackTrace();
       System.exit(-1);
     }
+
+    // Print the final results
+    String finalMessage = String.format("\n\nBest of all loops is: %s\n%s", headerBestOfLoops, stringBestOfLoops);
+    try {
+      Files.write(Paths.get(summaryActualName), finalMessage.getBytes(), StandardOpenOption.APPEND);
+    } catch (IOException e) {
+      loopSteps.get(0).state.output.warning("Couldn't write summary for best of all loops");
+    }
   }
 
   protected void doExecution() {
-    printHeader();
+    String header = printHeader();
 
     long startTime = System.nanoTime();
     state.run(EvolutionState.C_STARTED_FRESH);
@@ -73,9 +109,28 @@ public abstract class LoopCallable implements Callable {
         (meanExecutionTime * (completedExecutionLoops - 1) + thisTime) / completedExecutionLoops;
     estimatedRemainingTime = Math.round(meanExecutionTime * (totalExecutionLoops - completedExecutionLoops));
     System.out.println("Execution time:" + thisTime + " s\n");
+
+    // Print the info to the summary file and check for the best of all time
+    final MyGPIndividual bestIndLastLoop = (MyGPIndividual) ((SimpleGPStatistics) state.statistics).best_of_run[0];
+    final String bestMessage = header + "\n" + String.format("%s\n%s",
+        bestIndLastLoop.fitness.fitnessToStringForHumans(), bestIndLastLoop.stringRootedTreeForHumans());
+
+    try {
+      Files.write(Paths.get(summaryActualName),
+          String.format("\nBest fitness of run: %s\n", bestMessage).getBytes(),
+          StandardOpenOption.APPEND);
+    } catch (IOException e) {
+      state.output.warning("Couldn't write summary for last loop");
+    }
+
+    if (bestOfLoops == null || ((HitLevelKozaFitness) bestIndLastLoop.fitness).errorBetterThan(bestOfLoops.fitness)) {
+      bestOfLoops = bestIndLastLoop;
+      headerBestOfLoops = header;
+      stringBestOfLoops = bestMessage;
+    }
   }
 
-  private void printHeader() {
+  private String printHeader() {
     String message = "";
     for (int i = 0; i < parametersHeader.size(); i++)
       message += " " + parametersHeader.get(i) + parametersValue.get(i);
@@ -98,7 +153,9 @@ public abstract class LoopCallable implements Callable {
     System.out.println(progressMessage);
 
     System.out.println("\nParameters:" + message);
-    database.set(new Parameter("stat.child.0.file.suffix"), message);
+    database.set(new Parameter("stat.file.suffix"), message);
+    //database.set(new Parameter("stat.child.0.file.suffix"), message);
+    return message;
   }
 
   protected void doExecutionOrContinueWithNextStep() throws Exception {

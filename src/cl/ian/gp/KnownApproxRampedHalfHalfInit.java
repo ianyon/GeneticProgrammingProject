@@ -1,5 +1,6 @@
 package cl.ian.gp;
 
+import cl.ian.Case;
 import cl.ian.gp.nodes.MeanReynoldsTerminal;
 import cl.ian.gp.nodes.MyERC;
 import cl.ian.gp.nodes.Power;
@@ -20,23 +21,6 @@ public class KnownApproxRampedHalfHalfInit extends HalfBuilder {
 
   public static final String P_KNOWNHALFBUILDER = "known-half-builder";
   public static final String P_USEKNOWNAPPROX = "use-known-approx";
-
-  public enum Case {
-    FRICTION_FACTOR("FrictionFactor"),
-    DRAG_COEFFICIENT("DragCoefficient"),
-    NUSSELT_NUMBER("NusseltNumber");
-
-    public final String text;
-
-    Case(final String text) {
-      this.text = text;
-    }
-
-    @Override
-    public String toString() {
-      return text;
-    }
-  }
 
   // For statistics only
   public int growCount, fullCount, knownApproxCount;

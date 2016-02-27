@@ -1,6 +1,7 @@
 package cl.ian.loopsteps;
 
 import ec.EvolutionState;
+import ec.app.edge.func.Loop;
 import ec.util.Parameter;
 import ec.util.ParameterDatabase;
 
@@ -13,30 +14,23 @@ public class LoopCrossoverRate extends LoopCallable {
 
 
   public LoopCrossoverRate(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
-    super(database, state, loopSteps, index);
+    // the last argument is the values to try
+    super(database, state, loopSteps, index, new double[]{0.8, 0.9, 1.0});
     parametersHeader.add("Xover=");
   }
 
   @Override
-  public int numberOfLoops() {
-    return 3;
-  }
-
-
-  @Override
   public Void call() throws Exception {
-    // Loop through the crossover rate 0.7:0.1:1.0
-    for (float crossoverRate = 0.7f; crossoverRate <= 1.0; crossoverRate += 0.1f) {
+    for (int i = 0; i < testValues.length; i++) {
       // Crossover rate
-      database.set(new Parameter("pop.subpop.0.species.pipe.source.0.prob"), "" + crossoverRate);
+      database.set(new Parameter("pop.subpop.0.species.pipe.source.0.prob"), "" + testValues[i]);
       // Mutation rate
-      database.set(new Parameter("pop.subpop.0.species.pipe.source.1.prob"), "" + (1 - crossoverRate));
+      database.set(new Parameter("pop.subpop.0.species.pipe.source.1.prob"), "" + (1 - testValues[i]));
 
-      parametersValue.set(index, "" + crossoverRate);
+      parametersValue.set(index, "" + testValues[i]);
 
       doExecutionOrContinueWithNextStep();
     }
     return null;
   }
-
 }

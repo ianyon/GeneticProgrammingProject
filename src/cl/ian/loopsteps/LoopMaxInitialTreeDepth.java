@@ -13,23 +13,18 @@ public class LoopMaxInitialTreeDepth extends LoopCallable {
 
 
   public LoopMaxInitialTreeDepth(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
-    super(database, state, loopSteps, index);
+    super(database, state, loopSteps, index, new double[]{6, 8});
     parametersHeader.add("MaxInitDepth=");
   }
 
-  @Override
-  public int numberOfLoops() {
-    return 2;
-  }
 
   @Override
   public Void call() throws Exception {
-    // Loop through the maximum initial tree size 6:2:8
-    for (int maxInitialTreeDepth = 6; maxInitialTreeDepth <= 8; maxInitialTreeDepth += 2) {
+    for (int i = 0; i < testValues.length; i++) {
       // Maximum initial tree size
-      database.set(new Parameter("gp.tc.0.init.max-depth"), "" + maxInitialTreeDepth);
-      database.set(new Parameter("gp.koza.grow.max-depth"), "" + maxInitialTreeDepth);
-      parametersValue.set(index, "" + maxInitialTreeDepth);
+      database.set(new Parameter("gp.tc.0.init.max-depth"), "" + testValues[i]);
+      database.set(new Parameter("gp.koza.grow.max-depth"), "" + testValues[i]);
+      parametersValue.set(index, "" + testValues[i]);
 
       doExecutionOrContinueWithNextStep();
     }

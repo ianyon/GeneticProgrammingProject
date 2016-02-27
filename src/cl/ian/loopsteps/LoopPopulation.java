@@ -13,22 +13,16 @@ public class LoopPopulation extends LoopCallable {
 
 
   public LoopPopulation(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
-    super(database, state, loopSteps, index);
+    super(database, state, loopSteps, index, new double[]{2000,4000});
     parametersHeader.add("Pop=");
   }
 
   @Override
-  public int numberOfLoops() {
-    return 2;
-  }
-
-  @Override
   public Void call() throws Exception {
-    // Loop through the population size 2000,4000
-    for (int popSize = 2000; popSize <= 4000; popSize += 2000) {//TODO Cambiar valores
+    for (int i = 0; i < testValues.length; i++) {
       // Population size
-      database.set(new Parameter("pop.subpop.0.size"), "" + popSize);
-      parametersValue.set(index, "" + popSize);
+      database.set(new Parameter("pop.subpop.0.size"), "" + testValues[i]);
+      parametersValue.set(index, "" + testValues[i]);
 
       doExecutionOrContinueWithNextStep();
     }

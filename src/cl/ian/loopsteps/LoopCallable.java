@@ -1,5 +1,6 @@
 package cl.ian.loopsteps;
 
+import cl.ian.Case;
 import cl.ian.gp.HitLevelKozaFitness;
 import cl.ian.gp.MyGPIndividual;
 import cl.ian.gp.statistics.SimpleGPStatistics;
@@ -27,14 +28,19 @@ public abstract class LoopCallable implements Callable {
   public final int index;
   public ParameterDatabase database;
   public EvolutionState state;
+  public double[] testValues;
 
   // Fields to show the actual loop information
   public static final ArrayList<String> parametersHeader = new ArrayList<>();
+  /**
+   * Name of the expression being executed. Initialized in populateLoops
+   */
+  private static Case expressionName;
   public static final ArrayList<String> parametersValue = new ArrayList<>();
 
-  private static int totalExecutionLoops;
-  private static int completedExecutionLoops;
-  private static double meanExecutionTime;
+  private static int totalLoops;
+  private static int executedLoops;
+  private static double avgExecutionTime;
   private static double estimatedRemainingTime;
 
   public static MyGPIndividual bestOfLoops;
@@ -43,20 +49,24 @@ public abstract class LoopCallable implements Callable {
   private static final String summaryFilename = "Summary";
   private static final String summaryExtension = ".stat";
 
-  public LoopCallable(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
+  public LoopCallable(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index,
+                      double[] testValues) {
     this.database = database;
     this.state = state;
     this.loopSteps = loopSteps;
     parametersValue.add("");
     this.index = index;
-    completedExecutionLoops = 0;
-    meanExecutionTime = 0;
+    executedLoops = 0;
+    avgExecutionTime = 0;
     estimatedRemainingTime = 0;
+
+    this.testValues = testValues;
   }
 
-  public static ArrayList<LoopCallable> populateLoops(ParameterDatabase database, EvolutionState state) {
+  public static ArrayList<LoopCallable> populateLoops(ParameterDatabase database, EvolutionState state, Case expressionName) {
     LoopCallable.parametersHeader.clear();
     LoopCallable.parametersValue.clear();
+    LoopCallable.expressionName = expressionName;
 
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
     loopSteps.add(new LoopElitism(database, state, loopSteps, loopSteps.size()));
@@ -68,15 +78,21 @@ public abstract class LoopCallable implements Callable {
     return loopSteps;
   }
 
+  /**
+   * Initiate the execution of the loops
+   *
+   * @param loopSteps
+   */
   public static void InitiateLoops(ArrayList<LoopCallable> loopSteps) {
 
     // Create a new summary file
-    summaryActualName = summaryFilename + " " + new SimpleDateFormat("yyyyMMddhhmm'" + summaryExtension + "'")
-        .format(new Date());
+    summaryActualName = String.format("%s %s %s%s", summaryFilename, expressionName,
+        new SimpleDateFormat("yyyyMMddhhmm").format(new Date()), summaryExtension);
     try {
       new File(summaryActualName).createNewFile();
+      Files.write(Paths.get(summaryActualName), (expressionName + "\n\n").getBytes(), StandardOpenOption.APPEND);
     } catch (IOException e) {
-      loopSteps.get(0).state.output.warning("Couldn't create summary file");
+      loopSteps.get(0).state.output.warning("Couldn't create and or write to summary file");
       e.printStackTrace();
     }
 
@@ -98,64 +114,97 @@ public abstract class LoopCallable implements Callable {
   }
 
   protected void doExecution() {
-    String header = printHeader();
+    String paramIdentifier = printHeader();
 
-    long startTime = System.nanoTime();
-    state.run(EvolutionState.C_STARTED_FRESH);
-    Evolve.cleanup(state);
-    double thisTime = (System.nanoTime() - startTime) / 1000000000.0;
-    completedExecutionLoops++;
-    meanExecutionTime =
-        (meanExecutionTime * (completedExecutionLoops - 1) + thisTime) / completedExecutionLoops;
-    estimatedRemainingTime = Math.round(meanExecutionTime * (totalExecutionLoops - completedExecutionLoops));
-    System.out.println("Execution time:" + thisTime + " s\n");
+    actualExecution();
 
     // Print the info to the summary file and check for the best of all time
     final MyGPIndividual bestIndLastLoop = (MyGPIndividual) ((SimpleGPStatistics) state.statistics).best_of_run[0];
-    final String bestMessage = header + "\n" + String.format("%s\n%s",
+    final String bestMessage = String.format("%s\n%s\n%s", paramIdentifier,
         bestIndLastLoop.fitness.fitnessToStringForHumans(), bestIndLastLoop.stringRootedTreeForHumans());
 
     try {
       Files.write(Paths.get(summaryActualName),
-          String.format("\nBest fitness of run: %s\n", bestMessage).getBytes(),
-          StandardOpenOption.APPEND);
+          String.format("\nBest fitness of run: %s\n", bestMessage).getBytes(), StandardOpenOption.APPEND);
     } catch (IOException e) {
       state.output.warning("Couldn't write summary for last loop");
     }
 
     if (bestOfLoops == null || ((HitLevelKozaFitness) bestIndLastLoop.fitness).errorBetterThan(bestOfLoops.fitness)) {
       bestOfLoops = bestIndLastLoop;
-      headerBestOfLoops = header;
+      headerBestOfLoops = paramIdentifier;
       stringBestOfLoops = bestMessage;
     }
   }
 
+  private void actualExecution() {
+    long startTime = System.nanoTime();
+    state.run(EvolutionState.C_STARTED_FRESH);
+    Evolve.cleanup(state);
+    double thisTime = (System.nanoTime() - startTime) / 1000000000.0;
+
+    executedLoops++;
+    avgExecutionTime = (avgExecutionTime * (executedLoops - 1) + thisTime) / executedLoops;
+    estimatedRemainingTime = avgExecutionTime * (totalLoops - executedLoops);
+    System.out.println(expressionName + " Execution time:" + thisTime + " s\n");
+  }
+
   private String printHeader() {
-    String message = "";
+    String paramIdentifier = "";
     for (int i = 0; i < parametersHeader.size(); i++)
-      message += " " + parametersHeader.get(i) + parametersValue.get(i);
+      paramIdentifier += " " + parametersHeader.get(i) + parametersValue.get(i);
 
     // Delete the trailing comma
-    String progressMessage = "Execution " + (completedExecutionLoops + 1) + "/" + totalExecutionLoops +
-        " (" + 100 * completedExecutionLoops / totalExecutionLoops + "%)";
+    String progressMessage = String.format("%s Execution %d/%d (%d%%)", expressionName, executedLoops + 1, totalLoops,
+        100 * executedLoops / totalLoops);
 
     // Format the remaining time
-    if (completedExecutionLoops != 0) {
-      int hr = (int) estimatedRemainingTime / 3600;
-      int min = (int) (estimatedRemainingTime - 3600 * hr) / 60;
-      int sec = (int) (estimatedRemainingTime - 3600 * hr - 60 * min);
-      progressMessage += ": Estimated remaining time  " + String.format("%02d:%02d:%02d", hr, min, sec);
-      hr = (int) (estimatedRemainingTime * 3) / 3600;
-      min = (int) ((estimatedRemainingTime * 3) - 3600 * hr) / 60;
-      sec = (int) ((estimatedRemainingTime * 3) - 3600 * hr - 60 * min);
-      progressMessage += " (" + String.format("%02d:%02d:%02d", hr, min, sec) + ")";
+    if (executedLoops != 0) {
+      progressMessage += ": Estimated remaining time  " + getFormattedTime(estimatedRemainingTime);
+      progressMessage += getRemainingTimeAllExpr();
     }
     System.out.println(progressMessage);
 
-    System.out.println("\nParameters:" + message);
+    System.out.println("\nParameters:" + paramIdentifier);
+    setStatisticFilesIdentifier(paramIdentifier);
+    return paramIdentifier;
+  }
+
+  private String getRemainingTimeAllExpr() {
+    int remainingExpr;
+
+    switch (expressionName) {
+      case FRICTION_FACTOR:
+        remainingExpr = 2;
+        break;
+      case DRAG_COEFFICIENT:
+        remainingExpr = 1;
+        break;
+      case NUSSELT_NUMBER:
+      default:
+        remainingExpr = 0;
+        break;
+    }
+
+    final double estimatedTimeAllLoops = estimatedRemainingTime + remainingExpr * avgExecutionTime * totalLoops;
+    return " (" + getFormattedTime(estimatedTimeAllLoops) + ")";
+  }
+
+  private String getFormattedTime(double estimatedTimeAllLoops) {
+    int hr;
+    int min;
+    int sec;
+    hr = (int) estimatedTimeAllLoops / 3600;
+    min = (int) (estimatedTimeAllLoops - 3600 * hr) / 60;
+    sec = (int) (estimatedTimeAllLoops - 3600 * hr - 60 * min);
+    return String.format("' ('%02d:%02d:%02d')'", hr, min, sec);
+  }
+
+  private void setStatisticFilesIdentifier(String message) {
+    // Set the identifier for the file used in SimpleGPStatistics
     database.set(new Parameter("stat.file.suffix"), message);
+    // Set the identifier for the file used in MyKozaShortStatistics
     //database.set(new Parameter("stat.child.0.file.suffix"), message);
-    return message;
   }
 
   protected void doExecutionOrContinueWithNextStep() throws Exception {
@@ -171,14 +220,22 @@ public abstract class LoopCallable implements Callable {
       doExecution();
   }
 
+  /**
+   * Total number of loops executions in an array of LoopCallables
+   */
   public static int totalChainedLoops(ArrayList<LoopCallable> loopSteps) {
     int acc = 1;
     for (LoopCallable step : loopSteps) {
       acc *= step.numberOfLoops();
     }
-    totalExecutionLoops = acc;
+    totalLoops = acc;
     return acc;
   }
 
-  public abstract int numberOfLoops();
+  /**
+   * Returns the number of loops of this callable as the size of the values to test
+   */
+  public final int numberOfLoops() {
+    return testValues.length;
+  }
 }

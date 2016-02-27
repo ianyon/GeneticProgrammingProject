@@ -1,5 +1,6 @@
 package cl.ian.gp;
 
+import cl.ian.Case;
 import cl.ian.GeneralModelEvaluator;
 import cl.ian.InputVariables;
 import cl.ian.problemtype.DragCoefficientEvaluator;
@@ -28,23 +29,6 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public static final String OUTPUT_FILE = "outputfile";
   public static final String REGULARIZATION_FACTOR = "regularization-factor";
   public static final String PROBLEM_CASE = "problem-case";
-
-  public enum Case {
-    FRICTION_FACTOR("FrictionFactor"),
-    DRAG_COEFFICIENT("DragCoefficient"),
-    NUSSELT_NUMBER("NusseltNumber");
-
-    public final String text;
-
-    Case(final String text) {
-      this.text = text;
-    }
-
-    @Override
-    public String toString() {
-      return text;
-    }
-  }
 
   public final InputVariables currentValue = new InputVariables();
   public final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();

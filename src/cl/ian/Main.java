@@ -16,18 +16,18 @@ public class Main {
     createDirIfNotExist();
 
     ParameterDatabase frictionDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "friction_factor.params"});
-    frictionDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), "FrictionFactor");
+    frictionDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), Case.FRICTION_FACTOR.text);
     EvolutionState frictionState = Evolve.initialize(frictionDatabase, 0);
-    ArrayList<LoopCallable> loopSteps = LoopCallable.populateLoops(frictionDatabase, frictionState);
+    ArrayList<LoopCallable> loopSteps = LoopCallable.populateLoops(frictionDatabase, frictionState, Case.FRICTION_FACTOR);
     System.out.println("Friction factor, number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
     long startFrictionTime = System.nanoTime();
     LoopCallable.InitiateLoops(loopSteps);
     System.out.println("Finished Friction Factor (" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");
 
     ParameterDatabase dragDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "drag_coef.params"});
-    dragDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), "DragCoefficient");
+    dragDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), Case.DRAG_COEFFICIENT.text);
     EvolutionState dragState = Evolve.initialize(dragDatabase, 0);
-    loopSteps = LoopCallable.populateLoops(dragDatabase, dragState);
+    loopSteps = LoopCallable.populateLoops(dragDatabase, dragState, Case.DRAG_COEFFICIENT);
     System.out.println("Drag Coefficient, number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
     startFrictionTime = System.nanoTime();
     LoopCallable.InitiateLoops(loopSteps);
@@ -35,15 +35,14 @@ public class Main {
 
 
     ParameterDatabase nusseltDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "nusselt_number.params"});
-    nusseltDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), "NusseltNumber");
+    nusseltDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), Case.NUSSELT_NUMBER.text);
     EvolutionState nusseltState = Evolve.initialize(nusseltDatabase, 0);
-    loopSteps = LoopCallable.populateLoops(nusseltDatabase, nusseltState);
+    loopSteps = LoopCallable.populateLoops(nusseltDatabase, nusseltState, Case.NUSSELT_NUMBER);
     System.out.println("Nusselt Number, number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
     startFrictionTime = System.nanoTime();
     LoopCallable.InitiateLoops(loopSteps);
     System.out.println("Finished Nusselt Number(" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");
   }
-
 
   public static void createDirIfNotExist() {
 

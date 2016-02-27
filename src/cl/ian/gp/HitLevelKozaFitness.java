@@ -47,11 +47,7 @@ public class HitLevelKozaFitness extends KozaFitness {
     return meetsCondition >= requiredMeetingCondition;
   }
 
-  public boolean errorBetterThan(final Fitness _fitness) {
-    // I am better than you if my standardized fitness is LOWER than you
-    // (that is, closer to zero, which is optimal)
-    // We're comparing standardized fitness because adjusted fitness can
-    // loose some precision in the division.
+  public boolean errorBetterThan(final Fitness _fitness) {//TODO: Se necesita normalizar el error y varianza para comparar adecuadamente
     return (((HitLevelKozaFitness) _fitness).errorAvg + ((HitLevelKozaFitness) _fitness).variance) > (errorAvg + variance);
   }
 }

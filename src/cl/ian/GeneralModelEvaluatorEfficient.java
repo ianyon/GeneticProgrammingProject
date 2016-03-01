@@ -16,7 +16,7 @@ import static java.lang.Math.*;
  * This class computes the phenomenological model for the friction factor and uses an evolved individual to
  * evaluate it
  */
-public class GeneralModelEvaluator {
+public class GeneralModelEvaluatorEfficient {
 
   // Cantidad de celdas
   static final int col_fluido = 2;
@@ -34,7 +34,7 @@ public class GeneralModelEvaluator {
 
   public final ModelEvaluator eval;
 
-  public GeneralModelEvaluator(ModelEvaluator evaluator) {
+  public GeneralModelEvaluatorEfficient(ModelEvaluator evaluator) {
     this.eval = evaluator;
   }
 
@@ -76,24 +76,24 @@ public class GeneralModelEvaluator {
     final double controlVolArea = sPlusOne * diamTimesZ;                                            //Area volumen control eje z
 
     /*********************************************** Initialization **********************************************/
-    final OnesVector tf = new OnesVector(col_fluido, initTemperature);                                  //[°C]
-    final OnesVector pf = new OnesVector(col_fluido, atmPressure);                                      //[Pa]
+    final MyFixedMatrix2 tf = new MyFixedMatrix2(initTemperature);                                  //[°C]
+    final MyFixedMatrix2 pf = new MyFixedMatrix2(atmPressure);                                      //[Pa]
 
     // Speedup cache variable
     final double innerArg = flux * z / (largo * entranceArea);
 
-    final OnesVector vf = new OnesVector(col_fluido, innerArg);                                        //[m/s]
-    final OnesVector vmf = new OnesVector(col_fluido, innerArg);                                                             //[m/s]
-    final OnesVector df = new OnesVector(col_fluido, 1.204);                                           //[kg/m3] Apparently 1.204 is never used
-    final OnesVector tc = new OnesVector(col_celda, initTemperature);                                  //[°C]
-    final OnesVector ff = new OnesVector(col_fluido);                                       //N
-    final OnesVector rem = new OnesVector(col_fluido);                                      //Adimensional
-    final OnesVector fluidK = new OnesVector(col_fluido, Interpolation.q_conductividad(tf.unsafe_get(0)));//[W/m k]
+    final MyFixedMatrix2 vf = new MyFixedMatrix2(innerArg);                                        //[m/s]
+    final MyFixedMatrix2 vmf = vf.copy();                                                              //[m/s]
+    final MyFixedMatrix2 df = new MyFixedMatrix2(1.204);                                           //[kg/m3] Apparently 1.204 is never used
+    final SingleVector tc = new SingleVector(initTemperature);                                  //[°C]
+    final MyFixedMatrix2 ff = new MyFixedMatrix2();                                       //N
+    final MyFixedMatrix2 rem = new MyFixedMatrix2();                                      //Adimensional
+    final MyFixedMatrix2 fluidK = new MyFixedMatrix2(Interpolation.q_conductividad(tf.unsafe_get(0)));//[W/m k]
     /******************************************** Errores en columnas ********************************************/
-    final double[] cellTempError = filledArray(col_celda, Double.MAX_VALUE);
-    final double[] TFError = filledArray(col_fluido, Double.MAX_VALUE);
-    final double[] velocityError = filledArray(col_fluido, Double.MAX_VALUE);
-    final double[] pressureError = filledArray(col_celda, Double.MAX_VALUE);
+    double pressureError;
+    double cellTempError = Double.MAX_VALUE;
+    final MyFixedMatrix2 TFError = new MyFixedMatrix2(Double.MAX_VALUE);
+    final MyFixedMatrix2 velocityError = new MyFixedMatrix2(Double.MAX_VALUE);
     /******************************************** Condiciones de borde ********************************************/
     // Tf(1) = Tin;                       Temperatura entrada [ºC]
     // Vinicio = a(2)*Flujo*(z/Largo)/A;  Velocidad entrada[m/s]
@@ -107,8 +107,8 @@ public class GeneralModelEvaluator {
 
     final double m_punto = sPlusOne * dfMultiplicationTerm;
 
-    velocityError[0] = 0;
-    TFError[0] = 0;
+    velocityError.unsafe_set(0, 0);
+    TFError.unsafe_set(0, 0);
 
     // Speedup cache variables
     final double sTerm = separation / sPlusOne;
@@ -139,7 +139,7 @@ public class GeneralModelEvaluator {
       double frictionFactor = eval.computeFrictionFactor(actualRem, separation, actualVMF / initVelocity, normalizedDF);
       double nextPF = pf.unsafe_get(1);
       double actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
-      pf.setValue(0, pressureError, actualPF);
+      pressureError = pf.setValue(0, actualPF);
 
       // Tf(0), pf(end), Df(0), vmf(end) and rem(0) aren't modified in the loop
       for (int i = 0; i < col_fluido - 1; i++) {
@@ -155,7 +155,7 @@ public class GeneralModelEvaluator {
         frictionFactor = eval.computeFrictionFactor(actualRem, separation, vmf.unsafe_get(0, i) / initVelocity, normalizedDF);
         nextPF = pf.unsafe_get(i + 1);
         actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
-        pf.setValue(i, pressureError, actualPF);
+        pressureError = pf.setValue(i, actualPF);
         /***************************************** Calculo de la velocidad ************************************/
         cdrag = eval.computeDragCoefficient(a.a1, actualRem, normalizedArea, normalizedDF, col_fluido);
         final double actualVFSquared = pow(actualVF, 2);
@@ -178,10 +178,9 @@ public class GeneralModelEvaluator {
         fluidK.unsafe_set(i, iniFluidK);
         final double h = nu * iniFluidK / cellDiameter;
         // Transferencia de energia
-        tc.setValue(i, cellTempError, heatPerArea / h + (actualTF + nextTF) / 2);
+        cellTempError = tc.setValue(i, heatPerArea / h + (actualTF + nextTF) / 2);
       }
-      if (max(cellTempError) <= errmax && max(TFError) <= errmax &&
-          max(pressureError) <= errmax && max(velocityError) <= errmax) {
+      if (cellTempError <= errmax && TFError.max() <= errmax && pressureError <= errmax && velocityError.max() <= errmax) {
         break;
       }
     }
@@ -200,45 +199,5 @@ public class GeneralModelEvaluator {
     for (int i = 1; i < array.length; i++)
       max = Math.max(max, array[i]);
     return max;
-  }
-
-
-  /**
-   * Sets the vector at index to "value" and the error between the past value and the new
-   *
-   * @param i          The position in the vector to set
-   * @param errorArray The error array of the vector
-   * @param value      The value to set
-   */
-  public static void setValue(VectorWrapper vector, int i, double[] errorArray, double value) {
-    errorArray[i] = vector.unsafe_get(i);
-    vector.unsafe_set(i, value);
-    setFunctionError(vector, errorArray, i);
-  }
-
-  public static void setValue(VectorWrapper vector, int i, MyFixedMatrix2 errorArray, double value) {
-    errorArray.unsafe_set(i, vector.get(i));
-    vector.unsafe_set(i, value);
-    setFunctionError(vector, errorArray, i);
-  }
-
-  static void setFunctionError(VectorWrapper vector, MyFixedMatrix2 error, int index) {
-    double functionValue = vector.get(index);
-    error.unsafe_set(index, abs(error.unsafe_get(index) - functionValue) / functionValue);
-  }
-
-  public static double setValue(VectorWrapper vector, int i, double value) {
-    vector.unsafe_set(i, value);
-    return setFunctionError(vector, vector.get(i), i);
-  }
-
-  static double setFunctionError(VectorWrapper vector, double error, int index) {
-    double functionValue = vector.get(index);
-    return abs(error - functionValue) / functionValue;
-  }
-
-  static void setFunctionError(VectorWrapper vector, double[] error, int index) {
-    double functionValue = vector.get(index);
-    error[index] = abs(error[index] - functionValue) / functionValue;
   }
 }

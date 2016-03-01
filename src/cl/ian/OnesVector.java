@@ -8,7 +8,7 @@ import static java.lang.Math.abs;
 /**
  * Created by ian on 6/16/15.
  */
-public class OnesVector extends DenseMatrix64F {
+public class OnesVector extends DenseMatrix64F implements VectorWrapper {
   public OnesVector(int cols, double value) {
     super(1, cols);
     CommonOps.fill(this, value);
@@ -18,25 +18,17 @@ public class OnesVector extends DenseMatrix64F {
     super(1, cols);
   }
 
-  /**
-   * Sets the vector at index to "value" and the error between the past value and the new
-   *
-   * @param index The position in the vector to set
-   * @param error The error array of the vector
-   * @param value The value to set
-   */
   public void setValue(int index, double[] error, double value) {
-    error[index] = this.get(index);
-    set(index, value);
-    setFunctionError(error, index);
-  }
-
-  private void setFunctionError(double[] error, int index) {
-    double functionValue = get(index);
-    error[index] = abs(error[index] - functionValue) / functionValue;
+    GeneralModelEvaluator.setValue(this, index, error, value);
   }
 
   public double unsafe_get(int i) {
     return unsafe_get(0, i);
   }
+
+  @Override
+  public void unsafe_set(int i, double value) {
+    unsafe_set(0, i, value);
+  }
+
 }

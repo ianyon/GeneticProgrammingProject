@@ -5,6 +5,7 @@ import cl.ian.GeneralModelEvaluator;
 import cl.ian.InputVariables;
 import cl.ian.problemtype.DragCoefficientEvaluator;
 import cl.ian.problemtype.FrictionFactorEvaluator;
+import cl.ian.problemtype.ModelEvaluator;
 import cl.ian.problemtype.NusseltNumberEvaluator;
 import ec.EvolutionState;
 import ec.Individual;
@@ -100,13 +101,15 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
     String problemCase = state.parameters.getString(base.push(PROBLEM_CASE), null);
 
+    ModelEvaluator evaluator;
     if (problemCase.equalsIgnoreCase(Case.FRICTION_FACTOR.text)) {
-      model = new GeneralModelEvaluator(new FrictionFactorEvaluator());
+      evaluator = new FrictionFactorEvaluator();
     } else if (problemCase.equalsIgnoreCase(Case.DRAG_COEFFICIENT.text)) {
-      model = new GeneralModelEvaluator(new DragCoefficientEvaluator());
-    } else if (problemCase.equalsIgnoreCase(Case.NUSSELT_NUMBER.text)) {
-      model = new GeneralModelEvaluator(new NusseltNumberEvaluator());
+      evaluator = new DragCoefficientEvaluator();
+    } else {
+      evaluator = new NusseltNumberEvaluator();
     }
+    model = new GeneralModelEvaluator(evaluator);
   }
 
   public void evaluate(final EvolutionState state, final Individual ind, final int subpop, final int threadnum) {

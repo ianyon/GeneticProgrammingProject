@@ -2,6 +2,7 @@ package cl.ian.gp;
 
 import cl.ian.Case;
 import ec.EvolutionState;
+import ec.Individual;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 import ec.gp.GPTree;
@@ -19,6 +20,20 @@ public class MyGPIndividual extends GPIndividual {
 
   public String fitnessAndTree() {
     return String.format("%s\n%s", fitness.fitnessToStringForHumans(), stringRootedTreeForHumans());
+  }
+
+  public int depth() {
+    return trees[0].child.depth();
+  }
+
+  public String depthAndSize() {
+    return "Depth: " + depth() + " Size: " + size();
+  }
+
+  public static MyGPIndividual getBest(Individual bestInd, Individual newInd) {
+    if (bestInd == null || newInd.fitness.betterThan(bestInd.fitness))
+      return (MyGPIndividual) newInd.clone();
+    return (MyGPIndividual) bestInd;
   }
 
   public int printRootedTreeForHumans(GPNode child, StringBuilder str, int tablevel, int printbytes) {

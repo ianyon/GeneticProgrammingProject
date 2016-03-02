@@ -38,7 +38,7 @@ public class Main {
     SummaryFile.createSummaryFile(Case.NUSSELT_NUMBER);
 
     // Run it 10 times to average results
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 5; i++) {
       doBestOnce();
     }
 

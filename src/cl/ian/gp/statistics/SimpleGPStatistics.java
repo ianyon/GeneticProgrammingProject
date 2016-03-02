@@ -23,7 +23,7 @@ import java.nio.file.StandardOpenOption;
  */
 public class SimpleGPStatistics extends Statistics implements SteadyStateStatisticsForm //, ec.eval.ProvidesBestSoFar
 {
-  public Individual[] getBestSoFar() {
+  public MyGPIndividual[] getBestSoFar() {
     return best_of_run;
   }
 
@@ -57,7 +57,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   /**
    * The best individual we've found so far
    */
-  public Individual[] best_of_run = null;
+  public MyGPIndividual[] best_of_run = null;
 
   /**
    * Should we compress the file?
@@ -138,7 +138,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
 
     // set up our best_of_run array -- can't do this in setup, because
     // we don't know if the number of subpopulations has been determined yet
-    best_of_run = new Individual[state.population.subpops.length];
+    best_of_run = new MyGPIndividual[state.population.subpops.length];
 
     KnownApproxRampedHalfHalfInit init = (KnownApproxRampedHalfHalfInit) ((GPIndividual)
         state.population.subpops[0].individuals[0]).trees[0].constraints((GPInitializer) state.initializer).init;
@@ -148,24 +148,19 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
 
   @Override
   public void postEvaluationStatistics(final EvolutionState state) {
-    // Call the other childrens first. This is part of the grandparent but we cannot call it without calling our parent
-    // overrides the changes of this class
-    for (Statistics aChildren : children) aChildren.postEvaluationStatistics(state);
-
-    assert state.population.subpops[0].individuals.length == 2000 ||
-        state.population.subpops[0].individuals.length == 4000;
+    super.postEvaluationStatistics(state);
 
     // for now we just print the best fitness per subpopulation.
-    Individual[] best_i = new Individual[1];
-    best_i[0] = state.population.subpops[0].individuals[0];
+    MyGPIndividual[] best_i = new MyGPIndividual[1];
+    best_i[0] = (MyGPIndividual) state.population.subpops[0].individuals[0];
     for (int y = 1; y < state.population.subpops[0].individuals.length; y++) {
       if (state.population.subpops[0].individuals[y] == null) {
         if (!warned) {
           state.output.warnOnce("Null individuals found in subpopulation");
           warned = true;  // we do this rather than relying on warnOnce because it is much faster in a tight loop
         }
-      } else if (best_i[0] == null || state.population.subpops[0].individuals[y].fitness.betterThan(best_i[0].fitness))
-        best_i[0] = state.population.subpops[0].individuals[y];
+      } else
+        best_i[0] = MyGPIndividual.getBest(best_i[0], state.population.subpops[0].individuals[y]);
       if (best_i[0] == null) {
         if (!warned) {
           state.output.warnOnce("Null individuals found in subpopulation");
@@ -175,8 +170,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     }
 
     // now test to see if it's the new best_of_run
-    if (best_of_run[0] == null || best_i[0].fitness.betterThan(best_of_run[0].fitness))
-      best_of_run[0] = (Individual) (best_i[0].clone());
+    best_of_run[0] = MyGPIndividual.getBest(best_of_run[0], best_i[0]);
 
     if (onlyFinal) return;
 
@@ -184,12 +178,10 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     if (doGeneration) state.output.println("\nBest Individual Generation " + state.generation + ":", statisticslog);
     if (doGeneration) best_i[0].printIndividualForHumans(state, statisticslog);
 
-    if (doMessage && !silentPrint) state.output.message(String.format("Best individual fitness%s: %s Depth=%d Size=%d",
-        best_i[0].evaluated ? "" : " (not evaluated)",
-        best_i[0].fitness.fitnessToStringForHumans(),
-        ((GPIndividual) best_i[0]).trees[0].child.depth(),
-        best_i[0].size()));
-
+    if (!best_i[0].evaluated) state.output.warning(" (not evaluated)");
+    if (doMessage && !silentPrint)
+      state.output.message(String.format("Best individual fitness: %s %s",
+          best_i[0].fitness.fitnessToStringForHumans(), best_i[0].depthAndSize()));
   }
 
   @Override
@@ -197,13 +189,9 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     // for now we just print the best fitness
     if (doFinal) state.output.print("\nBest Individual of Run:", statisticslog);
     if (doFinal) best_of_run[0].printIndividualForHumans(state, statisticslog);
-    if (doFinal) state.output.println(
-        "Depth: " + ((GPIndividual) best_of_run[0]).trees[0].child.depth() +
-            " Size: " + best_of_run[0].size(), statisticslog);
+    if (doFinal) state.output.println(best_of_run[0].depthAndSize(), statisticslog);
 
-    final String bestMessage = String.format("\nBest fitness of run: %s\n%s\n",
-        best_of_run[0].fitness.fitnessToStringForHumans(),
-        ((MyGPIndividual) best_of_run[0]).stringRootedTreeForHumans());
+    final String bestMessage = String.format("\nBest fitness of run: %s\n%s\n", best_of_run[0].fitnessAndTree());
 
     if (doMessage && !silentPrint) state.output.message(bestMessage);
   }

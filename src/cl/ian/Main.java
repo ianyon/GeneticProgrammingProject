@@ -1,6 +1,9 @@
 package cl.ian;
 
-import cl.ian.loopsteps.*;
+import cl.ian.gp.HitLevelKozaFitness;
+import cl.ian.gp.MyGPIndividual;
+import cl.ian.gp.statistics.SimpleGPStatistics;
+import cl.ian.loopsteps.LoopCallable;
 import ec.EvolutionState;
 import ec.Evolve;
 import ec.util.Parameter;
@@ -8,40 +11,111 @@ import ec.util.ParameterDatabase;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class Main {
 
+  private static Map<Case,  MyGPIndividual > bestOfRuns = new EnumMap<>(Case.class);;
+
   public static void main(String[] args) {
+
+    if (args.length > 0 && args[0].equalsIgnoreCase("best")) {
+      doBest();
+      return;
+    }
 
     createDirIfNotExist();
 
-    ParameterDatabase frictionDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "friction_factor.params"});
-    frictionDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), Case.FRICTION_FACTOR.text);
-    EvolutionState frictionState = Evolve.initialize(frictionDatabase, 0);
-    ArrayList<LoopCallable> loopSteps = LoopCallable.populateLoops(frictionDatabase, frictionState, Case.FRICTION_FACTOR);
-    System.out.println("Friction factor, number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
-    long startFrictionTime = System.nanoTime();
-    LoopCallable.InitiateLoops(loopSteps);
-    System.out.println("Finished Friction Factor (" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");
+    executeExpression(Case.FRICTION_FACTOR);
+    executeExpression(Case.DRAG_COEFFICIENT);
+    executeExpression(Case.NUSSELT_NUMBER);
+  }
 
-    ParameterDatabase dragDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "drag_coef.params"});
-    dragDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), Case.DRAG_COEFFICIENT.text);
-    EvolutionState dragState = Evolve.initialize(dragDatabase, 0);
-    loopSteps = LoopCallable.populateLoops(dragDatabase, dragState, Case.DRAG_COEFFICIENT);
-    System.out.println("Drag Coefficient, number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
-    startFrictionTime = System.nanoTime();
-    LoopCallable.InitiateLoops(loopSteps);
-    System.out.println("Finished Drag Coefficient (" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");
+  private static void doBest() {
+    SummaryFile.createSummaryFile(Case.FRICTION_FACTOR);
+    SummaryFile.createSummaryFile(Case.DRAG_COEFFICIENT);
+    SummaryFile.createSummaryFile(Case.NUSSELT_NUMBER);
 
+    // Run it 10 times to average results
+    for (int i = 0; i < 10; i++) {
+      doBestOnce();
+    }
 
-    ParameterDatabase nusseltDatabase = Evolve.loadParameterDatabase(new String[]{"-file", "nusselt_number.params"});
-    nusseltDatabase.set(new Parameter("gp.tc.0.init.use-known-approx"), Case.NUSSELT_NUMBER.text);
-    EvolutionState nusseltState = Evolve.initialize(nusseltDatabase, 0);
-    loopSteps = LoopCallable.populateLoops(nusseltDatabase, nusseltState, Case.NUSSELT_NUMBER);
-    System.out.println("Nusselt Number, number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
-    startFrictionTime = System.nanoTime();
-    LoopCallable.InitiateLoops(loopSteps);
-    System.out.println("Finished Nusselt Number(" + (System.nanoTime() - startFrictionTime) / 1000000000.0 + " s)");
+    String bestMessage = bestOfRuns.get(Case.FRICTION_FACTOR).fitnessAndTree();
+    SummaryFile.writeToSummary(String.format("\nBest fitness of all: %s\n", bestMessage), Case.FRICTION_FACTOR);
+    bestMessage = bestOfRuns.get(Case.DRAG_COEFFICIENT).fitnessAndTree();
+    SummaryFile.writeToSummary(String.format("\nBest fitness of all: %s\n", bestMessage), Case.DRAG_COEFFICIENT);
+    bestMessage = bestOfRuns.get(Case.NUSSELT_NUMBER).fitnessAndTree();
+    SummaryFile.writeToSummary(String.format("\nBest fitness of all: %s\n", bestMessage), Case.NUSSELT_NUMBER);
+  }
+
+  private static void doBestOnce() {
+    System.out.println("Initiated Best parameters evolution");
+
+    runExpressionOnce(Case.FRICTION_FACTOR);
+    runExpressionOnce(Case.DRAG_COEFFICIENT);
+    runExpressionOnce(Case.NUSSELT_NUMBER);
+  }
+
+  private static void runExpressionOnce(Case expressionCase) {
+    String[] nameAndFile = getNameAndFile(expressionCase, true);
+    ParameterDatabase database = Evolve.loadParameterDatabase(new String[]{"-file", nameAndFile[0]});
+    database.set(new Parameter("stat.file.suffix"), "Best parameters");
+    database.set(new Parameter("gp.tc.0.init.use-known-approx"), expressionCase.text);
+    EvolutionState state = Evolve.initialize(database, 0);
+    long startTime = System.nanoTime();
+    state.run(EvolutionState.C_STARTED_FRESH);
+    Evolve.cleanup(state);
+    System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
+
+    final MyGPIndividual bestInd = (MyGPIndividual) ((SimpleGPStatistics) state.statistics).best_of_run[0];
+    final String bestMessage = String.format("%s\n%s",
+        bestInd.fitness.fitnessToStringForHumans(), bestInd.stringRootedTreeForHumans());
+
+    SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionCase);
+
+    if (bestOfRuns.get(expressionCase) == null ||
+        ((HitLevelKozaFitness) bestInd.fitness).errorBetterThan(bestOfRuns.get(expressionCase).fitness)) {
+      bestOfRuns.put(expressionCase, bestInd);
+    }
+  }
+
+  public static double elapsed(long startTime) {
+    return (System.nanoTime() - startTime) / 1.0E9;
+  }
+
+  public static String[] getNameAndFile(Case expressionCase, boolean best) {
+    String[] nameAndFile = new String[2];
+
+    switch (expressionCase) {
+      case FRICTION_FACTOR:
+        nameAndFile[0] = best ? "params/best_friction_factor.params" : "params/friction_factor.params";
+        nameAndFile[1] = "Friction factor";
+        break;
+      case DRAG_COEFFICIENT:
+        nameAndFile[0] = best ? "params/best_drag_coef.params" : "params/drag_coef.params";
+        nameAndFile[1] = "Drag Coefficient";
+        break;
+      case NUSSELT_NUMBER:
+      default:
+        nameAndFile[0] = best ? "params/best_nusselt_number.params" : "params/nusselt_number.params";
+        nameAndFile[1] = "Nusselt Number";
+        break;
+    }
+    return nameAndFile;
+  }
+
+  private static void executeExpression(Case exprCase) {
+    String[] nameAndFile = getNameAndFile(exprCase, false);
+    ParameterDatabase database = Evolve.loadParameterDatabase(new String[]{"-file", nameAndFile[0]});
+    database.set(new Parameter("gp.tc.0.init.use-known-approx"), exprCase.text);
+    EvolutionState state = Evolve.initialize(database, 0);
+    ArrayList<LoopCallable> loopSteps = LoopCallable.populateLoops(database, state, exprCase);
+    System.out.println(nameAndFile[1] + ", number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
+    long startTime = System.nanoTime();
+    LoopCallable.initiateLoops(loopSteps);
+    System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
   }
 
   public static void createDirIfNotExist() {

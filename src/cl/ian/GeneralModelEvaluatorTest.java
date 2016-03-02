@@ -1,8 +1,5 @@
 package cl.ian;
 
-import cl.ian.gp.EvolutionStateBean;
-import cl.ian.problemtype.ModelEvaluator;
-import ec.gp.GPIndividual;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.data.FixedMatrix3_64F;
 
@@ -69,19 +66,19 @@ public class GeneralModelEvaluatorTest {
     final double controlVolArea = sPlusOne * diamTimesZ;                                            //Area volumen control eje z
 
     /*********************************************** Initialization **********************************************/
-    final OnesVector tf = new OnesVector(col_fluido, initTemperature);                                  //[°C]
-    final OnesVector pf = new OnesVector(col_fluido, atmPressure);                                      //[Pa]
+    final MyVector tf = new MyVector(col_fluido, initTemperature);                                  //[°C]
+    final MyVector pf = new MyVector(col_fluido, atmPressure);                                      //[Pa]
 
     // Speedup cache variable
     final double innerArg = flux * z / (largo * entranceArea);
 
-    final OnesVector vf = new OnesVector(col_fluido, innerArg);                                        //[m/s]
+    final MyVector vf = new MyVector(col_fluido, innerArg);                                        //[m/s]
     final DenseMatrix64F vmf = vf.copy();                                                              //[m/s]
-    final OnesVector df = new OnesVector(col_fluido, 1.204);                                           //[kg/m3] Apparently 1.204 is never used
-    final OnesVector tc = new OnesVector(col_celda, initTemperature);                                  //[°C]
+    final MyVector df = new MyVector(col_fluido, 1.204);                                           //[kg/m3] Apparently 1.204 is never used
+    final MyVector tc = new MyVector(col_celda, initTemperature);                                  //[°C]
     final DenseMatrix64F ff = new DenseMatrix64F(1, col_fluido);                                       //N
     final DenseMatrix64F rem = new DenseMatrix64F(1, col_fluido);                                      //Adimensional
-    final DenseMatrix64F fluidK = new OnesVector(col_fluido, Interpolation.q_conductividad(tf.get(0)));//[W/m k]
+    final DenseMatrix64F fluidK = new MyVector(col_fluido, Interpolation.q_conductividad(tf.get(0)));//[W/m k]
     /******************************************** Errores en columnas ********************************************/
     final double[] cellTempError = filledArray(col_celda, Double.MAX_VALUE);
     final double[] fluidTempError = filledArray(col_fluido, Double.MAX_VALUE);

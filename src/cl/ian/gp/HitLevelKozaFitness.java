@@ -47,7 +47,8 @@ public class HitLevelKozaFitness extends KozaFitness {
     return meetsCondition >= requiredMeetingCondition;
   }
 
-  public boolean errorBetterThan(final Fitness _fitness) {//TODO: Se necesita normalizar el error y varianza para comparar adecuadamente
-    return (((HitLevelKozaFitness) _fitness).errorAvg + ((HitLevelKozaFitness) _fitness).variance) > (errorAvg + variance);
+  public boolean errorBetterThan(final Fitness _fitness) {
+    return (((HitLevelKozaFitness) _fitness).errorAvg) > (errorAvg) &&
+        (((HitLevelKozaFitness) _fitness).variance) > (variance);
   }
 }

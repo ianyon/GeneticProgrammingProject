@@ -1,9 +1,9 @@
 package cl.ian;
 
 import cl.ian.gp.EvolutionStateBean;
+import cl.ian.gp.MyGPIndividual;
 import cl.ian.problemtype.ModelEvaluator;
 import ec.gp.GPIndividual;
-import org.ejml.data.DenseMatrix64F;
 import org.ejml.data.FixedMatrix3_64F;
 
 import java.util.Arrays;
@@ -42,10 +42,10 @@ public class GeneralModelEvaluator {
                         GPIndividual individual, EvolutionStateBean stateBean) {
 
     // This never happens, probably was used for testing and then became deprecated
-    if (initTemperature == 0 && cellDiameter == 0 && individual.toString().equals("")) {
+    /*if (initTemperature == 0 && cellDiameter == 0 && ((MyGPIndividual)individual).stringRootedTreeForHumans().equals("")) {
       initTemperature = 20;
       cellDiameter = 18;
-    }
+    }*/
 
     eval.setStateIndividual(stateBean, individual);
     final double atmPressure = eval.atmosphericPressure();                                        //Presion atmosferica [Pa]
@@ -76,19 +76,19 @@ public class GeneralModelEvaluator {
     final double controlVolArea = sPlusOne * diamTimesZ;                                            //Area volumen control eje z
 
     /*********************************************** Initialization **********************************************/
-    final OnesVector tf = new OnesVector(col_fluido, initTemperature);                                  //[°C]
-    final OnesVector pf = new OnesVector(col_fluido, atmPressure);                                      //[Pa]
+    final MyVector tf = new MyVector(col_fluido, initTemperature);                                  //[°C]
+    final MyVector pf = new MyVector(col_fluido, atmPressure);                                      //[Pa]
 
     // Speedup cache variable
     final double innerArg = flux * z / (largo * entranceArea);
 
-    final OnesVector vf = new OnesVector(col_fluido, innerArg);                                        //[m/s]
-    final OnesVector vmf = new OnesVector(col_fluido, innerArg);                                                             //[m/s]
-    final OnesVector df = new OnesVector(col_fluido, 1.204);                                           //[kg/m3] Apparently 1.204 is never used
-    final OnesVector tc = new OnesVector(col_celda, initTemperature);                                  //[°C]
-    final OnesVector ff = new OnesVector(col_fluido);                                       //N
-    final OnesVector rem = new OnesVector(col_fluido);                                      //Adimensional
-    final OnesVector fluidK = new OnesVector(col_fluido, Interpolation.q_conductividad(tf.unsafe_get(0)));//[W/m k]
+    final MyVector vf = new MyVector(col_fluido, innerArg);                                           //[m/s]
+    final MyVector vmf = new MyVector(col_fluido, innerArg);                                          //[m/s]
+    final MyVector df = new MyVector(col_fluido);                                                     //[kg/m3]
+    final MyVector tc = new MyVector(col_celda, initTemperature);                                     //[°C]
+    final MyVector ff = new MyVector(col_fluido);                                                     //N
+    final MyVector rem = new MyVector(col_fluido);                                                    //Adimensional
+    final MyVector fluidK = new MyVector(col_fluido, Interpolation.q_conductividad(tf.unsafe_get(0)));//[W/m k]
     /******************************************** Errores en columnas ********************************************/
     final double[] cellTempError = filledArray(col_celda, Double.MAX_VALUE);
     final double[] TFError = filledArray(col_fluido, Double.MAX_VALUE);
@@ -99,7 +99,7 @@ public class GeneralModelEvaluator {
     // Vinicio = a(2)*Flujo*(z/Largo)/A;  Velocidad entrada[m/s]
     // Df(1) = q_densidad(Tin);           Densidad de entrada [kg/m3]
     // Pf(length(Pf)) = P_atm;            Presion entrada [Pa]. Presión de ¿salida? se asume la presión atmosférica [Pa]
-    final double initVelocity = a.a2 * innerArg;           // Velocidad entrada[m/s]
+    final double initVelocity = a.a2 * innerArg;                     // Velocidad entrada[m/s]
     df.unsafe_set(0, Interpolation.q_densidad(initTemperature));     // Densidad de entrada [kg/m3]
     /**************************************************************************************************************/
     // Speedup cache variable
@@ -107,7 +107,6 @@ public class GeneralModelEvaluator {
 
     final double m_punto = sPlusOne * dfMultiplicationTerm;
 
-    velocityError[0] = 0;
     TFError[0] = 0;
 
     // Speedup cache variables
@@ -124,7 +123,9 @@ public class GeneralModelEvaluator {
     for (int x = 0; x < 10; x++) { // Try 10 times
       // This gets updated with the first value from the last attempt to converge
       /**************************************** Calculo de la velocidad en 1 ***********************************/
-      double cdrag = eval.computeDragCoefficient(a.a1, rem.unsafe_get(0, 0), normalizedArea, df.unsafe_get(0) / 1.205, col_fluido);
+      double actualDF = df.unsafe_get(0);
+      double normalizedDF = actualDF / 1.205;
+      double cdrag = eval.computeDragCoefficient(a.a1, rem.unsafe_get(0, 0), normalizedArea,  normalizedDF, col_fluido);
       double initialFF = initialFFTerm * cdrag;
       ff.unsafe_set(0, initialFF);
       double actualVF = initVelocity - initialFF / m_punto;
@@ -132,10 +133,8 @@ public class GeneralModelEvaluator {
       /*************************************** Calculo de la presion en 1 **************************************/
       double actualVMF = sTerm * actualVF;
       vmf.unsafe_set(0, actualVMF);
-      double actualDF = df.unsafe_get(0);
       double actualRem = ModelUtils.q_reynolds(actualVMF, tf.unsafe_get(0), cellDiameter, actualDF);
       rem.unsafe_set(0, actualRem);
-      double normalizedDF = actualDF / 1.205;
       double frictionFactor = eval.computeFrictionFactor(actualRem, separation, actualVMF / initVelocity, normalizedDF);
       double nextPF = pf.unsafe_get(1);
       double actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);

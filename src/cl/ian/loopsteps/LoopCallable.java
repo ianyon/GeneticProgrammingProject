@@ -1,6 +1,8 @@
 package cl.ian.loopsteps;
 
 import cl.ian.Case;
+import cl.ian.Main;
+import cl.ian.SummaryFile;
 import cl.ian.gp.HitLevelKozaFitness;
 import cl.ian.gp.MyGPIndividual;
 import cl.ian.gp.statistics.SimpleGPStatistics;
@@ -9,21 +11,13 @@ import ec.Evolve;
 import ec.util.Parameter;
 import ec.util.ParameterDatabase;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.Callable;
 
 /**
  * Created by Ian on 16/02/2016.
  */
 public abstract class LoopCallable implements Callable {
-  private static String summaryActualName;
   public final ArrayList<LoopCallable> loopSteps;
   public final int index;
   public ParameterDatabase database;
@@ -46,8 +40,6 @@ public abstract class LoopCallable implements Callable {
   public static MyGPIndividual bestOfLoops;
   public static String headerBestOfLoops;
   public static String stringBestOfLoops;
-  private static final String summaryFilename = "Summary";
-  private static final String summaryExtension = ".stat";
 
   public LoopCallable(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index,
                       double[] testValues) {
@@ -69,12 +61,14 @@ public abstract class LoopCallable implements Callable {
     LoopCallable.expressionName = expressionName;
 
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
-    loopSteps.add(new LoopElitism(database, state, loopSteps, loopSteps.size()));
+    // We are using 100 elites
+    //loopSteps.add(new LoopElitism(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopPopulation(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopCrossoverRate(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps, loopSteps.size()));
     loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps, loopSteps.size()));
-    loopSteps.add(new LoopDivMaxValue(database, state, loopSteps, loopSteps.size()));
+    // The div max doesn't make any difference in the results
+    //loopSteps.add(new LoopDivMaxValue(database, state, loopSteps, loopSteps.size()));
     return loopSteps;
   }
 
@@ -83,18 +77,8 @@ public abstract class LoopCallable implements Callable {
    *
    * @param loopSteps
    */
-  public static void InitiateLoops(ArrayList<LoopCallable> loopSteps) {
-
-    // Create a new summary file
-    summaryActualName = String.format("%s %s %s%s", summaryFilename, expressionName,
-        new SimpleDateFormat("yyyyMMddhhmm").format(new Date()), summaryExtension);
-    try {
-      new File(summaryActualName).createNewFile();
-      Files.write(Paths.get(summaryActualName), (expressionName + "\n\n").getBytes(), StandardOpenOption.APPEND);
-    } catch (IOException e) {
-      loopSteps.get(0).state.output.warning("Couldn't create and or write to summary file");
-      e.printStackTrace();
-    }
+  public static void initiateLoops(ArrayList<LoopCallable> loopSteps) {
+    SummaryFile.createSummaryFile(expressionName);
 
     try {
       loopSteps.get(0).call();
@@ -105,12 +89,8 @@ public abstract class LoopCallable implements Callable {
     }
 
     // Print the final results
-    String finalMessage = String.format("\n\nBest of all loops is: %s\n%s", headerBestOfLoops, stringBestOfLoops);
-    try {
-      Files.write(Paths.get(summaryActualName), finalMessage.getBytes(), StandardOpenOption.APPEND);
-    } catch (IOException e) {
-      loopSteps.get(0).state.output.warning("Couldn't write summary for best of all loops");
-    }
+    SummaryFile.writeToSummary(String.format("\n\nBest of all loops is: %s\n%s", headerBestOfLoops, stringBestOfLoops),
+        expressionName);
   }
 
   protected void doExecution() {
@@ -123,12 +103,7 @@ public abstract class LoopCallable implements Callable {
     final String bestMessage = String.format("%s\n%s\n%s", paramIdentifier,
         bestIndLastLoop.fitness.fitnessToStringForHumans(), bestIndLastLoop.stringRootedTreeForHumans());
 
-    try {
-      Files.write(Paths.get(summaryActualName),
-          String.format("\nBest fitness of run: %s\n", bestMessage).getBytes(), StandardOpenOption.APPEND);
-    } catch (IOException e) {
-      state.output.warning("Couldn't write summary for last loop");
-    }
+    SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionName);
 
     if (bestOfLoops == null || ((HitLevelKozaFitness) bestIndLastLoop.fitness).errorBetterThan(bestOfLoops.fitness)) {
       bestOfLoops = bestIndLastLoop;
@@ -141,12 +116,12 @@ public abstract class LoopCallable implements Callable {
     long startTime = System.nanoTime();
     state.run(EvolutionState.C_STARTED_FRESH);
     Evolve.cleanup(state);
-    double thisTime = (System.nanoTime() - startTime) / 1000000000.0;
+    double thisTime = Main.elapsed(startTime);
 
     executedLoops++;
     avgExecutionTime = (avgExecutionTime * (executedLoops - 1) + thisTime) / executedLoops;
     estimatedRemainingTime = avgExecutionTime * (totalLoops - executedLoops);
-    System.out.println(expressionName + " Execution time:" + thisTime + " s\n");
+    System.out.println(expressionName + " Execution time: " + thisTime + " s\n");
   }
 
   private String printHeader() {
@@ -156,7 +131,7 @@ public abstract class LoopCallable implements Callable {
 
     // Delete the trailing comma
     String progressMessage = String.format("%s Execution %d/%d (%d%%)", expressionName, executedLoops + 1, totalLoops,
-        100 * executedLoops / totalLoops);
+        Math.round(100 * executedLoops / totalLoops));
 
     // Format the remaining time
     if (executedLoops != 0) {
@@ -197,7 +172,7 @@ public abstract class LoopCallable implements Callable {
     hr = (int) estimatedTimeAllLoops / 3600;
     min = (int) (estimatedTimeAllLoops - 3600 * hr) / 60;
     sec = (int) (estimatedTimeAllLoops - 3600 * hr - 60 * min);
-    return String.format("' ('%02d:%02d:%02d')'", hr, min, sec);
+    return String.format("%02d:%02d:%02d", hr, min, sec);
   }
 
   private void setStatisticFilesIdentifier(String message) {

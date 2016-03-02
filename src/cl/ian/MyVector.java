@@ -8,13 +8,13 @@ import static java.lang.Math.abs;
 /**
  * Created by ian on 6/16/15.
  */
-public class OnesVector extends DenseMatrix64F implements VectorWrapper {
-  public OnesVector(int cols, double value) {
+public class MyVector extends DenseMatrix64F implements VectorWrapper {
+  public MyVector(int cols, double value) {
     super(1, cols);
     CommonOps.fill(this, value);
   }
 
-  public OnesVector(int cols) {
+  public MyVector(int cols) {
     super(1, cols);
   }
 

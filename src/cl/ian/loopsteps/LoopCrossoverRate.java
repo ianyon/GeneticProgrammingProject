@@ -27,7 +27,7 @@ public class LoopCrossoverRate extends LoopCallable {
       // Mutation rate
       database.set(new Parameter("pop.subpop.0.species.pipe.source.1.prob"), "" + (1 - testValues[i]));
 
-      parametersValue.set(index, "" + testValues[i]);
+      parametersValue.set(index, String.format("%3.2f", testValues[i]));
 
       doExecutionOrContinueWithNextStep();
     }

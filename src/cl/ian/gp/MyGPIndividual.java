@@ -1,5 +1,6 @@
 package cl.ian.gp;
 
+import cl.ian.Case;
 import ec.EvolutionState;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
@@ -14,6 +15,10 @@ public class MyGPIndividual extends GPIndividual {
     StringBuilder str = new StringBuilder();
     printRootedTreeForHumans(trees[0].child, str, 0, 0);
     return str.toString();
+  }
+
+  public String fitnessAndTree() {
+    return String.format("%s\n%s", fitness.fitnessToStringForHumans(), stringRootedTreeForHumans());
   }
 
   public int printRootedTreeForHumans(GPNode child, StringBuilder str, int tablevel, int printbytes) {

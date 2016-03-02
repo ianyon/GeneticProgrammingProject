@@ -1,4 +1,4 @@
-parent.0 = libs/ecj/ec/gp/koza/koza.params
+parent.0 = ../libs/ecj/ec/gp/koza/koza.params
 ###########################################################################################
 # Number of threads and random number generator seeds
 breedthreads = auto
@@ -30,7 +30,7 @@ stat.file = $out.stat
 ###########################################################################################
 # Evolution Parameters
 generations = 30
-# breed.elite-fraction.0 = 0.05
+breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 
 # The Population

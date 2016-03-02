@@ -1,9 +1,5 @@
 package cl.ian;
 
-import org.ejml.data.*;
-
-import static java.lang.Math.abs;
-
 /**
  * Created by Ian on 29-02-2016.
  */
@@ -20,7 +16,7 @@ public class VectorFactory {
       case 5:
       case 6:
       default:
-        return new OnesVector(cols, value);
+        return new MyVector(cols, value);
     }
   }
 
@@ -37,7 +33,7 @@ public class VectorFactory {
       case 5:
       case 6:
       default:
-        return new OnesVector(maxSize);
+        return new MyVector(maxSize);
     }
   }
 

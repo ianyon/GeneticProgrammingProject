@@ -18,9 +18,21 @@ public class Main {
   private static final Map<Case, MyGPIndividual> bestOfRuns = new EnumMap<>(Case.class);
 
   public static void main(String[] args) {
-    if (args.length > 0 && args[0].equalsIgnoreCase("best")) {
-      doBest();
-      return;
+    if (args.length > 0 ) {
+      if (args[0].equalsIgnoreCase("best")) {
+        doBest();
+        return;
+      }
+      if (args[0].equalsIgnoreCase("once")) {
+        try {
+          //runExpressionOnce(Case.FRICTION_FACTOR);
+          runExpressionOnce(Case.DRAG_COEFFICIENT);
+          runExpressionOnce(Case.NUSSELT_NUMBER);
+        } catch (Exception e) {
+          System.exit(-1);
+        }
+        return;
+      }
     }
 
     createDirIfNotExist();

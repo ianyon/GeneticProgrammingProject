@@ -1,6 +1,7 @@
 package cl.ian;
 
 import cl.ian.gp.EvolutionStateBean;
+import cl.ian.gp.PhenomenologicalModel;
 import cl.ian.problemtype.ModelEvaluator;
 import ec.gp.GPIndividual;
 import org.ejml.data.FixedMatrix3_64F;
@@ -38,7 +39,7 @@ public class GeneralModelEvaluatorAlternative {
   }
 
   public double compute(double current, double separation, double flow, double initTemperature, double cellDiameter,
-                        GPIndividual individual, EvolutionStateBean stateBean) {
+                        GPIndividual individual, EvolutionStateBean stateBean, PhenomenologicalModel model) {
 
     // This never happens, probably was used for testing and then became deprecated
     if (initTemperature == 0 && cellDiameter == 0 && individual.toString().equals("")) {
@@ -172,7 +173,7 @@ public class GeneralModelEvaluatorAlternative {
         /***************************************** Calculo de la densidad *************************************/
         df.set(i + 1, Interpolation.q_densidad(nextTF));
         /********************************** Calculo de temperatura de celda ***********************************/
-        final double nu = eval.evaluateNusseltNumber(i * 2, actualRem, a.a3);
+        final double nu = eval.computeNusseltNumber(i * 2, actualRem, a.a3);
         final double iniFluidK = Interpolation.q_conductividad(actualTF);
         fluidK.set(i, iniFluidK);
         final double h = nu * iniFluidK / cellDiameter;

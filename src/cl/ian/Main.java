@@ -18,7 +18,7 @@ public class Main {
   private static final Map<Case, MyGPIndividual> bestOfRuns = new EnumMap<>(Case.class);
 
   public static void main(String[] args) {
-    if (args.length > 0 ) {
+    if (args.length > 0) {
       if (args[0].equalsIgnoreCase("best")) {
         doBest();
         return;
@@ -48,12 +48,12 @@ public class Main {
     SummaryFile.createSummaryFile(Case.NUSSELT_NUMBER);
 
     // Run it 10 times to average results
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 3; i++) {
       doBestOnce();
     }
 
     String bestMessage = bestOfRuns.get(Case.FRICTION_FACTOR).fitnessAndTree();
-    SummaryFile.writeToSummary(String.format("\nBest fitness of all: %s\n", bestMessage), Case.FRICTION_FACTOR);
+    SummaryFile.writeToSummary(String.format("\nBest Test fitness of all: %s\n", bestMessage), Case.FRICTION_FACTOR);
     bestMessage = bestOfRuns.get(Case.DRAG_COEFFICIENT).fitnessAndTree();
     SummaryFile.writeToSummary(String.format("\nBest fitness of all: %s\n", bestMessage), Case.DRAG_COEFFICIENT);
     bestMessage = bestOfRuns.get(Case.NUSSELT_NUMBER).fitnessAndTree();
@@ -80,12 +80,16 @@ public class Main {
     System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
 
     final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
-    final String bestMessage = String.format("%s\n%s",
-        bestInd.fitness.fitnessToStringForHumans(), bestInd.stringRootedTreeForHumans());
+    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).best_of_validation;
+    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).best_of_test;
+    final String bestMessage = bestInd.fitnessAndTree();
+    final String bestValMessage = String.format("%s (Test= %s)\n%s",
+        bestValInd.fitness.fitnessToStringForHumans(),bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringRootedTreeForHumans());
 
     SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionCase);
+    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionCase);
 
-    bestOfRuns.put(expressionCase, MyGPIndividual.getErrorBest(bestOfRuns.get(expressionCase), bestInd));
+    bestOfRuns.put(expressionCase, MyGPIndividual.getErrorBest(bestOfRuns.get(expressionCase), bestTestInd));
   }
 
   public static double elapsed(long startTime) {
@@ -123,6 +127,16 @@ public class Main {
     long startTime = System.nanoTime();
     LoopCallable.initiateLoops(loopSteps);
     System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
+
+    final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
+    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).best_of_validation;
+    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).best_of_test;
+    final String bestMessage = bestInd.fitnessAndTree();
+    final String bestValMessage = String.format("%s (Test= %s)\n%s",
+        bestValInd.fitness.fitnessToStringForHumans(),bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringRootedTreeForHumans());
+
+    SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), exprCase);
+    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), exprCase);
   }
 
   private static void createDirIfNotExist() {

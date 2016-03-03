@@ -3,7 +3,7 @@ parent.0 = base.params
 eval.problem.outputfile = $TrainingData/salidas_P500train_sort.txt
 
 eval.problem.problem-case = FrictionFactor
-eval.problem.regularization-factor = 0.1
+eval.problem.regularization-factor = 0.5
 
 stat.file = $Results/frictionOut.stat
 #stat.child.0.file = $Results/frictionOut2.stat

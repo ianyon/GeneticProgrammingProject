@@ -99,14 +99,19 @@ public abstract class LoopCallable implements Callable {
     actualExecution();
 
     // Print the info to the summary file and check for the best of all time
-    final MyGPIndividual bestIndLastLoop = ((SimpleGPStatistics) state.statistics).best_of_run[0];
-    final String bestMessage = String.format("%s\n%s\n%s", paramIdentifier,
-        bestIndLastLoop.fitness.fitnessToStringForHumans(), bestIndLastLoop.stringRootedTreeForHumans());
+
+    final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
+    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).best_of_validation;
+    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).best_of_test;
+    final String bestMessage = String.format("%s\n%s", paramIdentifier, bestInd.fitnessAndTree());
+    final String bestValMessage = String.format("%s (Test= %s)\n%s",
+        bestValInd.fitness.fitnessToStringForHumans(), bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringRootedTreeForHumans());
 
     SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionName);
+    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionName);
 
-    if (bestOfLoops == null || ((HitLevelKozaFitness) bestIndLastLoop.fitness).errorBetterThan(bestOfLoops.fitness)) {
-      bestOfLoops = bestIndLastLoop;
+    if (bestOfLoops == null || ((HitLevelKozaFitness) bestTestInd.fitness).errorBetterThan(bestOfLoops.fitness)) {
+      bestOfLoops = bestTestInd;
       headerBestOfLoops = paramIdentifier;
       stringBestOfLoops = bestMessage;
     }

@@ -37,7 +37,6 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   private double[] testOutputFriction;
   private double[] testOutputDrag;
   private double[] testOutputNusselt;
-  private MyGPIndividual best_of_test;
 
   public MyGPIndividual[] getBestSoFar() {
     return best_of_run;
@@ -64,10 +63,6 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   public static final String VALIDATION_OUTPUT = "validation-output";
   public static final String TEST_OUTPUT = "test-output";
 
-  private String validationFile;
-  private String testFile;
-  private String validationOutput;
-  private String testOutput;
   private boolean onlyFinal;
   protected boolean warned = false;
 
@@ -81,6 +76,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
    */
   public MyGPIndividual[] best_of_run = null;
   public MyGPIndividual best_of_validation = null;
+  public MyGPIndividual best_of_test;
 
   /**
    * Should we compress the file?
@@ -286,7 +282,6 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     for (Individual ind : tenBest) {
       best_of_validation = MyGPIndividual.getBest(best_of_validation, ind);
     }
-
 
     if (doFinal) state.output.print("\nBest of validation:", statisticslog);
     if (doFinal) best_of_validation.printIndividualForHumans(state, statisticslog);

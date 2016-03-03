@@ -1,16 +1,16 @@
 parent.0 = base.params
 ###########################################################################################
 # Evolution Parameters
-generations = 30
+generations = 60
 breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 
 # The Population
-pop.subpop.0.size = 2000
+pop.subpop.0.size = 4000
 pop.subpop.0.duplicate-retries = 20
 
 # Min and Max level for initial individuals
-gp.tc.0.init.max-depth = 8
+gp.tc.0.init.max-depth = 6
 ################################## Breeding pipelines #####################################
 pop.subpop.0.species.pipe = ec.breed.MultiBreedingPipeline
 pop.subpop.0.species.pipe.generate-max = true
@@ -21,9 +21,9 @@ pop.subpop.0.species.pipe.source.1 = cl.ian.gp.RetriesMutationPipeline
 pop.subpop.0.species.pipe.source.1.prob = 0.1
 
 # Crossover parameters
-gp.koza.xover.maxdepth = 17
+gp.koza.xover.maxdepth = 15
 
 # Mutation parameters
-gp.koza.mutate.maxdepth = 17
-gp.koza.grow.max-depth = 8
+gp.koza.mutate.maxdepth = 15
+gp.koza.grow.max-depth = 6
 ###########################################################################################

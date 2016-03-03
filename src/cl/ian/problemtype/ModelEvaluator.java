@@ -36,18 +36,6 @@ public abstract class ModelEvaluator implements Cloneable{
     ModelEvaluator myobj;
     try {
       myobj = (ModelEvaluator) (super.clone());
-      /*myobj.reynolds = reynolds;
-      myobj.separation = separation;
-      myobj.normalizedVelocity = normalizedVelocity;
-      myobj.normalizedDensity = normalizedDensity;
-      myobj.a1 = a1;
-      myobj.normalizedArea = normalizedArea;
-      myobj.fluidColumn = fluidColumn;
-      myobj.a3 = a3;
-      myobj.cachedFrictionFactor = cachedFrictionFactor;
-      myobj.cachedDragCoefficient = cachedDragCoefficient;
-      myobj.cachedNusseltNumber = cachedNusseltNumber;
-      myobj.doubleColumn = doubleColumn;*/
     } catch (CloneNotSupportedException e) {
       throw new InternalError();
     } // never happens

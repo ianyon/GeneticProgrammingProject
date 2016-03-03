@@ -43,8 +43,8 @@ pop.subpop.0.size = 200
 pop.subpop.0.duplicate-retries = 20
 
 # The class of the problem
-eval.problem = cl.ian.gp.PhenomenologicalModelVerticalSlicing
-# eval.problem = cl.ian.gp.PhenomenologicalModel
+#eval.problem = cl.ian.gp.PhenomenologicalModelVerticalSlicing
+eval.problem = cl.ian.gp.PhenomenologicalModel
 eval.problem.data = ec.app.regression.RegressionData
 # Load input and output data for training
 eval.problem.inputfile = $TrainingData/doe500train_sort.txt

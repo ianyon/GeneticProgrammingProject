@@ -31,9 +31,6 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public static final String REGULARIZATION_FACTOR = "regularization-factor";
   public static final String PROBLEM_CASE = "problem-case";
 
-  public final InputVariables currValue = new InputVariables();
-  private final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
-
   protected double inputs[][];
   private double[] outputs;
 
@@ -108,15 +105,16 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
     String problemCase = state.parameters.getString(base.push(PROBLEM_CASE), null);
 
-    ModelEvaluator evaluator;
+    ModelEvaluator evaluator = null;
     this.problemCase = problemCase;
     if (problemCase.equalsIgnoreCase(Case.FRICTION_FACTOR.text)) {
       evaluator = new FrictionFactorEvaluator();
     } else if (problemCase.equalsIgnoreCase(Case.DRAG_COEFFICIENT.text)) {
       evaluator = new DragCoefficientEvaluator();
-    } else {
+    } else if (problemCase.equalsIgnoreCase(Case.NUSSELT_NUMBER.text)) {
       evaluator = new NusseltNumberEvaluator();
-    }
+    } else
+      state.output.fatal("WRONG CASE!");
     model = new GeneralModelEvaluator(evaluator);
   }
 
@@ -132,6 +130,8 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
     int hits = 0;
     double quadraticErrorSum = 0, errorSum = 0.0, error;
+    final InputVariables currValue = new InputVariables();
+    final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
 
     for (int i = initLoop(); i < endLoop(); i++) {
       currValue.set(inputs[i]);
@@ -179,6 +179,8 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
     int hits = 0;
     double quadraticErrorSum = 0, errorSum = 0.0, error;
+    final InputVariables currValue = new InputVariables();
+    final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
 
     for (int i = initLoop(); i < endLoop(); i++) {
       currValue.set(inputs[i]);

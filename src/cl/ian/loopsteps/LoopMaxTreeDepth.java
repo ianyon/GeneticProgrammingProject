@@ -13,7 +13,7 @@ public class LoopMaxTreeDepth extends LoopCallable {
 
 
   public LoopMaxTreeDepth(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
-    super(database, state, loopSteps, index, new double[]{15, 17});
+    super(database, state, loopSteps, index, new double[]{17,19});
     parametersHeader.add("MaxDepth=");
   }
 

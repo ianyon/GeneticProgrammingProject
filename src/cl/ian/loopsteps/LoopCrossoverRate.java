@@ -14,7 +14,8 @@ public class LoopCrossoverRate extends LoopCallable {
 
   public LoopCrossoverRate(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     // the last argument is the values to try
-    super(database, state, loopSteps, index, new double[]{0.8, 0.9, 1.0});
+    //super(database, state, loopSteps, index, new double[]{0.8, 0.9, 1.0});
+    super(database, state, loopSteps, index, new double[]{0.9});
     parametersHeader.add("Xover=");
   }
 

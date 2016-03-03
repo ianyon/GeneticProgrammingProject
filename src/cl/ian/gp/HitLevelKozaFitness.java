@@ -2,8 +2,12 @@ package cl.ian.gp;
 
 import ec.EvolutionState;
 import ec.Fitness;
+import ec.Individual;
+import ec.gp.GPIndividual;
 import ec.gp.koza.KozaFitness;
 import ec.util.Parameter;
+
+import java.util.PriorityQueue;
 
 /**
  * Created by Ian on 20/01/2016.
@@ -50,5 +54,20 @@ public class HitLevelKozaFitness extends KozaFitness {
   public boolean errorBetterThan(final Fitness _fitness) {
     return (((HitLevelKozaFitness) _fitness).errorAvg) > (errorAvg) &&
         (((HitLevelKozaFitness) _fitness).variance) > (variance);
+  }
+
+  public static Individual[] findTopKHeap(Individual[] inds, int k) {
+    PriorityQueue<Individual> pq = new PriorityQueue<Individual>();
+    for (Individual x : inds) {
+      if (pq.size() < k) pq.add(x);
+      else if (!pq.peek().fitness.betterThan(x.fitness)) {
+        pq.poll();
+        pq.add(x);
+      }
+    }
+    Individual[] res = new Individual[k];
+    for (int i = 0; i < k; i++) res[i] = (Individual) ((GPIndividual) pq.poll()).clone();
+    return res;
+
   }
 }

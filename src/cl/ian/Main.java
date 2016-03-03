@@ -67,7 +67,7 @@ public class Main {
     Evolve.cleanup(state);
     System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
 
-    final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).best_of_run[0];
+    final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
     final String bestMessage = String.format("%s\n%s",
         bestInd.fitness.fitnessToStringForHumans(), bestInd.stringRootedTreeForHumans());
 

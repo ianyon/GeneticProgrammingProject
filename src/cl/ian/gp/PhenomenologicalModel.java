@@ -51,18 +51,13 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public double normalizedDensity;
   public double normalizedArea;
   public double fluidColumn;
+  public String problemCase;
 
   /******************************************************************************************************************/
+  @Override
   public Object clone() {
     PhenomenologicalModel prob = (PhenomenologicalModel) (super.clone());
-    /*prob.reynolds = reynolds;
-    prob.separation = separation;
-    prob.normalizedVelocity = normalizedVelocity;
-    prob.normalizedDensity = normalizedDensity;
-    prob.normalizedArea = normalizedArea;
-    prob.fluidColumn = fluidColumn;*/
     prob.model = (GeneralModelEvaluator) model.clone();
-
     return prob;
   }
 
@@ -114,6 +109,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     String problemCase = state.parameters.getString(base.push(PROBLEM_CASE), null);
 
     ModelEvaluator evaluator;
+    this.problemCase = problemCase;
     if (problemCase.equalsIgnoreCase(Case.FRICTION_FACTOR.text)) {
       evaluator = new FrictionFactorEvaluator();
     } else if (problemCase.equalsIgnoreCase(Case.DRAG_COEFFICIENT.text)) {
@@ -169,7 +165,53 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     f.setStandardizedFitness(state, MSEWithRegularization);
     f.meetsCondition = (double) hits / testCount;
     ind.evaluated = true;
+  }
 
+  public void evaluate(final EvolutionState state, final Individual ind, double[][] inputs, double[] outputs) {
+    if (ind.evaluated) return; // don't bother reevaluating
+
+    updateControlVariables(state, 0);
+
+    RegressionData input = (RegressionData) (this.input);
+
+    // the fitness better be HitLevelKozaFitness!
+    HitLevelKozaFitness f = ((HitLevelKozaFitness) ind.fitness);
+
+    int hits = 0;
+    double quadraticErrorSum = 0, errorSum = 0.0, error;
+
+    for (int i = initLoop(); i < endLoop(); i++) {
+      currValue.set(inputs[i]);
+      evolutionStateBean.set(state, 0, input, stack);
+      input.x = model.compute(
+          currValue.current, currValue.separation, currValue.flow, currValue.initTemperature, currValue.cellDiameter,
+          (GPIndividual) ind, evolutionStateBean, this);
+
+      error = outputs[i] - input.x;
+      errorSum += error;
+      quadraticErrorSum += Math.pow(error, 2);
+
+      // Check if the error is within hitLevel percent of the desired error
+      if (Math.abs(error) <= Math.abs(outputs[i]) * HitLevelKozaFitness.hitLevel) hits++;
+    }
+
+    // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
+    final int testCount = getTestedElementsCount();
+    final double quadraticErrorAvg = quadraticErrorSum / testCount;
+    double MSEWithRegularization = quadraticErrorAvg + alpha * Math.sqrt(ind.size());
+
+    f.errorAvg = Math.abs(errorSum / testCount);
+    f.variance = quadraticErrorAvg - Math.pow(f.errorAvg, 2);
+
+    if (Double.isNaN(MSEWithRegularization) || Double.isInfinite(MSEWithRegularization))
+      MSEWithRegularization = Double.MAX_VALUE;
+
+    // Limit fitness precision, to eliminate rounding error problem. 12 decimals default precision in GPlab
+    MSEWithRegularization = new BigDecimal(MSEWithRegularization).setScale(12, RoundingMode.HALF_UP).doubleValue();
+
+    f.setStandardizedFitness(state, MSEWithRegularization);
+    f.meetsCondition = (double) hits / testCount;
+    ind.evaluated = true;
   }
 
   protected int getTestedElementsCount() {
@@ -184,6 +226,12 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     return inputs.length;
   }
 
+  /**
+   * This is only used in subclasses of PhenomenologicalModel like the verticalslicing one. Here is empty
+   *
+   * @param state
+   * @param threadnum
+   */
   protected void updateControlVariables(EvolutionState state, int threadnum) {
   }
 

@@ -132,10 +132,10 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     InputStream validationOutputStream = state.parameters.getResource(base.push(VALIDATION_OUTPUT), null);
     InputStream testOutputStream = state.parameters.getResource(base.push(TEST_OUTPUT), null);
 
-    String validationFilePath = state.parameters.getString(base.push(VALIDATION_FILE), null);
-    String testFilePath = state.parameters.getString(base.push(TEST_FILE), null);
-    String validationOutputPath = state.parameters.getString(base.push(VALIDATION_OUTPUT), null);
-    String testOutputPath = state.parameters.getString(base.push(TEST_OUTPUT), null);
+    String validationFilePath = state.parameters.getString(base.push(VALIDATION_FILE), null).replace("$", "");
+    String testFilePath = state.parameters.getString(base.push(TEST_FILE), null).replace("$", "");
+    String validationOutputPath = state.parameters.getString(base.push(VALIDATION_OUTPUT), null).replace("$", "");
+    String testOutputPath = state.parameters.getString(base.push(TEST_OUTPUT), null).replace("$", "");
 
     if (validationFileStream == null || testFileStream == null || validationOutputStream == null || testOutputStream == null)
       state.output.fatal("Validation or test data files doesn't exist");
@@ -313,7 +313,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     if (doFinal) best_of_test.printIndividualForHumans(state, statisticslog);
     if (doFinal) state.output.println(best_of_test.depthAndSize(), statisticslog);
 
-    bestMessage = String.format("\nBest of validation: %s\n", best_of_test.fitnessAndTree());
+    bestMessage = String.format("\nBest of test: %s\n", best_of_test.fitnessAndTree());
 
     if (doMessage && !silentPrint) state.output.message(bestMessage);
   }

@@ -25,9 +25,9 @@ public class Main {
       }
       if (args[0].equalsIgnoreCase("once")) {
         try {
-          //runExpressionOnce(Case.FRICTION_FACTOR);
-          runExpressionOnce(Case.DRAG_COEFFICIENT);
-          runExpressionOnce(Case.NUSSELT_NUMBER);
+          runExpressionOnce(Case.FRICTION_FACTOR);
+          //runExpressionOnce(Case.DRAG_COEFFICIENT);
+          //runExpressionOnce(Case.NUSSELT_NUMBER);
         } catch (Exception e) {
           System.exit(-1);
         }

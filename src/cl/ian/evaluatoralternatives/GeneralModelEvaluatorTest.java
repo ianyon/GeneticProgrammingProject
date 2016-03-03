@@ -1,5 +1,8 @@
-package cl.ian;
+package cl.ian.evaluatoralternatives;
 
+import cl.ian.Interpolation;
+import cl.ian.ModelUtils;
+import cl.ian.MyVector;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.data.FixedMatrix3_64F;
 

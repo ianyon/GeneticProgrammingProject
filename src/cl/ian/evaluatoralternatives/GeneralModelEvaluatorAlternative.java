@@ -1,5 +1,9 @@
-package cl.ian;
+package cl.ian.evaluatoralternatives;
 
+import cl.ian.Interpolation;
+import cl.ian.ModelUtils;
+import cl.ian.VectorFactory;
+import cl.ian.VectorWrapper;
 import cl.ian.gp.EvolutionStateBean;
 import cl.ian.gp.PhenomenologicalModel;
 import cl.ian.problemtype.ModelEvaluator;
@@ -16,7 +20,7 @@ import static java.lang.Math.*;
  * This class computes the phenomenological model for the friction factor and uses an evolved individual to
  * evaluate it
  */
-public class GeneralModelEvaluatorEfficient {
+public class GeneralModelEvaluatorAlternative {
 
   // Cantidad de celdas
   static final int col_fluido = 2;
@@ -34,7 +38,7 @@ public class GeneralModelEvaluatorEfficient {
 
   public final ModelEvaluator eval;
 
-  public GeneralModelEvaluatorEfficient(ModelEvaluator evaluator) {
+  public GeneralModelEvaluatorAlternative(ModelEvaluator evaluator) {
     this.eval = evaluator;
   }
 
@@ -76,39 +80,39 @@ public class GeneralModelEvaluatorEfficient {
     final double controlVolArea = sPlusOne * diamTimesZ;                                            //Area volumen control eje z
 
     /*********************************************** Initialization **********************************************/
-    final MyFixedMatrix2 tf = new MyFixedMatrix2(initTemperature);                                  //[°C]
-    final MyFixedMatrix2 pf = new MyFixedMatrix2(atmPressure);                                      //[Pa]
+    final VectorWrapper tf = VectorFactory.buildFilledVector(col_fluido, initTemperature);                                  //[°C]
+    final VectorWrapper pf = VectorFactory.buildFilledVector(col_fluido, atmPressure);                                      //[Pa]
 
     // Speedup cache variable
     final double innerArg = flux * z / (largo * entranceArea);
 
-    final MyFixedMatrix2 vf = new MyFixedMatrix2(innerArg);                                        //[m/s]
-    final MyFixedMatrix2 vmf = vf.copy();                                                              //[m/s]
-    final MyFixedMatrix2 df = new MyFixedMatrix2(1.204);                                           //[kg/m3] Apparently 1.204 is never used
-    final SingleVector tc = new SingleVector(initTemperature);                                  //[°C]
-    final MyFixedMatrix2 ff = new MyFixedMatrix2();                                       //N
-    final MyFixedMatrix2 rem = new MyFixedMatrix2();                                      //Adimensional
-    final MyFixedMatrix2 fluidK = new MyFixedMatrix2(Interpolation.q_conductividad(tf.unsafe_get(0)));//[W/m k]
+    final VectorWrapper vf = VectorFactory.buildFilledVector(col_fluido, innerArg);                                        //[m/s]
+    final VectorWrapper vmf = vf.copy();                                                              //[m/s]
+    final VectorWrapper df = VectorFactory.buildFilledVector(col_fluido, 1.204);                                           //[kg/m3] Apparently 1.204 is never used
+    final VectorWrapper tc = VectorFactory.buildFilledVector(col_celda, initTemperature);                                  //[°C]
+    final VectorWrapper ff = VectorFactory.buildVector(1, col_fluido);                                       //N
+    final VectorWrapper rem = VectorFactory.buildVector(1, col_fluido);                                      //Adimensional
+    final VectorWrapper fluidK = VectorFactory.buildFilledVector(col_fluido, Interpolation.q_conductividad(tf.unsafe_get(0)));//[W/m k]
     /******************************************** Errores en columnas ********************************************/
-    double pressureError;
-    double cellTempError = Double.MAX_VALUE;
-    final MyFixedMatrix2 TFError = new MyFixedMatrix2(Double.MAX_VALUE);
-    final MyFixedMatrix2 velocityError = new MyFixedMatrix2(Double.MAX_VALUE);
+    final double[] cellTempError = filledArray(col_celda, Double.MAX_VALUE);
+    final double[] TFError = filledArray(col_fluido, Double.MAX_VALUE);
+    final double[] velocityError = filledArray(col_fluido, Double.MAX_VALUE);
+    final double[] pressureError = filledArray(col_celda, Double.MAX_VALUE);
     /******************************************** Condiciones de borde ********************************************/
     // Tf(1) = Tin;                       Temperatura entrada [ºC]
     // Vinicio = a(2)*Flujo*(z/Largo)/A;  Velocidad entrada[m/s]
     // Df(1) = q_densidad(Tin);           Densidad de entrada [kg/m3]
     // Pf(length(Pf)) = P_atm;            Presion entrada [Pa]. Presión de ¿salida? se asume la presión atmosférica [Pa]
     final double initVelocity = a.a2 * innerArg;           // Velocidad entrada[m/s]
-    df.unsafe_set(0, Interpolation.q_densidad(initTemperature));     // Densidad de entrada [kg/m3]
+    df.set(0, Interpolation.q_densidad(initTemperature));     // Densidad de entrada [kg/m3]
     /**************************************************************************************************************/
     // Speedup cache variable
     final double dfMultiplicationTerm = diamTimesZ * initVelocity * df.unsafe_get(0);    // df(0) never changes
 
     final double m_punto = sPlusOne * dfMultiplicationTerm;
 
-    velocityError.unsafe_set(0, 0);
-    TFError.unsafe_set(0, 0);
+    velocityError[0] = 0;
+    TFError[0] = 0;
 
     // Speedup cache variables
     final double sTerm = separation / sPlusOne;
@@ -126,41 +130,41 @@ public class GeneralModelEvaluatorEfficient {
       /**************************************** Calculo de la velocidad en 1 ***********************************/
       double cdrag = eval.computeDragCoefficient(a.a1, rem.unsafe_get(0, 0), normalizedArea, df.unsafe_get(0) / 1.205, col_fluido);
       double initialFF = initialFFTerm * cdrag;
-      ff.unsafe_set(0, initialFF);
+      ff.set(0, initialFF);
       double actualVF = initVelocity - initialFF / m_punto;
       vf.setValue(0, velocityError, actualVF);
       /*************************************** Calculo de la presion en 1 **************************************/
       double actualVMF = sTerm * actualVF;
-      vmf.unsafe_set(0, actualVMF);
+      vmf.set(0, actualVMF);
       double actualDF = df.unsafe_get(0);
       double actualRem = ModelUtils.q_reynolds(actualVMF, tf.unsafe_get(0), cellDiameter, actualDF);
-      rem.unsafe_set(0, actualRem);
+      rem.set(0, actualRem);
       double normalizedDF = actualDF / 1.205;
       double frictionFactor = eval.computeFrictionFactor(actualRem, separation, actualVMF / initVelocity, normalizedDF);
       double nextPF = pf.unsafe_get(1);
       double actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
-      pressureError = pf.setValue(0, actualPF);
+      pf.setValue(0, pressureError, actualPF);
 
       // Tf(0), pf(end), Df(0), vmf(end) and rem(0) aren't modified in the loop
       for (int i = 0; i < col_fluido - 1; i++) {
         actualVF = vf.unsafe_get(i);
         actualVMF = sTerm * actualVF;
-        vmf.unsafe_set(i, actualVMF);
+        vmf.set(i, actualVMF);
         final double actualTF = tf.unsafe_get(i);
         actualDF = df.unsafe_get(i);
-        rem.unsafe_set(i + 1, ModelUtils.q_reynolds(actualVMF, actualTF, cellDiameter, actualDF));
+        rem.set(i + 1, ModelUtils.q_reynolds(actualVMF, actualTF, cellDiameter, actualDF));
         actualRem = rem.unsafe_get(0, i);
         /***************************************** Calculo de la presion **************************************/
         normalizedDF = actualDF / 1.205;
         frictionFactor = eval.computeFrictionFactor(actualRem, separation, vmf.unsafe_get(0, i) / initVelocity, normalizedDF);
         nextPF = pf.unsafe_get(i + 1);
         actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
-        pressureError = pf.setValue(i, actualPF);
+        pf.setValue(i, pressureError, actualPF);
         /***************************************** Calculo de la velocidad ************************************/
         cdrag = eval.computeDragCoefficient(a.a1, actualRem, normalizedArea, normalizedDF, col_fluido);
         final double actualVFSquared = pow(actualVF, 2);
         final double nextFF = 0.5 * diamTimesZ * actualDF * actualVFSquared * cdrag;
-        ff.unsafe_set(i + 1, nextFF);
+        ff.set(i + 1, nextFF);
         // Conservacion de momento
         final double nextVFSquared = (controlVolArea * (nextPF - actualPF) - nextFF) / m_punto + actualVFSquared;
         final double nextVF = sqrt(nextVFSquared);
@@ -171,16 +175,17 @@ public class GeneralModelEvaluatorEfficient {
         final double nextTF = actualTF + (fluidTempTerm - 0.5 * (nextVFSquared - actualVFSquared)) / cp;
         tf.setValue(i + 1, TFError, nextTF);
         /***************************************** Calculo de la densidad *************************************/
-        df.unsafe_set(i + 1, Interpolation.q_densidad(nextTF));
+        df.set(i + 1, Interpolation.q_densidad(nextTF));
         /********************************** Calculo de temperatura de celda ***********************************/
         final double nu = eval.computeNusseltNumber(i * 2, actualRem, a.a3);
         final double iniFluidK = Interpolation.q_conductividad(actualTF);
-        fluidK.unsafe_set(i, iniFluidK);
+        fluidK.set(i, iniFluidK);
         final double h = nu * iniFluidK / cellDiameter;
         // Transferencia de energia
-        cellTempError = tc.setValue(i, heatPerArea / h + (actualTF + nextTF) / 2);
+        tc.setValue(i, cellTempError, heatPerArea / h + (actualTF + nextTF) / 2);
       }
-      if (cellTempError <= errmax && TFError.max() <= errmax && pressureError <= errmax && velocityError.max() <= errmax) {
+      if (max(cellTempError) <= errmax && max(TFError) <= errmax &&
+          max(pressureError) <= errmax && max(velocityError) <= errmax) {
         break;
       }
     }

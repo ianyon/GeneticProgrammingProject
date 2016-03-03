@@ -11,10 +11,10 @@ stat.do-final = true
 # stat.only-final = true
 # stat.silent = true
 stat.file = $out.stat
-stat.validation-file = TrainingData/doe500val.txt
-stat.test-file = TrainingData/doe500test.txt
-stat.validation-output = TrainingData/salidas_ansys500val.txt
-stat.test-output = TrainingData/salidas_ansys500test.txt
+stat.validation-file = $TrainingData/doe500val.txt
+stat.test-file = $TrainingData/doe500test.txt
+stat.validation-output = $TrainingData/salidas_ansys500val.txt
+stat.test-output = $TrainingData/salidas_ansys500test.txt
 
 #stat.num-children = 1
 # stat.child.0 = cl.ian.gp.statistics.MyKozaShortStatistics

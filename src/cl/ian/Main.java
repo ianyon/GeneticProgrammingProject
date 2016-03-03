@@ -24,7 +24,13 @@ public class Main {
         return;
       }
       if (args[0].equalsIgnoreCase("once")) {
-        runExpressionOnce(Case.FRICTION_FACTOR);
+        try {
+          //runExpressionOnce(Case.FRICTION_FACTOR);
+          runExpressionOnce(Case.DRAG_COEFFICIENT);
+          runExpressionOnce(Case.NUSSELT_NUMBER);
+        } catch (Exception e) {
+          System.exit(-1);
+        }
         return;
       }
     }

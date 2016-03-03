@@ -37,7 +37,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   protected double inputs[][];
   private double[] outputs;
 
-  private static GeneralModelEvaluator model;
+  private GeneralModelEvaluator model;
 
   // Regularization factor
   private double alpha;
@@ -53,6 +53,18 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public double fluidColumn;
 
   /******************************************************************************************************************/
+  public Object clone() {
+    PhenomenologicalModel prob = (PhenomenologicalModel) (super.clone());
+    /*prob.reynolds = reynolds;
+    prob.separation = separation;
+    prob.normalizedVelocity = normalizedVelocity;
+    prob.normalizedDensity = normalizedDensity;
+    prob.normalizedArea = normalizedArea;
+    prob.fluidColumn = fluidColumn;*/
+    prob.model = (GeneralModelEvaluator) model.clone();
+
+    return prob;
+  }
 
   // don't bother cloning the inputs and outputs; they're read-only :-)
   // don't bother cloning the currValue; it's transitory
@@ -132,7 +144,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
           currValue.current, currValue.separation, currValue.flow, currValue.initTemperature, currValue.cellDiameter,
           (GPIndividual) ind, evolutionStateBean, this);
 
-      error = input.x - outputs[i];
+      error = outputs[i] - input.x;
       errorSum += error;
       quadraticErrorSum += Math.pow(error, 2);
 

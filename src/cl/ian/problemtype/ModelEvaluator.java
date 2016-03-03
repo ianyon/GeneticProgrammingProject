@@ -9,27 +9,53 @@ import ec.gp.GPIndividual;
  * Abstract class that evaluates the value of the friction factor, drag coefficient and nusselt number depending on
  * the instance class.
  */
-public abstract class ModelEvaluator {
+public abstract class ModelEvaluator implements Cloneable{
   protected EvolutionStateBean stateBean;
   protected GPIndividual individual;
   protected PhenomenologicalModel model;
 
   // Variables to check if we need to reevaluate
-  private double reynolds;
-  private double separation;
-  private double normalizedVelocity;
-  private double normalizedDensity;
-  private double a1;
-  private double normalizedArea;
-  private double fluidColumn;
-  private double a3;
-  private double cachedFrictionFactor;
-  private double cachedDragCoefficient;
-  private double cachedNusseltNumber;
-  private int doubleColumn;
+  protected double reynolds;
+  protected double separation;
+  protected double normalizedVelocity;
+  protected double normalizedDensity;
+  protected double a1;
+  protected double normalizedArea;
+  protected double fluidColumn;
+  protected double a3;
+  protected double cachedFrictionFactor;
+  protected double cachedDragCoefficient;
+  protected double cachedNusseltNumber;
+  protected int doubleColumn;
+
+  public ModelEvaluator() {
+  }
+
+  @Override
+  public Object clone() {
+    ModelEvaluator myobj;
+    try {
+      myobj = (ModelEvaluator) (super.clone());
+      /*myobj.reynolds = reynolds;
+      myobj.separation = separation;
+      myobj.normalizedVelocity = normalizedVelocity;
+      myobj.normalizedDensity = normalizedDensity;
+      myobj.a1 = a1;
+      myobj.normalizedArea = normalizedArea;
+      myobj.fluidColumn = fluidColumn;
+      myobj.a3 = a3;
+      myobj.cachedFrictionFactor = cachedFrictionFactor;
+      myobj.cachedDragCoefficient = cachedDragCoefficient;
+      myobj.cachedNusseltNumber = cachedNusseltNumber;
+      myobj.doubleColumn = doubleColumn;*/
+    } catch (CloneNotSupportedException e) {
+      throw new InternalError();
+    } // never happens
+    return myobj;
+  }
 
   protected abstract double evaluateFrictionFactor(double reynolds, double separation, double normalizedVelocity,
-                                                double normalizedDensity);
+                                                   double normalizedDensity);
 
   /**
    * Evaluates the individual of the friction factor passing the necessary arguments if this object is of instance
@@ -53,7 +79,7 @@ public abstract class ModelEvaluator {
   }
 
   protected abstract double evaluateDragCoefficient(double a1, double reynolds, double normalizedArea,
-                                                 double normalizedDensity, double fluidColumn);
+                                                    double normalizedDensity, double fluidColumn);
 
   /**
    * Evaluates the individual of the drag coefficient passing the necessary arguments if this object is of instance

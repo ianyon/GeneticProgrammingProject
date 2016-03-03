@@ -12,20 +12,20 @@ import cl.ian.ModelUtils;
 public class NusseltNumberEvaluator extends ModelEvaluator {
 
     @Override
-    public double evaluateFrictionFactor(double reynolds, double separation, double normalizedVelocity, double normalizedDensity) {
+    protected double evaluateFrictionFactor(double reynolds, double separation, double normalizedVelocity, double normalizedDensity) {
         return Interpolation.phenomenologicalFrictionFactor(reynolds,separation);
     }
 
     @Override
-    public double evaluateDragCoefficient(double a1, double reynolds, double normalizedArea, double normalizedDensity, double fluidColumn) {
+    protected double evaluateDragCoefficient(double a1, double reynolds, double normalizedArea, double normalizedDensity, double fluidColumn) {
         return a1 * ModelUtils.q_cdr3(reynolds);
     }
 
     @Override
-    public double evaluateNusseltNumber(int doubleColumn, double reynolds, double a3) {
-        stateBean.phenomenologicalModel.setNusseltNumberModelVariables(reynolds);
+    protected double evaluateNusseltNumber(int doubleColumn, double reynolds, double a3) {
+        model.setNusseltNumberModelVariables(reynolds);
         individual.trees[0].child.eval(stateBean.state, stateBean.threadNumber, stateBean.input, stateBean.stack,
-                individual, stateBean.phenomenologicalModel);
+                individual, model);
         return stateBean.input.x;
     }
 

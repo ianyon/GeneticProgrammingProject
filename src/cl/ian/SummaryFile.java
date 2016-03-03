@@ -1,7 +1,5 @@
 package cl.ian;
 
-import ec.app.majority.CA;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +16,7 @@ import java.util.Map;
 public class SummaryFile {
   private static final String summaryFilename = "Summary";
   private static final String summaryExtension = ".stat";
-  private static Map<Case, String> summaryNames = new EnumMap<>(Case.class);
+  private static final Map<Case, String> summaryNames = new EnumMap<>(Case.class);
   private static final String dateString = new SimpleDateFormat("yyyyMMdd-hhmm").format(new Date());
 
   public static void createSummaryFile(Case expressionName) {

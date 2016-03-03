@@ -3,7 +3,6 @@ package cl.ian;
 import cl.ian.gp.EvolutionStateBean;
 import cl.ian.problemtype.ModelEvaluator;
 import ec.gp.GPIndividual;
-import org.ejml.data.DenseMatrix64F;
 import org.ejml.data.FixedMatrix3_64F;
 
 import java.util.Arrays;
@@ -47,7 +46,7 @@ public class GeneralModelEvaluatorEfficient {
       cellDiameter = 18;
     }
 
-    eval.setStateIndividual(stateBean, individual);
+    eval.setStateIndividual(stateBean, individual, model);
     final double atmPressure = eval.atmosphericPressure();                                        //Presion atmosferica [Pa]
 
     // Constantes del modelo

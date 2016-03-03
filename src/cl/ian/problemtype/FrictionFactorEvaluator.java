@@ -12,29 +12,26 @@ import cl.ian.ModelUtils;
 public class FrictionFactorEvaluator extends ModelEvaluator {
 
     @Override
-    public double evaluateFrictionFactor(double reynolds,
+    protected double evaluateFrictionFactor(double reynolds,
                                          double separation,
                                          double normalizedVelocity,
                                          double normalizedDensity) {
-        stateBean.phenomenologicalModel.setFrictionFactorModelVariables(reynolds,separation,
+        model.setFrictionFactorModelVariables(reynolds,separation,
                 normalizedVelocity, normalizedDensity);
         individual.trees[0].child.eval(stateBean.state, stateBean.threadNumber, stateBean.input, stateBean.stack,
-                individual, stateBean.phenomenologicalModel);
+                individual, model);
 
         return stateBean.input.x;
     }
 
     @Override
-    public double evaluateDragCoefficient(double a1,
-                                          double reynolds,
-                                          double normalizedArea,
-                                          double normalizedDensity,
+    protected double evaluateDragCoefficient(double a1, double reynolds, double normalizedArea, double normalizedDensity,
                                           double fluidColumn) {
         return a1 * ModelUtils.q_cdr3(reynolds);
     }
 
     @Override
-    public double evaluateNusseltNumber(int doubleColumn, double reynolds, double a3) {
+    protected double evaluateNusseltNumber(int doubleColumn, double reynolds, double a3) {
         return Interpolation.q_cznusselt(doubleColumn, reynolds) * ModelUtils.q_nusselt2(reynolds, a3);
    }
 

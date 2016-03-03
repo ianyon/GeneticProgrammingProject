@@ -14,14 +14,11 @@ public class EvolutionStateBean {
     public int threadNumber;
     public RegressionData input;
     public ADFStack stack;
-    public PhenomenologicalModel phenomenologicalModel;
 
-    public void set(EvolutionState state, int threadNumber, RegressionData input,
-                    ADFStack stack, PhenomenologicalModel phenomenologicalModel) {
+    public void set(EvolutionState state, int threadNumber, RegressionData input, ADFStack stack) {
         this.state = state;
         this.threadNumber = threadNumber;
         this.input = input;
         this.stack = stack;
-        this.phenomenologicalModel = phenomenologicalModel;
     }
 }

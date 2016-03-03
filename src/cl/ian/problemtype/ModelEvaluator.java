@@ -1,6 +1,7 @@
 package cl.ian.problemtype;
 
 import cl.ian.gp.EvolutionStateBean;
+import cl.ian.gp.PhenomenologicalModel;
 import ec.gp.GPIndividual;
 
 /**
@@ -9,14 +10,25 @@ import ec.gp.GPIndividual;
  * the instance class.
  */
 public abstract class ModelEvaluator {
-  EvolutionStateBean stateBean;
-  GPIndividual individual;
+  protected EvolutionStateBean stateBean;
+  protected GPIndividual individual;
+  protected PhenomenologicalModel model;
 
   // Variables to check if we need to reevaluate
-  double reynolds, separation, normalizedVelocity, normalizedDensity, a1, normalizedArea, fluidColumn, a3, cachedFrictionFactor, cachedDragCoefficient, cachedNusseltNumber;
-  int doubleColumn;
+  private double reynolds;
+  private double separation;
+  private double normalizedVelocity;
+  private double normalizedDensity;
+  private double a1;
+  private double normalizedArea;
+  private double fluidColumn;
+  private double a3;
+  private double cachedFrictionFactor;
+  private double cachedDragCoefficient;
+  private double cachedNusseltNumber;
+  private int doubleColumn;
 
-  public abstract double evaluateFrictionFactor(double reynolds, double separation, double normalizedVelocity,
+  protected abstract double evaluateFrictionFactor(double reynolds, double separation, double normalizedVelocity,
                                                 double normalizedDensity);
 
   /**
@@ -32,11 +44,15 @@ public abstract class ModelEvaluator {
         normalizedDensity == this.normalizedDensity)
       return cachedFrictionFactor;
 
+    this.reynolds = reynolds;
+    this.separation = separation;
+    this.normalizedVelocity = normalizedVelocity;
+    this.normalizedDensity = normalizedDensity;
     cachedFrictionFactor = evaluateFrictionFactor(reynolds, separation, normalizedVelocity, normalizedDensity);
     return cachedFrictionFactor;
   }
 
-  public abstract double evaluateDragCoefficient(double a1, double reynolds, double normalizedArea,
+  protected abstract double evaluateDragCoefficient(double a1, double reynolds, double normalizedArea,
                                                  double normalizedDensity, double fluidColumn);
 
   /**
@@ -53,11 +69,16 @@ public abstract class ModelEvaluator {
         fluidColumn == this.fluidColumn)
       return cachedDragCoefficient;
 
+    this.a1 = a1;
+    this.reynolds = reynolds;
+    this.normalizedArea = normalizedArea;
+    this.normalizedDensity = normalizedDensity;
+    this.fluidColumn = fluidColumn;
     cachedDragCoefficient = evaluateDragCoefficient(a1, reynolds, normalizedArea, normalizedDensity, fluidColumn);
     return cachedDragCoefficient;
   }
 
-  public abstract double evaluateNusseltNumber(int doubleColumn, double reynolds, double a3);
+  protected abstract double evaluateNusseltNumber(int doubleColumn, double reynolds, double a3);
 
 
   /**
@@ -71,6 +92,9 @@ public abstract class ModelEvaluator {
         a3 == this.a3)
       return cachedNusseltNumber;
 
+    this.doubleColumn = doubleColumn;
+    this.reynolds = reynolds;
+    this.a3 = a3;
     cachedNusseltNumber = evaluateNusseltNumber(doubleColumn, reynolds, a3);
     return cachedNusseltNumber;
   }
@@ -84,9 +108,10 @@ public abstract class ModelEvaluator {
     return 0;
   }
 
-  public void setStateIndividual(EvolutionStateBean stateBean, GPIndividual individual) {
+  public void setStateIndividual(EvolutionStateBean stateBean, GPIndividual individual, PhenomenologicalModel model) {
     this.stateBean = stateBean;
     this.individual = individual;
+    this.model = model;
   }
 
   /**

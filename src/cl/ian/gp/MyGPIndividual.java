@@ -1,6 +1,5 @@
 package cl.ian.gp;
 
-import cl.ian.Case;
 import ec.EvolutionState;
 import ec.Individual;
 import ec.gp.GPIndividual;
@@ -30,13 +29,7 @@ public class MyGPIndividual extends GPIndividual {
     return "Depth: " + depth() + " Size: " + size();
   }
 
-  public static MyGPIndividual getBest(Individual bestInd, Individual newInd) {
-    if (bestInd == null || newInd.fitness.betterThan(bestInd.fitness))
-      return (MyGPIndividual) newInd.clone();
-    return (MyGPIndividual) bestInd;
-  }
-
-  public int printRootedTreeForHumans(GPNode child, StringBuilder str, int tablevel, int printbytes) {
+  private int printRootedTreeForHumans(GPNode child, StringBuilder str, int tablevel, int printbytes) {
     if (printbytes > GPNode.MAXPRINTBYTES) {
       str.append("\n");
       tablevel++;
@@ -66,7 +59,6 @@ public class MyGPIndividual extends GPIndividual {
     return printbytes;
   }
 
-
   public String stringTreeForHumans() {
     if (trees[0].printStyle == GPTree.PRINT_STYLE_C) return trees[0].child.makeCTree(true,
         trees[0].printTerminalsAsVariablesInC, trees[0].printTwoArgumentNonterminalsAsOperatorsInC);
@@ -74,6 +66,7 @@ public class MyGPIndividual extends GPIndividual {
     else if (trees[0].printStyle == GPTree.PRINT_STYLE_DOT) return trees[0].child.makeGraphvizTree();
     else return "Select a PrintStyle";
   }
+
 
   @Override
   public void printTrees(EvolutionState state, int log) {
@@ -86,5 +79,17 @@ public class MyGPIndividual extends GPIndividual {
       state.output.println("Not evaluated!", log);
     fitness.printFitnessForHumans(state, log);
     printTrees(state, log);
+  }
+
+  public static MyGPIndividual getBest(Individual bestInd, Individual newInd) {
+    if (bestInd == null || newInd.fitness.betterThan(bestInd.fitness))
+      return (MyGPIndividual) newInd.clone();
+    return (MyGPIndividual) bestInd;
+  }
+
+  public static MyGPIndividual getErrorBest(Individual best, Individual ind) {
+    if (best == null || ((HitLevelKozaFitness)ind.fitness).errorBetterThan(best.fitness))
+      return (MyGPIndividual) ind.clone();
+    return (MyGPIndividual) best;
   }
 }

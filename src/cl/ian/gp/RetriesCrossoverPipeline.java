@@ -109,14 +109,16 @@ import ec.util.Parameter;
 public class RetriesCrossoverPipeline extends CrossoverPipeline {
   private static final long serialVersionUID = 1;
 
-  public static int equalTrees;
-  public static int equalNodes;
-  private static boolean breakTree;
+  // Used for debugging
+  //private static int equalTrees;
+  //private static int equalNodes;
+  //private static boolean breakTree;
 
   public void setup(final EvolutionState state, final Parameter base) {
     super.setup(state, base);
 
-    equalTrees = equalNodes = 0;
+    // Used for debugging
+    //equalTrees = equalNodes = 0;
   }
 
   /**
@@ -139,76 +141,23 @@ public class RetriesCrossoverPipeline extends CrossoverPipeline {
     GPInitializer initializer = ((GPInitializer) state.initializer);
 
     for (int q = start; q < n + start; /* no increment */) { // keep on going until we're filled up
-      int t1 = 0, t2 = 0;
-
-      for (int retries = 0; retries < numTries; retries++) {
-        // grab two individuals from our sources
-        if (sources[0] == sources[1])  // grab from the same source
-          sources[0].produce(2, 2, 0, subpopulation, parents, state, thread);
-        else { // grab from different sources
-          sources[0].produce(1, 1, 0, subpopulation, parents, state, thread);
-          sources[1].produce(1, 1, 1, subpopulation, parents, state, thread);
-        }
-
-        // at this point, parents[] contains our two selected individuals
-        // are our tree values valid?
-        if (tree1 != TREE_UNFIXED && (tree1 < 0 || tree1 >= parents[0].trees.length))
-          state.output.fatal("GP Crossover Pipeline attempted to fix tree.0 to a value which was out of bounds of the array of the individual's trees.  Check the pipeline's fixed tree values -- they may be negative or greater than the number of trees in an individual");
-        if (tree2 != TREE_UNFIXED && (tree2 < 0 || tree2 >= parents[1].trees.length))
-          state.output.fatal("GP Crossover Pipeline attempted to fix tree.1 to a value which was out of bounds of the array of the individual's trees.  Check the pipeline's fixed tree values -- they may be negative or greater than the number of trees in an individual");
-
-        if (tree1 == TREE_UNFIXED || tree2 == TREE_UNFIXED) {
-          do { // pick random trees  -- their GPTreeConstraints must be the same
-            t1 = getSelectedTree(state, thread, parents[0], tree1);
-            t2 = getSelectedTree(state, thread, parents[1], tree2);
-          } while (parents[0].trees[t1].constraints(initializer) != parents[1].trees[t2].constraints(initializer));
-        } else {
-          t1 = tree1;
-          t2 = tree2;
-          // make sure the constraints are okay
-          if (parents[0].trees[t1].constraints(initializer) != parents[1].trees[t2].constraints(initializer)) // uh oh
-            state.output.fatal("GP Crossover Pipeline's two tree choices are both specified by the user -- but their GPTreeConstraints are not the same");
-        }
-
-        if (!parents[0].trees[t1].treeEquals(parents[1].trees[t2])) {
-          breakTree = true;
-          break;
-        }
-      }
-
-      if (!breakTree) equalTrees++;
-
-      // validity results...
-      boolean res1 = false, res2 = false;
+      int[] treeIndex = getTreeIndex(subpopulation, state, thread, initializer);
+      int t1 = treeIndex[0];
+      int t2 = treeIndex[1];
 
       // prepare the nodeselectors
       nodeselect1.reset();
       nodeselect2.reset();
 
       // pick some nodes
-      GPNode p1 = null, p2 = null;
-      int counter = 0;
-      for (int x = 0; x < numTries; x++) {
-        // pick a node in individual 1
-        p1 = nodeselect1.pickNode(state, subpopulation, thread, parents[0], parents[0].trees[t1]);
-
-        // pick a node in individual 2
-        p2 = nodeselect2.pickNode(state, subpopulation, thread, parents[1], parents[1].trees[t2]);
-
-        // check for depth and swap-compatibility limits
-        res1 = verifyPoints(initializer, p2, p1);  // p2 can fill p1's spot -- order is important!
-        if (n - (q - start) < 2 || tossSecondParent) res2 = true;
-        else res2 = verifyPoints(initializer, p1, p2);  // p1 can fill p2's spot -- order is important!
-
-        // did we get something that had both nodes verified?
-        // we reject if EITHER of them is invalid.  This is what lil-gp does.
-        // Koza only has numTries set to 1, so it's compatible as well.
-        if (res1 && res2) break;
-
-        counter++;
-      }
-
-      if (counter == numTries) equalNodes++;
+      GPNode p1, p2;
+      boolean[] validity = new boolean[2];
+      GPNode[] validNodes = pickValidNodes(state, subpopulation, thread, t1, t2, initializer, q, n, validity, start);
+      p1 = validNodes[0];
+      p2 = validNodes[1];
+      // validity results...
+      boolean res1 = validity[0];
+      boolean res2 = validity[1];
 
       // at this point, res1 AND res2 are valid, OR either res1 OR res2 is valid and we ran out of tries, OR
       // neither is valid and we ran out of tries.  So now we will transfer to a tree which has res1 or
@@ -220,25 +169,106 @@ public class RetriesCrossoverPipeline extends CrossoverPipeline {
       // should be just fine.  Perhaps we should change this to proto off of the main species prototype, but
       // we have to then copy so much stuff over; it's not worth it.
 
-      GPIndividual j1 = parents[0].lightClone();
-      GPIndividual j2 = null;
-      if (n - (q - start) >= 2 && !tossSecondParent) j2 = parents[1].lightClone();
+      q = addIndividual(inds, q, t1, res1, p1, p2);
 
-      // Fill in various tree information that didn't get filled in there
-      j1.trees = new GPTree[parents[0].trees.length];
-      if (n - (q - start) >= 2 && !tossSecondParent) j2.trees = new GPTree[parents[1].trees.length];
+      if (n - (q - start) >= 2 && !tossSecondParent) q = addIndividual(inds, q, t2, res2, p2, p1);
 
-      // at this point, p1 or p2, or both, may be null. If not, swap one in.  Else just copy the parent.
-      for (int x = 0; x < j1.trees.length; x++) SwapNodesOrParent(t1, res1, p1, p2, j1, x);
-
-      if (n - (q - start) >= 2 && !tossSecondParent)
-        for (int x = 0; x < j2.trees.length; x++) SwapNodesOrParent(t2, res2, p2, p1, j2, x);
-
-      // add the individuals to the population
-      inds[q++] = j1;
-      if (q < n + start && !tossSecondParent) inds[q++] = j2;
     }
     return n;
+  }
+
+  private int addIndividual(Individual[] inds, int q, int t, boolean res, GPNode p1, GPNode p2) {
+    GPIndividual j = parents[0].lightClone();
+    // Fill in various tree information that didn't get filled in there
+    j.trees = new GPTree[parents[0].trees.length];
+    // at this point, p1 or p2, or both, may be null. If not, swap one in.  Else just copy the parent.
+    for (int x = 0; x < j.trees.length; x++) SwapNodesOrParent(t, res, p1, p2, j, x);
+    // add the individuals to the population
+    inds[q++] = j;
+    return q;
+  }
+
+  private GPNode[] pickValidNodes(EvolutionState state, int subpopulation, int thread, int t1, int t2,
+                                  GPInitializer initializer, int q, int n, boolean[] validity, int start) {
+    GPNode p1 = null, p2 = null;
+    boolean res1 = false, res2 = false;
+    //int counter = 0;
+    for (int x = 0; x < numTries; x++) {
+      // pick a node in individual 1
+      p1 = nodeselect1.pickNode(state, subpopulation, thread, parents[0], parents[0].trees[t1]);
+
+      // pick a node in individual 2
+      p2 = nodeselect2.pickNode(state, subpopulation, thread, parents[1], parents[1].trees[t2]);
+
+      // check for depth and swap-compatibility limits
+      res1 = verifyPoints(initializer, p2, p1);  // p2 can fill p1's spot -- order is important!
+      res2 = n - (q - start) < 2 || tossSecondParent || verifyPoints(initializer, p1, p2);
+      // p1 can fill p2's spot -- order is important!
+
+      // did we get something that had both nodes verified?
+      // we reject if EITHER of them is invalid.  This is what lil-gp does.
+      // Koza only has numTries set to 1, so it's compatible as well.
+      if (res1 && res2) break;
+
+      //counter++;
+    }
+
+    // Used for debugging
+    //if (counter == numTries) equalNodes++;
+
+    validity[0] = res1;
+    validity[1] = res2;
+    return new GPNode[]{p1, p2};
+  }
+
+  private void grabIndividuals(int subpopulation, EvolutionState state, int thread) {
+    // grab two individuals from our sources
+    if (sources[0] == sources[1])  // grab from the same source
+      sources[0].produce(2, 2, 0, subpopulation, parents, state, thread);
+    else { // grab from different sources
+      sources[0].produce(1, 1, 0, subpopulation, parents, state, thread);
+      sources[1].produce(1, 1, 1, subpopulation, parents, state, thread);
+    }
+  }
+
+  private int[] getTreeIndex(int subpopulation, EvolutionState state, int thread, GPInitializer initializer) {
+    int t1 = 0, t2 = 0;
+    for (int retries = 0; retries < numTries; retries++) {
+      grabIndividuals(subpopulation, state, thread);
+
+      // at this point, parents[] contains our two selected individuals
+      // are our tree values valid?
+      if (tree1 != TREE_UNFIXED && (tree1 < 0 || tree1 >= parents[0].trees.length))
+        state.output.fatal("GP Crossover Pipeline attempted to fix tree.0 to a value which was out of bounds of the array of the individual's trees.  Check the pipeline's fixed tree values -- they may be negative or greater than the number of trees in an individual");
+      if (tree2 != TREE_UNFIXED && (tree2 < 0 || tree2 >= parents[1].trees.length))
+        state.output.fatal("GP Crossover Pipeline attempted to fix tree.1 to a value which was out of bounds of the array of the individual's trees.  Check the pipeline's fixed tree values -- they may be negative or greater than the number of trees in an individual");
+
+      if (tree1 == TREE_UNFIXED || tree2 == TREE_UNFIXED) {
+        do { // pick random trees  -- their GPTreeConstraints must be the same
+          t1 = getSelectedTree(state, thread, parents[0], tree1);
+          t2 = getSelectedTree(state, thread, parents[1], tree2);
+        } while (parents[0].trees[t1].constraints(initializer) != parents[1].trees[t2].constraints(initializer));
+      } else {
+        t1 = tree1;
+        t2 = tree2;
+        // make sure the constraints are okay
+        if (parents[0].trees[t1].constraints(initializer) != parents[1].trees[t2].constraints(initializer)) // uh oh
+          state.output.fatal("GP Crossover Pipeline's two tree choices are both specified by the user -- but their GPTreeConstraints are not the same");
+      }
+
+      // Used for debugging
+        /*
+        if (!parents[0].trees[t1].treeEquals(parents[1].trees[t2])) {
+          breakTree = true;
+          break;
+        }*/
+    }
+
+    // Used for debugging
+    //if (!breakTree) equalTrees++;
+
+    return new int[]{t1, t2};
+
   }
 
   protected int getSelectedTree(EvolutionState state, int thread, GPIndividual parent, int treeToSelect) {

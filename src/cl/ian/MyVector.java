@@ -3,8 +3,6 @@ package cl.ian;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-import static java.lang.Math.abs;
-
 /**
  * Created by ian on 6/16/15.
  */

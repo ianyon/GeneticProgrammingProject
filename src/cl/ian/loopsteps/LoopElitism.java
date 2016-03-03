@@ -32,7 +32,7 @@ public class LoopElitism extends LoopCallable {
    *
    * @throws Exception
    */
-  private void eliteFraction() throws Exception {
+  private void eliteFraction() {
     for (int i = 0; i < testValues.length; i++) {
       database.set(new Parameter("breed.elite-fraction.0"), "" + testValues[i]);
       parametersValue.set(index, "" + testValues[i] * 100 + "%");
@@ -46,7 +46,7 @@ public class LoopElitism extends LoopCallable {
    *
    * @throws Exception
    */
-  private void eliteCount() throws Exception {
+  private void eliteCount() {
     for (int i = 0; i < testValues.length; i++) {
       database.set(new Parameter("breed.elite.0"), "" + testValues[i]);
       parametersValue.set(index, "" + testValues[i]);

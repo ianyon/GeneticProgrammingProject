@@ -114,7 +114,7 @@ public class Interpolation {
     for (int i = 0; i < X.length - 1; i++) {
       dx = X[i + 1] - X[i];
 
-      if (dx <= 0) System.out.println("ERROR: X must be strictly monotonic.");
+      assert dx > 0 : "ERROR: X must be strictly monotonic.";
 
       dy = Y.unsafe_get(0, i + 1) - Y.unsafe_get(0, i);
 
@@ -173,7 +173,7 @@ public class Interpolation {
    */
   public static double q_densidad(double T) {
     // This happens if the result is NaN or not real
-    if (Double.isNaN(T)) return 1;
+    if (Double.isNaN(T)) return 1.0;
 
     // General case
     return interpolateLinearly(X_q_densidad, slope_q_densidad, intercept_q_densidad, Y_q_densidad, T);
@@ -187,7 +187,7 @@ public class Interpolation {
    */
   public static double q_viscosidad(double T) {
     // This happens if the result is NaN or not real
-    if (Double.isNaN(T)) return 0;
+    if (Double.isNaN(T)) return 0.0;
 
     T += 273.15;
 
@@ -208,7 +208,7 @@ public class Interpolation {
     // This happens if the result is NaN or not real
     if (Re < 0 || Double.isNaN(Re)) return 0.0001;
 
-    if (doubleColumn > 20 || Re < 1e3) return 1;
+    if (doubleColumn > 20 || Re < 1e3) return 1.0;
 
     // General case
     return interpolateLinearly(X_q_cznusselt, slope_q_cznusselt, intercept_q_cznusselt, Y_q_cznusselt, doubleColumn);
@@ -223,7 +223,7 @@ public class Interpolation {
    */
   public static double phenomenologicalFrictionFactor(double reynolds, double separation) {
     // This happens if the result is NaN or not real
-    if (reynolds < 0 || Double.isNaN(reynolds)) return 0;
+    if (reynolds < 0 || Double.isNaN(reynolds)) return 0.0;
 
     double aux1 = interpolateLinearly(xFrictionFactor, slopeFrictionFactor1, interceptFrictionFactor1, y1FrictionFactor, separation);
     double aux2 = interpolateLinearly(xFrictionFactor, slopeFrictionFactor2, interceptFrictionFactor2, y2FrictionFactor, separation);
@@ -238,7 +238,7 @@ public class Interpolation {
    */
   public static double q_cp(double T) {
     // This happens if the result is NaN or not real
-    if (Double.isNaN(T)) return 1;
+    if (Double.isNaN(T)) return 1.0;
 
     T += 273.15;
 
@@ -254,11 +254,12 @@ public class Interpolation {
    * @param value Contains the coordinate of the query point.
    * @return The value of the query point interpolated
    */
-  public static double interpolateLinearly(final double[] x, final RealMatrix64F slope,
-                                           final RealMatrix64F intercept, final RealMatrix64F y,
-                                           final double value) {
+  private static double interpolateLinearly(final double[] x, final RealMatrix64F slope,
+                                            final RealMatrix64F intercept, final RealMatrix64F y,
+                                            final double value) {
     // Check bounds for extrapolation
-    if (value < x[0]) return slope.unsafe_get(0, 0) * value + intercept.unsafe_get(0, 0);                   // Below bottom bound
+    if (value < x[0])
+      return slope.unsafe_get(0, 0) * value + intercept.unsafe_get(0, 0);                   // Below bottom bound
     else if (value > x[x.length - 1])                                                   // Over upper bound
       return slope.unsafe_get(slope.getNumCols(), 0) * value + intercept.unsafe_get(intercept.getNumCols(), 0);
     return interpolate(x, slope, intercept, y, value);
@@ -274,8 +275,8 @@ public class Interpolation {
    * @param value     Contains the coordinate of the query point.
    * @return The value of the query point interpolated
    */
-  public static double interpolate(double[] x, RealMatrix64F slope, RealMatrix64F intercept,
-                                   RealMatrix64F y, double value) {
+  private static double interpolate(double[] x, RealMatrix64F slope, RealMatrix64F intercept,
+                                    RealMatrix64F y, double value) {
     // loc is the position where value should be inserted
     int loc = Arrays.binarySearch(x, value);
     if (loc < -1) {                                                 // Value isn't in array

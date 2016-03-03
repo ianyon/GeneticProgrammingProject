@@ -25,7 +25,7 @@ public class KnownApproxRampedHalfHalfInit extends HalfBuilder {
   // For statistics only
   public int growCount, fullCount, knownApproxCount;
 
-  public static Case selectedCase;
+  private static Case selectedCase;
 
   public Parameter defaultBase() {
     return GPKozaDefaults.base().push(P_KNOWNHALFBUILDER);

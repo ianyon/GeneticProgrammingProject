@@ -18,28 +18,28 @@ import java.util.concurrent.Callable;
  * Created by Ian on 16/02/2016.
  */
 public abstract class LoopCallable implements Callable {
-  public final ArrayList<LoopCallable> loopSteps;
-  public final int index;
-  public ParameterDatabase database;
-  public EvolutionState state;
-  public double[] testValues;
+  private final ArrayList<LoopCallable> loopSteps;
+  protected final int index;
+  protected final ParameterDatabase database;
+  private final EvolutionState state;
+  protected final double[] testValues;
 
   // Fields to show the actual loop information
-  public static final ArrayList<String> parametersHeader = new ArrayList<>();
+  protected static final ArrayList<String> parametersHeader = new ArrayList<>();
   /**
    * Name of the expression being executed. Initialized in populateLoops
    */
   private static Case expressionName;
-  public static final ArrayList<String> parametersValue = new ArrayList<>();
+  protected static final ArrayList<String> parametersValue = new ArrayList<>();
 
   private static int totalLoops;
   private static int executedLoops;
   private static double avgExecutionTime;
   private static double estimatedRemainingTime;
 
-  public static MyGPIndividual bestOfLoops;
-  public static String headerBestOfLoops;
-  public static String stringBestOfLoops;
+  private static MyGPIndividual bestOfLoops;
+  private static String headerBestOfLoops;
+  private static String stringBestOfLoops;
 
   public LoopCallable(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index,
                       double[] testValues) {
@@ -99,7 +99,7 @@ public abstract class LoopCallable implements Callable {
     actualExecution();
 
     // Print the info to the summary file and check for the best of all time
-    final MyGPIndividual bestIndLastLoop = (MyGPIndividual) ((SimpleGPStatistics) state.statistics).best_of_run[0];
+    final MyGPIndividual bestIndLastLoop = ((SimpleGPStatistics) state.statistics).best_of_run[0];
     final String bestMessage = String.format("%s\n%s\n%s", paramIdentifier,
         bestIndLastLoop.fitness.fitnessToStringForHumans(), bestIndLastLoop.stringRootedTreeForHumans());
 
@@ -182,7 +182,7 @@ public abstract class LoopCallable implements Callable {
     //database.set(new Parameter("stat.child.0.file.suffix"), message);
   }
 
-  protected void doExecutionOrContinueWithNextStep() throws Exception {
+  protected void doExecutionOrContinueWithNextStep() {
     if (loopSteps.size() > index + 1) {
       try {
         loopSteps.get(index + 1).call();

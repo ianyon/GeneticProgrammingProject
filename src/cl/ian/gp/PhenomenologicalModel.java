@@ -31,16 +31,16 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public static final String REGULARIZATION_FACTOR = "regularization-factor";
   public static final String PROBLEM_CASE = "problem-case";
 
-  public final InputVariables currentValue = new InputVariables();
-  public final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
+  public final InputVariables currValue = new InputVariables();
+  private final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
 
-  public double inputs[][];
-  public double outputs[];
+  protected double inputs[][];
+  private double[] outputs;
 
-  public static GeneralModelEvaluator model;
+  private static GeneralModelEvaluator model;
 
   // Regularization factor
-  public double alpha;
+  private double alpha;
 
   /**
    * Variables used in the evaluation of the individual
@@ -55,7 +55,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   /******************************************************************************************************************/
 
   // don't bother cloning the inputs and outputs; they're read-only :-)
-  // don't bother cloning the currentValue; it's transitory
+  // don't bother cloning the currValue; it's transitory
   public void setup(final EvolutionState state, final Parameter base) {
     super.setup(state, base);
 
@@ -126,16 +126,11 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     double quadraticErrorSum = 0, errorSum = 0.0, error;
 
     for (int i = initLoop(); i < endLoop(); i++) {
-      currentValue.set(inputs[i]);
-      evolutionStateBean.set(state, threadnum, input, stack, this);
+      currValue.set(inputs[i]);
+      evolutionStateBean.set(state, threadnum, input, stack);
       input.x = model.compute(
-          currentValue.current,
-          currentValue.separation,
-          currentValue.flow,
-          currentValue.initTemperature,
-          currentValue.cellDiameter,
-          (GPIndividual) ind,
-          evolutionStateBean);
+          currValue.current, currValue.separation, currValue.flow, currValue.initTemperature, currValue.cellDiameter,
+          (GPIndividual) ind, evolutionStateBean, this);
 
       error = input.x - outputs[i];
       errorSum += error;

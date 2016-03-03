@@ -1,10 +1,6 @@
 package cl.ian.gp;
 
-import cl.ian.GeneralModelEvaluator;
-import cl.ian.InputVariables;
 import ec.EvolutionState;
-import ec.Individual;
-import ec.gp.GPIndividual;
 import ec.simple.SimpleProblemForm;
 import ec.util.Parameter;
 
@@ -12,14 +8,14 @@ public class PhenomenologicalModelVerticalSlicing extends PhenomenologicalModel 
   private static final long serialVersionUID = 1;
 
   public static final String P_NUMBER_OF_SLICES = "number-of-slices";
-  public int slicesCount;
+  private int slicesCount;
   private int slice;
   private int[] sliceLimits;
   private static int lastGeneration;
 
   /******************************************************************************************************************/
   // don't bother cloning the inputs and outputs; they're read-only :-)
-  // don't bother cloning the currentValue; it's transitory
+  // don't bother cloning the currValue; it's transitory
   public void setup(final EvolutionState state, final Parameter base) {
     super.setup(state, base);
 

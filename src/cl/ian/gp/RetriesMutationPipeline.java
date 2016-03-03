@@ -98,67 +98,6 @@ public class RetriesMutationPipeline extends MutationPipeline {
   private static final long serialVersionUID = 1;
 
   /**
-   * The number of times the pipeline tries to build a valid mutated
-   * tree before it gives up and just passes on the original
-   */
-  int numTries;
-
-  /**
-   * The maximum depth of a mutated tree
-   */
-  int maxDepth;
-
-  /**
-   * The largest tree (measured as a nodecount) the pipeline is allowed to form.
-   */
-  public int maxSize;
-
-  /**
-   * Do we try to replace the subtree with another of the same size?
-   */
-  boolean equalSize;
-
-  /**
-   * Is our tree fixed?  If not, this is -1
-   */
-  int tree;
-
-  public void setup(final EvolutionState state, final Parameter base) {
-    super.setup(state, base);
-
-    Parameter def = defaultBase();
-
-    numTries = state.parameters.getInt(
-        base.push(P_NUM_TRIES), def.push(P_NUM_TRIES), 1);
-    if (numTries == 0)
-      state.output.fatal("Mutation Pipeline has an invalid number of tries (it must be >= 1).", base.push(P_NUM_TRIES), def.push(P_NUM_TRIES));
-
-    maxDepth = state.parameters.getInt(
-        base.push(P_MAXDEPTH), def.push(P_MAXDEPTH), 1);
-    if (maxDepth == 0)
-      state.output.fatal("The Mutation Pipeline " + base + "has an invalid maximum depth (it must be >= 1).", base.push(P_MAXDEPTH), def.push(P_MAXDEPTH));
-
-    maxSize = NO_SIZE_LIMIT;
-    if (state.parameters.exists(base.push(P_MAXSIZE), def.push(P_MAXSIZE))) {
-      maxSize = state.parameters.getInt(base.push(P_MAXSIZE), def.push(P_MAXSIZE), 1);
-      if (maxSize < 1)
-        state.output.fatal("Maximum tree size, if defined, must be >= 1");
-    }
-
-    equalSize = state.parameters.getBoolean(
-        base.push(P_EQUALSIZE), def.push(P_EQUALSIZE), false);
-
-    tree = TREE_UNFIXED;
-    if (state.parameters.exists(base.push(P_TREE).push("" + 0),
-        def.push(P_TREE).push("" + 0))) {
-      tree = state.parameters.getInt(base.push(P_TREE).push("" + 0),
-          def.push(P_TREE).push("" + 0), 0);
-      if (tree == -1)
-        state.output.fatal("Tree fixed value, if defined, must be >= 0");
-    }
-  }
-
-  /**
    * Returns true if inner1 can feasibly be swapped into inner2's position
    */
   public boolean verifyPoints(GPNode inner1, GPNode inner2) {

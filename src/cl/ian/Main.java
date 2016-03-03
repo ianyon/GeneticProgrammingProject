@@ -1,6 +1,5 @@
 package cl.ian;
 
-import cl.ian.gp.HitLevelKozaFitness;
 import cl.ian.gp.MyGPIndividual;
 import cl.ian.gp.statistics.SimpleGPStatistics;
 import cl.ian.loopsteps.LoopCallable;
@@ -16,10 +15,9 @@ import java.util.Map;
 
 public class Main {
 
-  private static Map<Case,  MyGPIndividual > bestOfRuns = new EnumMap<>(Case.class);;
+  private static final Map<Case, MyGPIndividual> bestOfRuns = new EnumMap<>(Case.class);
 
   public static void main(String[] args) {
-
     if (args.length > 0 && args[0].equalsIgnoreCase("best")) {
       doBest();
       return;
@@ -69,23 +67,20 @@ public class Main {
     Evolve.cleanup(state);
     System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
 
-    final MyGPIndividual bestInd = (MyGPIndividual) ((SimpleGPStatistics) state.statistics).best_of_run[0];
+    final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).best_of_run[0];
     final String bestMessage = String.format("%s\n%s",
         bestInd.fitness.fitnessToStringForHumans(), bestInd.stringRootedTreeForHumans());
 
     SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionCase);
 
-    if (bestOfRuns.get(expressionCase) == null ||
-        ((HitLevelKozaFitness) bestInd.fitness).errorBetterThan(bestOfRuns.get(expressionCase).fitness)) {
-      bestOfRuns.put(expressionCase, bestInd);
-    }
+    bestOfRuns.put(expressionCase, MyGPIndividual.getErrorBest(bestOfRuns.get(expressionCase), bestInd));
   }
 
   public static double elapsed(long startTime) {
     return (System.nanoTime() - startTime) / 1.0E9;
   }
 
-  public static String[] getNameAndFile(Case expressionCase, boolean best) {
+  private static String[] getNameAndFile(Case expressionCase, boolean best) {
     String[] nameAndFile = new String[2];
 
     switch (expressionCase) {
@@ -118,7 +113,7 @@ public class Main {
     System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
   }
 
-  public static void createDirIfNotExist() {
+  private static void createDirIfNotExist() {
 
     String results = "Results";
     File theDir = new File(results);
@@ -126,11 +121,9 @@ public class Main {
     // if the directory does not exist, create it
     if (!theDir.exists()) {
       System.out.println("Creating directory: " + results);
-      boolean result = false;
 
       try {
         theDir.mkdir();
-        result = true;
       } catch (SecurityException se) {
         System.out.println("Couldn't create " + results + " directory. Please create it manually to continue");
       }

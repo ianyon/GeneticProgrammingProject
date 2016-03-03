@@ -1,7 +1,6 @@
 package cl.ian.loopsteps;
 
 import ec.EvolutionState;
-import ec.app.edge.func.Loop;
 import ec.util.Parameter;
 import ec.util.ParameterDatabase;
 

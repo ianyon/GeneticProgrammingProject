@@ -7,7 +7,7 @@ import org.ejml.data.RealMatrix64F;
  * Created by Ian on 29-02-2016.
  */
 public class SingleVector implements VectorWrapper {
-  double value;
+  private double value;
 
   public SingleVector(double value) {
     this.value = value;

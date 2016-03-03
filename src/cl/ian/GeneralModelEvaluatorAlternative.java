@@ -46,7 +46,7 @@ public class GeneralModelEvaluatorAlternative {
       cellDiameter = 18;
     }
 
-    eval.setStateIndividual(stateBean, individual);
+    eval.setStateIndividual(stateBean, individual, model);
     final double atmPressure = eval.atmosphericPressure();                                        //Presion atmosferica [Pa]
 
     // Constantes del modelo

@@ -1,7 +1,7 @@
 package cl.ian;
 
 import cl.ian.gp.EvolutionStateBean;
-import cl.ian.gp.MyGPIndividual;
+import cl.ian.gp.PhenomenologicalModel;
 import cl.ian.problemtype.ModelEvaluator;
 import ec.gp.GPIndividual;
 import org.ejml.data.FixedMatrix3_64F;
@@ -19,27 +19,27 @@ import static java.lang.Math.*;
 public class GeneralModelEvaluator {
 
   // Cantidad de celdas
-  static final int col_fluido = 2;
-  static final int col_celda = 1;
-  static final int n_fluido = 2;
-  static final int n_celda = 1;
+  private static final int col_fluido = 2;
+  private static final int col_celda = 1;
+  private static final int n_fluido = 2;
+  private static final int n_celda = 1;
 
-  static final double r = 32E-3;                          //Resistencia interna [Ohm]
-  static final double largo = 65E-3;                      //Largo de celdas [m]
-  static final double e = 15E-3;                          //Espaciado entre pared y celda [m]
-  static final double z = 5E-3;                           //Corte del estudio [m]
-  static final double errmax = 1E-3;                      //error corte
-  static final double piQuarter = PI / 4;
-  static final double doubleE = 2 * e;
+  private static final double r = 32E-3;                          //Resistencia interna [Ohm]
+  private static final double largo = 65E-3;                      //Largo de celdas [m]
+  private static final double e = 15E-3;                          //Espaciado entre pared y celda [m]
+  private static final double z = 5E-3;                           //Corte del estudio [m]
+  private static final double errmax = 1E-3;                      //error corte
+  private static final double piQuarter = PI / 4;
+  private static final double doubleE = 2 * e;
 
-  public final ModelEvaluator eval;
+  private final ModelEvaluator eval;
 
   public GeneralModelEvaluator(ModelEvaluator evaluator) {
     this.eval = evaluator;
   }
 
   public double compute(double current, double separation, double flow, double initTemperature, double cellDiameter,
-                        GPIndividual individual, EvolutionStateBean stateBean) {
+                        GPIndividual individual, EvolutionStateBean stateBean, PhenomenologicalModel model) {
 
     // This never happens, probably was used for testing and then became deprecated
     /*if (initTemperature == 0 && cellDiameter == 0 && ((MyGPIndividual)individual).stringRootedTreeForHumans().equals("")) {
@@ -47,7 +47,7 @@ public class GeneralModelEvaluator {
       cellDiameter = 18;
     }*/
 
-    eval.setStateIndividual(stateBean, individual);
+    eval.setStateIndividual(stateBean, individual, model);
     final double atmPressure = eval.atmosphericPressure();                                        //Presion atmosferica [Pa]
 
     // Constantes del modelo
@@ -90,10 +90,10 @@ public class GeneralModelEvaluator {
     final MyVector rem = new MyVector(col_fluido);                                                    //Adimensional
     final MyVector fluidK = new MyVector(col_fluido, Interpolation.q_conductividad(tf.unsafe_get(0)));//[W/m k]
     /******************************************** Errores en columnas ********************************************/
-    final double[] cellTempError = filledArray(col_celda, Double.MAX_VALUE);
-    final double[] TFError = filledArray(col_fluido, Double.MAX_VALUE);
-    final double[] velocityError = filledArray(col_fluido, Double.MAX_VALUE);
-    final double[] pressureError = filledArray(col_celda, Double.MAX_VALUE);
+    final double[] cellTempError = MAXFilledArray(col_celda);
+    final double[] TFError = MAXFilledArray(col_fluido);
+    final double[] velocityError = MAXFilledArray(col_fluido);
+    final double[] pressureError = MAXFilledArray(col_celda);
     /******************************************** Condiciones de borde ********************************************/
     // Tf(1) = Tin;                       Temperatura entrada [ºC]
     // Vinicio = a(2)*Flujo*(z/Largo)/A;  Velocidad entrada[m/s]
@@ -125,7 +125,7 @@ public class GeneralModelEvaluator {
       /**************************************** Calculo de la velocidad en 1 ***********************************/
       double actualDF = df.unsafe_get(0);
       double normalizedDF = actualDF / 1.205;
-      double cdrag = eval.computeDragCoefficient(a.a1, rem.unsafe_get(0, 0), normalizedArea,  normalizedDF, col_fluido);
+      double cdrag = eval.computeDragCoefficient(a.a1, rem.unsafe_get(0, 0), normalizedArea, normalizedDF, col_fluido);
       double initialFF = initialFFTerm * cdrag;
       ff.unsafe_set(0, initialFF);
       double actualVF = initVelocity - initialFF / m_punto;
@@ -172,7 +172,7 @@ public class GeneralModelEvaluator {
         /***************************************** Calculo de la densidad *************************************/
         df.unsafe_set(i + 1, Interpolation.q_densidad(nextTF));
         /********************************** Calculo de temperatura de celda ***********************************/
-        final double nu = eval.evaluateNusseltNumber(i * 2, actualRem, a.a3);
+        final double nu = eval.computeNusseltNumber(i * 2, actualRem, a.a3);
         final double iniFluidK = Interpolation.q_conductividad(actualTF);
         fluidK.unsafe_set(i, iniFluidK);
         final double h = nu * iniFluidK / cellDiameter;
@@ -188,13 +188,13 @@ public class GeneralModelEvaluator {
     return eval.returnValue(pf.unsafe_get(0), vf.unsafe_get(1), tc.unsafe_get(0));
   }
 
-  public static double[] filledArray(int size, double value) {
+  private static double[] MAXFilledArray(int size) {
     double[] array = new double[size];
-    Arrays.fill(array, value);
+    Arrays.fill(array, Double.MAX_VALUE);
     return array;
   }
 
-  public static double max(double... array) {
+  private static double max(double... array) {
     double max = array[0];
     for (int i = 1; i < array.length; i++)
       max = Math.max(max, array[i]);
@@ -221,7 +221,7 @@ public class GeneralModelEvaluator {
     setFunctionError(vector, errorArray, i);
   }
 
-  static void setFunctionError(VectorWrapper vector, MyFixedMatrix2 error, int index) {
+  private static void setFunctionError(VectorWrapper vector, MyFixedMatrix2 error, int index) {
     double functionValue = vector.get(index);
     error.unsafe_set(index, abs(error.unsafe_get(index) - functionValue) / functionValue);
   }
@@ -231,12 +231,12 @@ public class GeneralModelEvaluator {
     return setFunctionError(vector, vector.get(i), i);
   }
 
-  static double setFunctionError(VectorWrapper vector, double error, int index) {
+  private static double setFunctionError(VectorWrapper vector, double error, int index) {
     double functionValue = vector.get(index);
     return abs(error - functionValue) / functionValue;
   }
 
-  static void setFunctionError(VectorWrapper vector, double[] error, int index) {
+  private static void setFunctionError(VectorWrapper vector, double[] error, int index) {
     double functionValue = vector.get(index);
     error[index] = abs(error[index] - functionValue) / functionValue;
   }

@@ -14,9 +14,6 @@ import ec.util.Parameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 
 /**
  * Created by Ian on 26/01/2016.
@@ -47,7 +44,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   protected boolean warned = false;
 
   public static final String P_ONLY_FINAL = "only-final";
-  public boolean onlyFinal;
+  private boolean onlyFinal;
 
   /**
    * The Statistics' log
@@ -62,12 +59,10 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   /**
    * Should we compress the file?
    */
-  public boolean compress;
-  public boolean doFinal;
-  public boolean doGeneration;
-  public boolean doMessage;
-  public boolean doDescription;
-  public boolean doPerGenerationDescription;
+  private boolean compress;
+  private boolean doFinal;
+  private boolean doGeneration;
+  private boolean doMessage;
 
   @Override
   public void setup(final EvolutionState state, final Parameter base) {
@@ -85,20 +80,15 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     doFinal = state.parameters.getBoolean(base.push(P_DO_FINAL), null, true);
     doGeneration = state.parameters.getBoolean(base.push(P_DO_GENERATION), null, true);
     doMessage = state.parameters.getBoolean(base.push(P_DO_MESSAGE), null, true);
-    doDescription = state.parameters.getBoolean(base.push(P_DO_DESCRIPTION), null, true);
-    doPerGenerationDescription = state.parameters.getBoolean(base.push(P_DO_PER_GENERATION_DESCRIPTION), null, false);
 
     if (silentFile) {
       statisticslog = Output.NO_LOGS;
     } else {
-      if (statisticsFile != null) {
-        try {
-          statisticslog = state.output.addLog(statisticsFile, !compress, compress);
-        } catch (IOException i) {
-          state.output.fatal("An IOException occurred while trying to create the log " + statisticsFile + ":\n" + i);
-        }
-      } else
-        state.output.warning("No statistics file specified, printing to stdout at end.", base.push(P_STATISTICS_FILE));
+      try {
+        statisticslog = state.output.addLog(statisticsFile, !compress, compress);
+      } catch (IOException i) {
+        state.output.fatal("An IOException occurred while trying to create the log " + statisticsFile + ":\n" + i);
+      }
     }
 
     onlyFinal = state.parameters.getBoolean(base.push(P_ONLY_FINAL), null, false);
@@ -191,7 +181,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     if (doFinal) best_of_run[0].printIndividualForHumans(state, statisticslog);
     if (doFinal) state.output.println(best_of_run[0].depthAndSize(), statisticslog);
 
-    final String bestMessage = String.format("\nBest fitness of run: %s\n%s\n", best_of_run[0].fitnessAndTree());
+    final String bestMessage = String.format("\nBest fitness of run: %s\n", best_of_run[0].fitnessAndTree());
 
     if (doMessage && !silentPrint) state.output.message(bestMessage);
   }

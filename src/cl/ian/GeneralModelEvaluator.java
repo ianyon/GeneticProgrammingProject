@@ -16,7 +16,7 @@ import static java.lang.Math.*;
  * This class computes the phenomenological model for the friction factor and uses an evolved individual to
  * evaluate it
  */
-public class GeneralModelEvaluator {
+public class GeneralModelEvaluator implements Cloneable{
 
   // Cantidad de celdas
   private static final int col_fluido = 2;
@@ -32,11 +32,25 @@ public class GeneralModelEvaluator {
   private static final double piQuarter = PI / 4;
   private static final double doubleE = 2 * e;
 
-  private final ModelEvaluator eval;
+  private ModelEvaluator eval;
 
   public GeneralModelEvaluator(ModelEvaluator evaluator) {
     this.eval = evaluator;
   }
+
+  @Override
+  public Object clone() {
+    GeneralModelEvaluator myobj;
+    try {
+      myobj = (GeneralModelEvaluator) (super.clone());
+
+      myobj.eval = (ModelEvaluator) eval.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new InternalError();
+    } // never happens
+    return myobj;
+  }
+
 
   public double compute(double current, double separation, double flow, double initTemperature, double cellDiameter,
                         GPIndividual individual, EvolutionStateBean stateBean, PhenomenologicalModel model) {

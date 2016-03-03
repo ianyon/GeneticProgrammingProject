@@ -1,7 +1,7 @@
 package cl.ian.gp;
 
 import cl.ian.Case;
-import cl.ian.GeneralModelEvaluator;
+import cl.ian.GeneralModelEvaluatorArrayVars;
 import cl.ian.InputVariables;
 import cl.ian.problemtype.DragCoefficientEvaluator;
 import cl.ian.problemtype.FrictionFactorEvaluator;
@@ -37,7 +37,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   protected double inputs[][];
   private double[] outputs;
 
-  private static GeneralModelEvaluator model;
+  private static GeneralModelEvaluatorArrayVars model;
 
   // Regularization factor
   private double alpha;
@@ -109,7 +109,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     } else {
       evaluator = new NusseltNumberEvaluator();
     }
-    model = new GeneralModelEvaluator(evaluator);
+    model = new GeneralModelEvaluatorArrayVars(evaluator);
   }
 
   public void evaluate(final EvolutionState state, final Individual ind, final int subpop, final int threadnum) {

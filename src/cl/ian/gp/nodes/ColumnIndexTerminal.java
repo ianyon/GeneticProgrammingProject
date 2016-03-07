@@ -9,9 +9,9 @@ import ec.gp.GPData;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
-public class FlowColumnTerminal extends GPNode {
+public class ColumnIndexTerminal extends GPNode {
   public String toString() {
-    return "fluidColumn";
+    return "columnIndex";
   }
 
   public int expectedChildren() {

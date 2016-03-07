@@ -8,7 +8,7 @@ evalthreads = auto
 # The Statistics
 stat = cl.ian.gp.statistics.SimpleGPStatistics
 stat.do-final = true
-# stat.only-final = true
+stat.only-final = true
 # stat.silent = true
 stat.file = $out.stat
 stat.validation-file = $TrainingData/doe500val.txt

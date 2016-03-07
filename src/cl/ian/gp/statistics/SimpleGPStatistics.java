@@ -5,6 +5,9 @@ import cl.ian.gp.HitLevelKozaFitness;
 import cl.ian.gp.KnownApproxRampedHalfHalfInit;
 import cl.ian.gp.MyGPIndividual;
 import cl.ian.gp.PhenomenologicalModel;
+import cl.ian.problemtype.DragCoefficientEvaluator;
+import cl.ian.problemtype.FrictionFactorEvaluator;
+import cl.ian.problemtype.NusseltNumberEvaluator;
 import ec.EvolutionState;
 import ec.Fitness;
 import ec.Individual;
@@ -267,12 +270,21 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
 
     final PhenomenologicalModel problem = (PhenomenologicalModel) state.evaluator.p_problem;
     double[] validationOutput;
-    if (problem.problemCase.equals(Case.FRICTION_FACTOR))
-      validationOutput = validationOutputFriction;
-    else if (problem.problemCase.equals(Case.DRAG_COEFFICIENT))
-      validationOutput = validationOutputDrag;
-    else
-      validationOutput = validationOutputNusselt;
+    double[] testOutput;
+    switch (problem.problemCase) {
+      case FRICTION_FACTOR:
+        validationOutput = validationOutputFriction;
+        testOutput = testOutputFriction;
+        break;
+      case DRAG_COEFFICIENT:
+        validationOutput = validationOutputDrag;
+        testOutput = testOutputDrag;
+        break;
+      case NUSSELT_NUMBER:
+      default:
+        validationOutput = validationOutputNusselt;
+        testOutput = testOutputNusselt;
+    }
 
     for (Individual ind : tenBest) {
       ind.evaluated = false;
@@ -292,15 +304,8 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     if (doMessage && !silentPrint) state.output.message(bestMessage);
 
     /** Test individual **/
-    double[] testOutput;
-    if (problem.problemCase.equals(Case.FRICTION_FACTOR))
-      testOutput = testOutputFriction;
-    else if (problem.problemCase.equals(Case.DRAG_COEFFICIENT))
-      testOutput = testOutputDrag;
-    else
-      testOutput = testOutputNusselt;
 
-    best_of_test = (MyGPIndividual)best_of_validation.clone();
+    best_of_test = (MyGPIndividual) best_of_validation.clone();
     best_of_test.evaluated = false;
     problem.evaluate(state, best_of_test, testInputs, testOutput);
 

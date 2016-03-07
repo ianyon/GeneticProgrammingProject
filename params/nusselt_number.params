@@ -3,7 +3,7 @@ parent.0 = base.params
 eval.problem.outputfile = $TrainingData/salidas_T500train_sort.txt
 
 eval.problem.problem-case = NusseltNumber
-eval.problem.regularization-factor = 0.0
+eval.problem.regularization-factor = 0.1
 
 stat.file = $Results/nusseltOut.stat
 #stat.child.0.file = $Results/nusseltOut2.stat

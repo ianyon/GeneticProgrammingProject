@@ -14,7 +14,7 @@ public class LoopElitism extends LoopCallable {
 
   public LoopElitism(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
     // Use elite factor
-    super(database, state, loopSteps, index,new double[]{0.001, 0, 0.05});
+    super(database, state, loopSteps, index, new double[]{0.001, 0, 0.05});
     // Use elite count
     //super(database, state, loopSteps, index, new double[]{5, 0, 50});
     parametersHeader.add("Elite=");
@@ -35,7 +35,7 @@ public class LoopElitism extends LoopCallable {
   private void eliteFraction() {
     for (int i = 0; i < testValues.length; i++) {
       database.set(new Parameter("breed.elite-fraction.0"), "" + testValues[i]);
-      parametersValue.set(index, "" + testValues[i] * 100 + "%");
+      parametersValue.set(index, String.format("%d%%", (int) testValues[i] * 100));
 
       doExecutionOrContinueWithNextStep();
     }

@@ -5,6 +5,7 @@ import ec.util.Parameter;
 import ec.util.ParameterDatabase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by Ian on 16/02/2016.
@@ -22,7 +23,7 @@ public class LoopPopulation extends LoopCallable {
     for (int i = 0; i < testValues.length; i++) {
       // Population size
       database.set(new Parameter("pop.subpop.0.size"), "" + testValues[i]);
-      parametersValue.set(index, "" + testValues[i]);
+      parametersValue.set(index, String.format("%d", (int) testValues[i]));
 
       doExecutionOrContinueWithNextStep();
     }

@@ -24,7 +24,7 @@ public class LoopMaxInitialTreeDepth extends LoopCallable {
       // Maximum initial tree size
       database.set(new Parameter("gp.tc.0.init.max-depth"), "" + testValues[i]);
       database.set(new Parameter("gp.koza.grow.max-depth"), "" + testValues[i]);
-      parametersValue.set(index, "" + testValues[i]);
+      parametersValue.set(index, String.format("%d", (int) testValues[i]));
 
       doExecutionOrContinueWithNextStep();
     }

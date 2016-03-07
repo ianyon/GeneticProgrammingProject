@@ -3,7 +3,6 @@ package cl.ian.loopsteps;
 import cl.ian.Case;
 import cl.ian.Main;
 import cl.ian.SummaryFile;
-import cl.ian.gp.HitLevelKozaFitness;
 import cl.ian.gp.MyGPIndividual;
 import cl.ian.gp.statistics.SimpleGPStatistics;
 import ec.EvolutionState;
@@ -12,12 +11,17 @@ import ec.util.Parameter;
 import ec.util.ParameterDatabase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
+
+import static cl.ian.Main.elapsed;
 
 /**
  * Created by Ian on 16/02/2016.
  */
 public abstract class LoopCallable implements Callable {
+  private static boolean execute = false;
   private final ArrayList<LoopCallable> loopSteps;
   protected final int index;
   protected final ParameterDatabase database;
@@ -76,8 +80,26 @@ public abstract class LoopCallable implements Callable {
    * Initiate the execution of the loops
    *
    * @param loopSteps
+   * @param state
+   * @param nameAndFile
    */
-  public static void initiateLoops(ArrayList<LoopCallable> loopSteps) {
+  public static void initiateLoops(ArrayList<LoopCallable> loopSteps, EvolutionState state, String[] nameAndFile) {
+    if (!execute) {
+      StringBuilder s = new StringBuilder();
+      for (LoopCallable loopStep : loopSteps) s.append(" " + loopStep.loopIdentifier());
+      state.output.println(String.format("Running the following loops [%s]: %s",
+          LoopCallable.totalChainedLoops(loopSteps), s.toString()), 0);
+      state.output.println("Would you like to continue? (y/n): ", 0);
+      Scanner input = new Scanner(System.in);
+      if (input.nextLine().equalsIgnoreCase("n")) {
+        System.out.println("\n\nNot executing.");
+        System.exit(0);
+      }
+    }
+
+    state.output.println(nameAndFile[1] + ", number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps), 0);
+    long startTime = System.nanoTime();
+
     SummaryFile.createSummaryFile(expressionName);
 
     try {
@@ -91,42 +113,56 @@ public abstract class LoopCallable implements Callable {
     // Print the final results
     SummaryFile.writeToSummary(String.format("\n\nBest of all loops is: %s\n%s", headerBestOfLoops, stringBestOfLoops),
         expressionName);
+
+    state.output.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)), 0);
   }
 
   protected void doExecution() {
     String paramIdentifier = printHeader();
-
-    actualExecution();
-
-    // Print the info to the summary file and check for the best of all time
-
-    final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
-    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).best_of_validation;
-    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).best_of_test;
-    final String bestMessage = String.format("%s\n%s", paramIdentifier, bestInd.fitnessAndTree());
-    final String bestValMessage = String.format("%s (Test= %s)\n%s",
-        bestValInd.fitness.fitnessToStringForHumans(), bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringRootedTreeForHumans());
-
-    SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionName);
-    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionName);
-
-    if (bestOfLoops == null || ((HitLevelKozaFitness) bestTestInd.fitness).errorBetterThan(bestOfLoops.fitness)) {
-      bestOfLoops = bestTestInd;
-      headerBestOfLoops = paramIdentifier;
-      stringBestOfLoops = bestMessage;
-    }
-  }
-
-  private void actualExecution() {
-    long startTime = System.nanoTime();
-    state.run(EvolutionState.C_STARTED_FRESH);
-    Evolve.cleanup(state);
-    double thisTime = Main.elapsed(startTime);
+    double thisTime = averagedExecution(paramIdentifier);
 
     executedLoops++;
     avgExecutionTime = (avgExecutionTime * (executedLoops - 1) + thisTime) / executedLoops;
     estimatedRemainingTime = avgExecutionTime * (totalLoops - executedLoops);
     System.out.println(expressionName + " Execution time: " + thisTime + " s\n");
+
+
+  }
+
+  private double averagedExecution(String paramIdentifier) {
+
+    final SimpleGPStatistics statistics = (SimpleGPStatistics) state.statistics;
+    MyGPIndividual bestInd = null;
+    MyGPIndividual bestValInd = null;
+    MyGPIndividual bestTestInd = null;
+
+    double avgTime = 0;
+    for (int i = 0; i < 3; i++) {
+      long startTime = System.nanoTime();
+      state.run(EvolutionState.C_STARTED_FRESH);
+      Evolve.cleanup(state);
+      avgTime += elapsed(startTime);
+
+      // Print the info to the summary file and check for the best of all time
+      bestInd = MyGPIndividual.getErrorBest(bestInd, statistics.getBestSoFar()[0]);
+      bestValInd = MyGPIndividual.getErrorBest(bestValInd, statistics.best_of_validation);
+      bestTestInd = MyGPIndividual.getErrorBest(bestTestInd, statistics.best_of_test);
+    }
+
+    final String bestMessage = String.format("%s\n%s", paramIdentifier, bestInd.fitnessAndTree());
+    final String bestValMessage = String.format("%s (Test= %s)\n%s",
+        bestValInd.fitness.fitnessToStringForHumans(),
+        bestTestInd.fitness.fitnessToStringForHumans(),
+        bestValInd.stringRootedTreeForHumans());
+
+    SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionName);
+    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionName);
+
+    bestOfLoops = MyGPIndividual.getErrorBest(bestOfLoops, bestTestInd);
+    headerBestOfLoops = paramIdentifier;
+    stringBestOfLoops = bestMessage;
+
+    return avgTime / 3.0;
   }
 
   private String printHeader() {
@@ -134,7 +170,6 @@ public abstract class LoopCallable implements Callable {
     for (int i = 0; i < parametersHeader.size(); i++)
       paramIdentifier += " " + parametersHeader.get(i) + parametersValue.get(i);
 
-    // Delete the trailing comma
     String progressMessage = String.format("%s Execution %d/%d (%d%%)", expressionName, executedLoops + 1, totalLoops,
         Math.round(100 * executedLoops / totalLoops));
 
@@ -217,5 +252,9 @@ public abstract class LoopCallable implements Callable {
    */
   public final int numberOfLoops() {
     return testValues.length;
+  }
+
+  public String loopIdentifier() {
+    return parametersHeader.get(index) + Arrays.toString(testValues);
   }
 }

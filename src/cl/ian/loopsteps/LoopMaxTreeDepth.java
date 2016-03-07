@@ -21,7 +21,7 @@ public class LoopMaxTreeDepth extends LoopCallable {
   public Void call() throws Exception {
     for (int i = 0; i < testValues.length; i++) {
       database.set(new Parameter("gp.koza.xover.maxdepth"), "" + testValues[i]);
-      parametersValue.set(index, "" + testValues[i]);
+      parametersValue.set(index,String.format("%d", (int) testValues[i]));
       doExecutionOrContinueWithNextStep();
     }
     return null;

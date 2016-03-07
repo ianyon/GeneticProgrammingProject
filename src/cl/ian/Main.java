@@ -123,10 +123,7 @@ public class Main {
     database.set(new Parameter("gp.tc.0.init.use-known-approx"), exprCase.text);
     EvolutionState state = Evolve.initialize(database, 0);
     ArrayList<LoopCallable> loopSteps = LoopCallable.populateLoops(database, state, exprCase);
-    System.out.println(nameAndFile[1] + ", number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps));
-    long startTime = System.nanoTime();
-    LoopCallable.initiateLoops(loopSteps);
-    System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
+    LoopCallable.initiateLoops(loopSteps,state, nameAndFile);
 
     final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
     final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).best_of_validation;

@@ -18,4 +18,18 @@ public enum Case {
   public String toString() {
     return text;
   }
+
+  public static Case chooseCase(String s) {
+    if (s.equals(Case.FRICTION_FACTOR.text))
+      return Case.FRICTION_FACTOR;
+    else if (s.equals(Case.DRAG_COEFFICIENT.text))
+      return Case.DRAG_COEFFICIENT;
+    else if (s.equals(Case.NUSSELT_NUMBER.text))
+      return Case.NUSSELT_NUMBER;
+    else {
+      System.out.println("Wrong case");
+      System.exit(-2);
+      return Case.FRICTION_FACTOR;
+    }
+  }
 }

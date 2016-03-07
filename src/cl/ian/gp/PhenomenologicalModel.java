@@ -48,7 +48,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public double normalizedDensity;
   public double normalizedArea;
   public double fluidColumn;
-  public String problemCase;
+  public Case problemCase;
 
   /******************************************************************************************************************/
   @Override
@@ -103,18 +103,20 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
     alpha = state.parameters.getDouble(base.push(REGULARIZATION_FACTOR), null, 0.0);
 
-    String problemCase = state.parameters.getString(base.push(PROBLEM_CASE), null);
+    problemCase = Case.chooseCase(state.parameters.getString(base.push(PROBLEM_CASE), null));
 
-    ModelEvaluator evaluator = null;
-    this.problemCase = problemCase;
-    if (problemCase.equalsIgnoreCase(Case.FRICTION_FACTOR.text)) {
-      evaluator = new FrictionFactorEvaluator();
-    } else if (problemCase.equalsIgnoreCase(Case.DRAG_COEFFICIENT.text)) {
-      evaluator = new DragCoefficientEvaluator();
-    } else if (problemCase.equalsIgnoreCase(Case.NUSSELT_NUMBER.text)) {
-      evaluator = new NusseltNumberEvaluator();
-    } else
-      state.output.fatal("WRONG CASE!");
+    ModelEvaluator evaluator;
+    switch (problemCase) {
+      case FRICTION_FACTOR:
+        evaluator = new FrictionFactorEvaluator();
+        break;
+      case DRAG_COEFFICIENT:
+        evaluator = new DragCoefficientEvaluator();
+        break;
+      case NUSSELT_NUMBER:
+      default:
+        evaluator = new NusseltNumberEvaluator();
+    }
     model = new GeneralModelEvaluator(evaluator);
   }
 

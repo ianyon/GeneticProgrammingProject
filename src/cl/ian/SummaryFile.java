@@ -17,7 +17,7 @@ public class SummaryFile {
   private static final String summaryFilename = "Summary";
   private static final String summaryExtension = ".stat";
   private static final Map<Case, String> summaryNames = new EnumMap<>(Case.class);
-  private static final String dateString = new SimpleDateFormat("yyyyMMdd-hhmm").format(new Date());
+  private static final String dateString = new SimpleDateFormat("yyyyMMdd-kkmm").format(new Date());
 
   public static void createSummaryFile(Case expressionName) {
     // Create a new summary file

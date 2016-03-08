@@ -31,8 +31,10 @@ public class NusseltNumberEvaluator extends ModelEvaluator {
 
   @Override
   public double returnValue(double pf, double vf, double tc) {
+    // This has been moved to phenomenological model and all expressions return the same value (BIG_NUMBER)
     // This happens if the result is NaN, Infinite or not real
-    if (Double.isNaN(tc) || Double.isInfinite(tc)) return 100000;
+    //if (Double.isNaN(tc) || Double.isInfinite(tc))
+    //return 100000;
 
     return tc;
   }

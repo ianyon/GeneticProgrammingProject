@@ -33,8 +33,10 @@ public class DragCoefficientEvaluator extends ModelEvaluator {
 
   @Override
   public double returnValue(double pf, double vf, double tc) {
+    // This has been moved to phenomenological model and all expressions return the same value (BIG_NUMBER)
     // This happens if the result is NaN, Infinite or not real
-    if (Double.isNaN(vf) || Double.isInfinite(vf)) return 1e100;
+    //if (Double.isNaN(vf) || Double.isInfinite(vf))
+    //return 1e100;
 
     return vf;
   }

@@ -25,9 +25,9 @@ public class Main {
       }
       if (args[0].equalsIgnoreCase("once")) {
         try {
-          runExpressionOnce(Case.FRICTION_FACTOR);
+          //runExpressionOnce(Case.FRICTION_FACTOR);
           //runExpressionOnce(Case.DRAG_COEFFICIENT);
-          //runExpressionOnce(Case.NUSSELT_NUMBER);
+          runExpressionOnce(Case.NUSSELT_NUMBER);
         } catch (Exception e) {
           System.exit(-1);
         }
@@ -47,7 +47,8 @@ public class Main {
     SummaryFile.createSummaryFile(Case.DRAG_COEFFICIENT);
     SummaryFile.createSummaryFile(Case.NUSSELT_NUMBER);
 
-    // Run it 10 times to average results
+    System.out.println("Initiated Best parameters evolution");
+    // Run it 3 times to average results
     for (int i = 0; i < 3; i++) {
       doBestOnce();
     }
@@ -61,8 +62,6 @@ public class Main {
   }
 
   private static void doBestOnce() {
-    System.out.println("Initiated Best parameters evolution");
-
     runExpressionOnce(Case.FRICTION_FACTOR);
     runExpressionOnce(Case.DRAG_COEFFICIENT);
     runExpressionOnce(Case.NUSSELT_NUMBER);
@@ -80,11 +79,11 @@ public class Main {
     System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
 
     final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
-    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).best_of_validation;
-    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).best_of_test;
+    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).bestOfValidation;
+    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).bestOfTest;
     final String bestMessage = bestInd.fitnessAndTree();
     final String bestValMessage = String.format("%s (Test= %s)\n%s",
-        bestValInd.fitness.fitnessToStringForHumans(),bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringRootedTreeForHumans());
+        bestValInd.fitness.fitnessToStringForHumans(),bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringTreeForHumans());
 
     SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionCase);
     SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionCase);
@@ -126,11 +125,11 @@ public class Main {
     LoopCallable.initiateLoops(loopSteps,state, nameAndFile);
 
     final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
-    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).best_of_validation;
-    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).best_of_test;
+    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).bestOfValidation;
+    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).bestOfTest;
     final String bestMessage = bestInd.fitnessAndTree();
     final String bestValMessage = String.format("%s (Test= %s)\n%s",
-        bestValInd.fitness.fitnessToStringForHumans(),bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringRootedTreeForHumans());
+        bestValInd.fitness.fitnessToStringForHumans(),bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringTreeForHumans());
 
     SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), exprCase);
     SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), exprCase);

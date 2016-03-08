@@ -11,14 +11,8 @@ import ec.gp.GPTree;
  */
 public class MyGPIndividual extends GPIndividual {
 
-  public String stringRootedTreeForHumans() {
-    StringBuilder str = new StringBuilder();
-    printRootedTreeForHumans(trees[0].child, str, 0, 0);
-    return str.toString();
-  }
-
   public String fitnessAndTree() {
-    return String.format("%s\n%s", fitness.fitnessToStringForHumans(), stringRootedTreeForHumans());
+    return String.format("%s\n%s", fitness.fitnessToStringForHumans(), stringTreeForHumans());
   }
 
   public int depth() {
@@ -29,7 +23,21 @@ public class MyGPIndividual extends GPIndividual {
     return "Depth: " + depth() + " Size: " + size();
   }
 
-  private int printRootedTreeForHumans(GPNode child, StringBuilder str, int tablevel, int printbytes) {
+  public String stringTreeForHumans() {
+    if (trees[0].printStyle == GPTree.PRINT_STYLE_C) return trees[0].child.makeCTree(true,
+        trees[0].printTerminalsAsVariablesInC, trees[0].printTwoArgumentNonterminalsAsOperatorsInC);
+    else if (trees[0].printStyle == GPTree.PRINT_STYLE_LATEX) return trees[0].child.makeLatexTree();
+    else if (trees[0].printStyle == GPTree.PRINT_STYLE_DOT) return trees[0].child.makeGraphvizTree();
+    else return stringRootedTreeForHumans();
+  }
+
+  public String stringRootedTreeForHumans() {
+    StringBuilder str = new StringBuilder();
+    printRootedTreeForHumans(trees[0].child, str, 0, 0);
+    return str.toString();
+  }
+
+  private static int printRootedTreeForHumans(GPNode child, StringBuilder str, int tablevel, int printbytes) {
     if (printbytes > GPNode.MAXPRINTBYTES) {
       str.append("\n");
       tablevel++;
@@ -57,14 +65,6 @@ public class MyGPIndividual extends GPIndividual {
       printbytes += 1;
     }
     return printbytes;
-  }
-
-  public String stringTreeForHumans() {
-    if (trees[0].printStyle == GPTree.PRINT_STYLE_C) return trees[0].child.makeCTree(true,
-        trees[0].printTerminalsAsVariablesInC, trees[0].printTwoArgumentNonterminalsAsOperatorsInC);
-    else if (trees[0].printStyle == GPTree.PRINT_STYLE_LATEX) return trees[0].child.makeLatexTree();
-    else if (trees[0].printStyle == GPTree.PRINT_STYLE_DOT) return trees[0].child.makeGraphvizTree();
-    else return "Select a PrintStyle";
   }
 
 

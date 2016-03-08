@@ -21,11 +21,13 @@ public class KnownApproxRampedHalfHalfInit extends HalfBuilder {
 
   public static final String P_KNOWNHALFBUILDER = "known-half-builder";
   public static final String P_USEKNOWNAPPROX = "use-known-approx";
+  public static final String P_KNOWNPROB = "known-prob";
 
   // For statistics only
   public int growCount, fullCount, knownApproxCount;
 
   private static Case selectedCase;
+  private double knownProb;
 
   public Parameter defaultBase() {
     return GPKozaDefaults.base().push(P_KNOWNHALFBUILDER);
@@ -35,6 +37,8 @@ public class KnownApproxRampedHalfHalfInit extends HalfBuilder {
     super.setup(state, base);
 
     Parameter def = defaultBase();
+
+    knownProb = state.parameters.getDouble(base.push(P_KNOWNPROB), def.push(P_KNOWNPROB), 0.5);
 
     String knownApprox = state.parameters.getString(base.push(P_USEKNOWNAPPROX), def.push(P_USEKNOWNAPPROX));
     if (knownApprox.equalsIgnoreCase(Case.FRICTION_FACTOR.text))
@@ -56,7 +60,7 @@ public class KnownApproxRampedHalfHalfInit extends HalfBuilder {
                               final int requestedSize) {
 
     // First half use known approximation
-    if (state.random[thread].nextDouble() < 0.5) {
+    if (state.random[thread].nextDouble() < knownProb) {
       knownApproxCount++;
       switch (selectedCase) {
         case FRICTION_FACTOR:
@@ -117,7 +121,8 @@ public class KnownApproxRampedHalfHalfInit extends HalfBuilder {
 
   private GPNode knownApproximationFrictionFactor(EvolutionState state, GPType type, int thread,
                                                   GPNodeParent parent, int argposition, GPFunctionSet set) {
-    final int C1 = state.random[thread].nextInt(40 + 1) + 1;
+    //Note: Added double to avoid repeat the same constant
+    final double C1 = state.random[thread].nextInt(40) + 1 + state.random[thread].nextDouble(true, true);
     final double C2 = -state.random[thread].nextDouble(false, false);
     return baseKnownApproximation(state, type, thread, parent, argposition, set, C1, C2);
   }
@@ -185,8 +190,8 @@ public class KnownApproxRampedHalfHalfInit extends HalfBuilder {
         GPNode secondFirstFirstChild = returnNode(terminals, MyERC.class, state);
         ((MyERC) secondFirstFirstChild).value = 0.713;
         // Second child of the power
-        GPNode secondFirstSecondChild = returnNode(nodes, MyERC.class, state);
-        ((MyERC) secondFirstFirstChild).value = 0.37;
+        GPNode secondFirstSecondChild = returnNode(terminals, MyERC.class, state);
+        ((MyERC) secondFirstSecondChild).value = 0.37;
 
         assignChilds(secondFirstChild, secondFirstFirstChild, secondFirstSecondChild);
       }

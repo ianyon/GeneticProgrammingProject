@@ -9,19 +9,6 @@ stat.file = $Results/nusseltOut.stat
 #stat.child.0.file = $Results/nusseltOut2.stat
 ############################### Functions and terminals #############################################################
 gp.fs.0.size = 8
-# We have six functions in the function set:
-gp.fs.0.func.0 = ec.app.regression.func.Add
-gp.fs.0.func.0.nc = nc2
-gp.fs.0.func.1 = ec.app.regression.func.Sub
-gp.fs.0.func.1.nc = nc2
-gp.fs.0.func.2 = ec.app.regression.func.Mul
-gp.fs.0.func.2.nc = nc2
-gp.fs.0.func.3 = cl.ian.gp.nodes.Div
-gp.fs.0.func.3.nc = nc2
-gp.fs.0.func.4 = cl.ian.gp.nodes.Square
-gp.fs.0.func.4.nc = nc1
-gp.fs.0.func.5 = cl.ian.gp.nodes.Power
-gp.fs.0.func.5.nc = nc2
 
 # We have five terminals:
 gp.fs.0.func.6 = cl.ian.gp.nodes.MyERC

@@ -182,10 +182,8 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     if (doFinal) state.output.print("\nBest Individual of Run:", statisticslog);
     if (doFinal) best_of_run[0].printIndividualForHumans(state, statisticslog);
     if (doFinal) state.output.println(best_of_run[0].depthAndSize(), statisticslog);
-
-    String bestMessage = String.format("\nBest fitness of run: %s\n", best_of_run[0].fitnessAndTree());
-
-    if (doMessage && !silentPrint) state.output.message(bestMessage);
+    if (doMessage && !silentPrint)
+      state.output.message(String.format("\nBest fitness of run: %s\n", best_of_run[0].fitnessAndTree()));
 
     /** Validate individual **/
     Individual[] tenBest = HitLevelKozaFitness.findTopKHeap(state.population.subpops[0].individuals, 10);
@@ -195,20 +193,16 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
     if (doFinal) state.output.print("\nBest of validation:", statisticslog);
     if (doFinal) bestOfValidation.printIndividualForHumans(state, statisticslog);
     if (doFinal) state.output.println(bestOfValidation.depthAndSize(), statisticslog);
-
-    bestMessage = String.format("\nBest of validation: %s\n", bestOfValidation.fitnessAndTree());
-
-    if (doMessage && !silentPrint) state.output.message(bestMessage);
+    if (doMessage && !silentPrint)
+      state.output.message(String.format("\nBest of validation: %s\n", bestOfValidation.fitnessAndTree()));
 
     /** Test individual **/
-    bestOfTest =((PhenomenologicalModel)state.evaluator.p_problem).evaluateTest(state, bestOfValidation);
+    bestOfTest = ((PhenomenologicalModel) state.evaluator.p_problem).evaluateTest(state, bestOfValidation);
 
     if (doFinal) state.output.print("\nBest of test:", statisticslog);
     if (doFinal) bestOfTest.printIndividualForHumans(state, statisticslog);
     if (doFinal) state.output.println(bestOfTest.depthAndSize(), statisticslog);
-
-    bestMessage = String.format("\nBest of test: %s\n", bestOfTest.fitnessAndTree());
-
-    if (doMessage && !silentPrint) state.output.message(bestMessage);
+    if (doMessage && !silentPrint)
+      state.output.message(String.format("\nBest of test: %s\n", bestOfTest.fitnessAndTree()));
   }
 }

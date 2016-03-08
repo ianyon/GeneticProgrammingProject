@@ -150,8 +150,7 @@ public class GeneralModelEvaluator implements Cloneable{
       double actualRem = ModelUtils.q_reynolds(actualVMF, tf.unsafe_get(0), cellDiameter, actualDF);
       rem.unsafe_set(0, actualRem);
       double frictionFactor = eval.computeFrictionFactor(actualRem, separation, actualVMF / initVelocity, normalizedDF);
-      double nextPF = pf.unsafe_get(1);
-      double actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
+      double actualPF = pf.unsafe_get(1) + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
       pf.setValue(0, pressureError, actualPF);
 
       // Tf(0), pf(end), Df(0), vmf(end) and rem(0) aren't modified in the loop
@@ -167,7 +166,7 @@ public class GeneralModelEvaluator implements Cloneable{
         /***************************************** Calculo de la presion **************************************/
         normalizedDF = actualDF / 1.205;
         frictionFactor = eval.computeFrictionFactor(actualRem, separation, vmf.unsafe_get(i) / initVelocity, normalizedDF);
-        nextPF = pf.unsafe_get(i2);
+        double nextPF = pf.unsafe_get(i2);
         actualPF = nextPF + 0.5 * frictionFactor * actualDF * pow(actualVMF, 2);
         pf.setValue(i, pressureError, actualPF);
         /***************************************** Calculo de la velocidad ************************************/

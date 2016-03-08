@@ -1,7 +1,7 @@
 parent.0 = base.params
 ###########################################################################################
 # Evolution Parameters
-generations = 50
+generations = 30
 breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 gp.tree.print-style = c

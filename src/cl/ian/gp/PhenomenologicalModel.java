@@ -61,10 +61,10 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public double normalizedArea;
   public double fluidColumn;
   public Case problemCase;
-  // 1.0e15 is for lil-gp with 20 samples, we are using 500 so we increase it
-  public final static double BIG_NUMBER = 1.0e15*25;
+  // 1.0e15 is for lil-gp
+  public final static double BIG_NUMBER = 1.0e15;
   // The individuals with error similar to this number are bad solutions
-  public final static double REALLY_BIG_NUMBER = BIG_NUMBER*1e100;
+  public final static double REALLY_BIG_NUMBER = BIG_NUMBER*1.0e5;
   public final static double PROBABLY_ZERO = 1.11E-15;
   public double[] savedError;
 
@@ -220,6 +220,9 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
                        final int threadnum, double[][] inputs, double[] outputs, boolean saveError) {
     if (ind.evaluated) return; // don't bother reevaluating
 
+    if(saveError)
+      savedError = new double[getTestedElementsCount()];
+
     updateControlVariables(state, threadnum);
 
     RegressionData input = (RegressionData) (this.input);
@@ -232,7 +235,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     double error;
     final InputVariables currValue = new InputVariables();
     final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
-    double masError=-0.0;
+    double maxError=-0.0;
 
     for (int i = initLoop(); i < endLoop(); i++) {
       currValue.set(inputs[i]);
@@ -242,9 +245,13 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
           (GPIndividual) ind, evolutionStateBean, this);
 
       error = Math.abs(outputs[i] - result);
-      masError=Math.max(error,masError);
+      maxError=Double.isNaN(error)?maxError:Math.max(error,maxError);
 
-      if (Double.isNaN(error) || Double.isInfinite(error) || error >= BIG_NUMBER)
+      // Solutions that bad are similarly bad between them
+      if(error > BIG_NUMBER)
+        error = BIG_NUMBER;
+
+      else if (Double.isNaN(error) || Double.isInfinite(error))
         error = REALLY_BIG_NUMBER;
         // very slight math errors can creep in when evaluating two equivalent by differently-ordered functions, like
         // x * (x*x*x + x*x)  vs. x*x*x*x + x*x
@@ -329,8 +336,6 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         testOutput = testOutputNusselt;
     }
 
-    savedError = new double[getTestedElementsCount()];
-
     evaluate(state, bestOfTest, testInputs, testOutput, true);
     return bestOfTest;
   }
@@ -339,7 +344,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     MyGPIndividual bestOfValidation = null;
     for (Individual ind : tenBest) {
       ind.evaluated = false;
-      evaluate(state, ind, validationInputs, validationOutput, false);
+      evaluate(state, ind, validationInputs, validationOutput, true);
       bestOfValidation = MyGPIndividual.getBest(bestOfValidation, ind);
     }
     return bestOfValidation;

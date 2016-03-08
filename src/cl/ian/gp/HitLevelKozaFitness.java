@@ -52,13 +52,13 @@ public class HitLevelKozaFitness extends KozaFitness {
   }
 
   public boolean errorBetterThan(final Fitness _fitness) {
-    return (((HitLevelKozaFitness) _fitness).errorAvg) > (errorAvg)
+    return errorAvg < (((HitLevelKozaFitness) _fitness).errorAvg)
         //&& (((HitLevelKozaFitness) _fitness).variance) > (variance)
         ;
   }
 
   public static Individual[] findTopKHeap(Individual[] inds, int k) {
-    IndividualErrorComparator<Individual> comparator = new IndividualErrorComparator<>();
+    IndividualErrorComparator comparator = new IndividualErrorComparator();
     // TODO: Use a min heap for better performance
     Arrays.sort(inds, comparator);
 

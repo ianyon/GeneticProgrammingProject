@@ -9,7 +9,7 @@ import java.util.Comparator;
 /**
  * Created by Ian on 07/03/2016.
  */
-public class IndividualErrorComparator<I> implements Comparator<Individual> {
+public class IndividualErrorComparator implements Comparator<Individual> {
   @Override
   public int compare(Individual x, Individual y) {
     final HitLevelKozaFitness xFitness = (HitLevelKozaFitness) x.fitness;

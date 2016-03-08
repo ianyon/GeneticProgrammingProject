@@ -29,7 +29,7 @@ public class Main {
           runExpressionOnce(Case.DRAG_COEFFICIENT);
           //runExpressionOnce(Case.NUSSELT_NUMBER);
         } catch (Exception e) {
-          System.exit(-1);
+          System.exit(0);
         }
         return;
       }

@@ -17,8 +17,12 @@ import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
 public class DensityTerminal extends GPNode {
+  /**
+   * Shorter for Df(i)/1.205
+   * @return
+   */
   public String toString() {
-    return "Df(i)/1.205";
+    return "Dfn";
   }
 
   public int expectedChildren() {

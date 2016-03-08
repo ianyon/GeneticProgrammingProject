@@ -9,34 +9,28 @@ import ec.gp.GPData;
 import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
-public class MeanReynoldsTerminal extends GPNode
-    {
-    public String toString() { return "Rem(i)"; }
-
-/*
-  public void checkConstraints(final EvolutionState state,
-  final int tree,
-  final GPIndividual typicalIndividual,
-  final Parameter individualBase)
-  {
-  super.checkConstraints(state,tree,typicalIndividual,individualBase);
-  if (children.length!=0)
-  state.output.error("Incorrect number of children for node " + 
-  toStringForError() + " at " +
-  individualBase);
+public class MeanReynoldsTerminal extends GPNode {
+  /**
+   * Shorter for Rem(i)
+   *
+   * @return
+   */
+  public String toString() {
+    return "Rem";
   }
-*/
-    public int expectedChildren() { return 0; }
 
-    public void eval(final EvolutionState state,
-        final int thread,
-        final GPData input,
-        final ADFStack stack,
-        final GPIndividual individual,
-        final Problem problem)
-        {
-        RegressionData rd = ((RegressionData)(input));
-        rd.x = ((PhenomenologicalModel)problem).reynolds;
-        }
-    }
+  public int expectedChildren() {
+    return 0;
+  }
+
+  public void eval(final EvolutionState state,
+                   final int thread,
+                   final GPData input,
+                   final ADFStack stack,
+                   final GPIndividual individual,
+                   final Problem problem) {
+    RegressionData rd = ((RegressionData) (input));
+    rd.x = ((PhenomenologicalModel) problem).reynolds;
+  }
+}
 

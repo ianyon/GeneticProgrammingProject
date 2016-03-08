@@ -11,7 +11,7 @@ import ec.gp.GPNode;
 
 public class ColumnIndexTerminal extends GPNode {
   public String toString() {
-    return "columnIndex";
+    return "colIndex";
   }
 
   public int expectedChildren() {

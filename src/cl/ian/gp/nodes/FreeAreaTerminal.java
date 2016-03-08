@@ -10,8 +10,12 @@ import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 
 public class FreeAreaTerminal extends GPNode {
+  /**
+   * Shorter for A_sup/A_vol
+   * @return
+   */
   public String toString() {
-    return "A_sup/A_vol";
+    return "An";
   }
 
   public int expectedChildren() {

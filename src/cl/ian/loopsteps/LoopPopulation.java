@@ -5,7 +5,6 @@ import ec.util.Parameter;
 import ec.util.ParameterDatabase;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Created by Ian on 16/02/2016.
@@ -13,8 +12,8 @@ import java.util.Arrays;
 public class LoopPopulation extends LoopCallable {
 
 
-  public LoopPopulation(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
-    super(database, state, loopSteps, index, new double[]{2000,4000});
+  public LoopPopulation(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps) {
+    super(database, state, loopSteps, new double[]{1000,2000,4000,8000});
     parametersHeader.add("Pop=");
   }
 

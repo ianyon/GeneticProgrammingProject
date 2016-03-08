@@ -12,9 +12,9 @@ import java.util.ArrayList;
 public class LoopElitism extends LoopCallable {
 
 
-  public LoopElitism(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
+  public LoopElitism(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps) {
     // Use elite factor
-    super(database, state, loopSteps, index, new double[]{0.001, 0, 0.05});
+    super(database, state, loopSteps, new double[]{0.001, 0, 0.05});
     // Use elite count
     //super(database, state, loopSteps, index, new double[]{5, 0, 50});
     parametersHeader.add("Elite=");

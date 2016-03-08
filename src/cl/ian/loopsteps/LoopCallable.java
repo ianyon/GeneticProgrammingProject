@@ -1,7 +1,6 @@
 package cl.ian.loopsteps;
 
 import cl.ian.Case;
-import cl.ian.Main;
 import cl.ian.SummaryFile;
 import cl.ian.gp.MyGPIndividual;
 import cl.ian.gp.statistics.SimpleGPStatistics;
@@ -45,13 +44,13 @@ public abstract class LoopCallable implements Callable {
   private static String headerBestOfLoops;
   private static String stringBestOfLoops;
 
-  public LoopCallable(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index,
+  public LoopCallable(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps,
                       double[] testValues) {
     this.database = database;
     this.state = state;
     this.loopSteps = loopSteps;
     parametersValue.add("");
-    this.index = index;
+    this.index = loopSteps.size();
     executedLoops = 0;
     avgExecutionTime = 0;
     estimatedRemainingTime = 0;
@@ -65,14 +64,16 @@ public abstract class LoopCallable implements Callable {
     LoopCallable.expressionName = expressionName;
 
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
-    // We are using 100 elites
-    //loopSteps.add(new LoopElitism(database, state, loopSteps, loopSteps.size()));
-    loopSteps.add(new LoopPopulation(database, state, loopSteps, loopSteps.size()));
-    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps, loopSteps.size()));
-    loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps, loopSteps.size()));
-    loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps, loopSteps.size()));
+    // We are using 5% elites
+    //loopSteps.add(new LoopElitism(database, state, loopSteps));
+    loopSteps.add(new LoopPopulation(database, state, loopSteps));
+    //loopSteps.add(new LoopKnownApproxProbability(database, state, loopSteps));
+//    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps));
+//    loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps));
+//    loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps));
+//    loopSteps.add(new LoopMaxTreeSize(database, state, loopSteps));
     // The div max doesn't make any difference in the results
-    //loopSteps.add(new LoopDivMaxValue(database, state, loopSteps, loopSteps.size()));
+    //loopSteps.add(new LoopDivMaxValue(database, state, loopSteps));
     return loopSteps;
   }
 
@@ -95,6 +96,7 @@ public abstract class LoopCallable implements Callable {
         System.out.println("\n\nNot executing.");
         System.exit(0);
       }
+      execute = true;
     }
 
     state.output.println(nameAndFile[1] + ", number of loops to run: " + LoopCallable.totalChainedLoops(loopSteps), 0);
@@ -119,19 +121,17 @@ public abstract class LoopCallable implements Callable {
 
   protected void doExecution() {
     String paramIdentifier = printHeader();
-    double thisTime = averagedExecution(paramIdentifier);
+    long startTime = System.nanoTime();
+    averagedExecution(paramIdentifier);
+    double thisTime = elapsed(startTime);
 
     executedLoops++;
     avgExecutionTime = (avgExecutionTime * (executedLoops - 1) + thisTime) / executedLoops;
     estimatedRemainingTime = avgExecutionTime * (totalLoops - executedLoops);
     System.out.println(expressionName + " Execution time: " + thisTime + " s\n");
-
-
   }
 
-  private double averagedExecution(String paramIdentifier) {
-
-    final SimpleGPStatistics statistics = (SimpleGPStatistics) state.statistics;
+  private void averagedExecution(String paramIdentifier) {
     MyGPIndividual bestInd = null;
     MyGPIndividual bestValInd = null;
     MyGPIndividual bestTestInd = null;
@@ -143,26 +143,26 @@ public abstract class LoopCallable implements Callable {
       Evolve.cleanup(state);
       avgTime += elapsed(startTime);
 
+      final SimpleGPStatistics statistics = (SimpleGPStatistics) state.statistics;
+
       // Print the info to the summary file and check for the best of all time
       bestInd = MyGPIndividual.getErrorBest(bestInd, statistics.getBestSoFar()[0]);
-      bestValInd = MyGPIndividual.getErrorBest(bestValInd, statistics.best_of_validation);
-      bestTestInd = MyGPIndividual.getErrorBest(bestTestInd, statistics.best_of_test);
+      bestValInd = MyGPIndividual.getErrorBest(bestValInd, statistics.bestOfValidation);
+      bestTestInd = MyGPIndividual.getErrorBest(bestTestInd, statistics.bestOfTest);
     }
+    System.out.println(expressionName + " Avg Execution time (3 runs): " + avgTime + " s\n");
 
     final String bestMessage = String.format("%s\n%s", paramIdentifier, bestInd.fitnessAndTree());
-    final String bestValMessage = String.format("%s (Test= %s)\n%s",
-        bestValInd.fitness.fitnessToStringForHumans(),
-        bestTestInd.fitness.fitnessToStringForHumans(),
-        bestValInd.stringRootedTreeForHumans());
+    final String bestValMessage = bestValInd.fitnessAndTree();
+    final String bestTestMessage = bestTestInd.fitnessAndTree();
 
     SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionName);
     SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionName);
+    SummaryFile.writeToSummary(String.format("\nTest: %s\n", bestTestMessage), expressionName);
 
     bestOfLoops = MyGPIndividual.getErrorBest(bestOfLoops, bestTestInd);
     headerBestOfLoops = paramIdentifier;
-    stringBestOfLoops = bestMessage;
-
-    return avgTime / 3.0;
+    stringBestOfLoops = bestTestMessage;
   }
 
   private String printHeader() {

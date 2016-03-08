@@ -12,10 +12,10 @@ import java.util.ArrayList;
 public class LoopCrossoverRate extends LoopCallable {
 
 
-  public LoopCrossoverRate(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
+  public LoopCrossoverRate(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps) {
     // the last argument is the values to try
     //super(database, state, loopSteps, index, new double[]{0.8, 0.9, 1.0});
-    super(database, state, loopSteps, index, new double[]{0.9});
+    super(database, state, loopSteps, new double[]{0.9});
     parametersHeader.add("Xover=");
   }
 
@@ -27,7 +27,7 @@ public class LoopCrossoverRate extends LoopCallable {
       // Mutation rate
       database.set(new Parameter("pop.subpop.0.species.pipe.source.1.prob"), "" + (1 - testValues[i]));
 
-      parametersValue.set(index, String.format("%d%%", (int) testValues[i] * 100));
+      parametersValue.set(index, String.format("%d%%", (int) (testValues[i] * 100)));
 
       doExecutionOrContinueWithNextStep();
     }

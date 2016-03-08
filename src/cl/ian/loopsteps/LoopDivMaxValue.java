@@ -12,8 +12,8 @@ import java.util.ArrayList;
 public class LoopDivMaxValue extends LoopCallable {
 
 
-  public LoopDivMaxValue(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps, int index) {
-    super(database, state, loopSteps, index, new double[]{0, 1});
+  public LoopDivMaxValue(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps) {
+    super(database, state, loopSteps, new double[]{0, 1});
     parametersHeader.add("DivMax=");
   }
 

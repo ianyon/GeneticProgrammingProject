@@ -8,13 +8,9 @@ evalthreads = auto
 # The Statistics
 stat = cl.ian.gp.statistics.SimpleGPStatistics
 stat.do-final = true
-stat.only-final = true
+#stat.only-final = true
 # stat.silent = true
 stat.file = $out.stat
-stat.validation-file = $TrainingData/doe500val.txt
-stat.test-file = $TrainingData/doe500test.txt
-stat.validation-output = $TrainingData/salidas_ansys500val.txt
-stat.test-output = $TrainingData/salidas_ansys500test.txt
 
 #stat.num-children = 1
 # stat.child.0 = cl.ian.gp.statistics.MyKozaShortStatistics
@@ -24,7 +20,7 @@ stat.test-output = $TrainingData/salidas_ansys500test.txt
 # stat.child.0.do-time = true
 # stat.child.0.do-size = true
 # stat.child.0.do-subpops = true
-# gp.tree.print-style = c
+gp.tree.print-style = c
 
 #print-all-params = true
 #print-accessed-params = true
@@ -34,12 +30,12 @@ stat.test-output = $TrainingData/salidas_ansys500test.txt
 #print-params = true
 ###########################################################################################
 # Evolution Parameters
-generations = 30
+generations = 60
 breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 
 # The Population
-pop.subpop.0.size = 200
+pop.subpop.0.size = 2000
 pop.subpop.0.duplicate-retries = 20
 
 # The class of the problem
@@ -48,6 +44,11 @@ eval.problem = cl.ian.gp.PhenomenologicalModel
 eval.problem.data = ec.app.regression.RegressionData
 # Load input and output data for training
 eval.problem.inputfile = $TrainingData/doe500train_sort.txt
+
+eval.problem.validation-file = $TrainingData/doe500val.txt
+eval.problem.test-file = $TrainingData/doe500test.txt
+eval.problem.validation-output = $TrainingData/salidas_ansys500val.txt
+eval.problem.test-output = $TrainingData/salidas_ansys500test.txt
 # Vertical slicing: Random segments used to test the individuals (500 elements dataset)
 eval.problem.number-of-slices = 4
 
@@ -58,18 +59,35 @@ pop.subpop.0.species.fitness.required-meeting-condition = 100
 
 # QRampedInit (modified ramped half/half tree building) parameters
 gp.tc.0.init = cl.ian.gp.KnownApproxRampedHalfHalfInit
+gp.tc.0.init.known-prob = 0.5
 # Min and Max level for initial individuals
 gp.tc.0.init.min-depth = 2
 gp.tc.0.init.max-depth = 6
 gp.tc.0.init.growp = 0.5
+###########################################################################################
+# We have six functions in the function set:
+gp.fs.0.func.0 = ec.app.regression.func.Add
+gp.fs.0.func.0.nc = nc2
+gp.fs.0.func.1 = ec.app.regression.func.Sub
+gp.fs.0.func.1.nc = nc2
+gp.fs.0.func.2 = ec.app.regression.func.Mul
+gp.fs.0.func.2.nc = nc2
+gp.fs.0.func.3 = cl.ian.gp.nodes.Div
+gp.fs.0.func.3.nc = nc2
+gp.fs.0.func.4 = cl.ian.gp.nodes.Square
+gp.fs.0.func.4.nc = nc1
+gp.fs.0.func.5 = cl.ian.gp.nodes.Power
+gp.fs.0.func.5.nc = nc2
 ################################## Breeding pipelines #####################################
 pop.subpop.0.species.pipe = ec.breed.MultiBreedingPipeline
 pop.subpop.0.species.pipe.generate-max = true
 pop.subpop.0.species.pipe.num-sources = 2
-pop.subpop.0.species.pipe.source.0 = cl.ian.gp.RetriesCrossoverPipeline
-pop.subpop.0.species.pipe.source.0.prob = 0.8
-pop.subpop.0.species.pipe.source.1 = cl.ian.gp.RetriesMutationPipeline
-pop.subpop.0.species.pipe.source.1.prob = 0.2
+pop.subpop.0.species.pipe.source.0 = ec.gp.koza.CrossoverPipeline
+#pop.subpop.0.species.pipe.source.0 = cl.ian.gp.RetriesCrossoverPipeline
+pop.subpop.0.species.pipe.source.0.prob = 0.9
+pop.subpop.0.species.pipe.source.1 = ec.gp.koza.MutationPipeline
+#pop.subpop.0.species.pipe.source.1 = cl.ian.gp.RetriesMutationPipeline
+pop.subpop.0.species.pipe.source.1.prob = 0.1
 
 # Crossover parameters
 gp.koza.xover.tries = 20

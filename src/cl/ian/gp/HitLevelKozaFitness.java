@@ -1,12 +1,13 @@
 package cl.ian.gp;
 
+import cl.ian.IndividualComparator;
 import ec.EvolutionState;
 import ec.Fitness;
 import ec.Individual;
-import ec.gp.GPIndividual;
 import ec.gp.koza.KozaFitness;
 import ec.util.Parameter;
 
+import java.util.Arrays;
 import java.util.PriorityQueue;
 
 /**
@@ -42,7 +43,7 @@ public class HitLevelKozaFitness extends KozaFitness {
 
   @Override
   public String fitnessToStringForHumans() {
-    return String.format("Avg=%s Var=%g (Hits=%d)", errorAvg, variance, hits);
+    return String.format("Avg=%s Var=%g%s", errorAvg, variance, hits > 0 ? String.format(" (Hits=%d)", hits) : "");
     //return "" + standardizedFitness + " (Adjusted=" + adjustedFitness() + ", Hits=" + hits+")";
   }
 
@@ -57,17 +58,12 @@ public class HitLevelKozaFitness extends KozaFitness {
   }
 
   public static Individual[] findTopKHeap(Individual[] inds, int k) {
-    PriorityQueue<Individual> pq = new PriorityQueue<Individual>();
-    for (Individual x : inds) {
-      if (pq.size() < k) pq.add(x);
-      else if (!pq.peek().fitness.betterThan(x.fitness)) {
-        pq.poll();
-        pq.add(x);
-      }
-    }
-    Individual[] res = new Individual[k];
-    for (int i = 0; i < k; i++) res[i] = (Individual) ((GPIndividual) pq.poll()).clone();
-    return res;
+    IndividualComparator<Individual> comparator = new IndividualComparator<>();
+    // TODO: Use a min heap for better performance
+    Arrays.sort(inds,comparator);
 
+    Individual[] res = new Individual[k];
+    for (int i = 0; i < k; i++) res[i] = (Individual) inds[i].clone();
+    return res;
   }
 }

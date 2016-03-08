@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
 import java.util.List;
 
 public class PhenomenologicalModel extends GPProblem implements SimpleProblemForm {
@@ -28,11 +29,23 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
   public static final String INPUT_FILE = "inputfile";
   public static final String OUTPUT_FILE = "outputfile";
+  public static final String VALIDATION_FILE = "validation-file";
+  public static final String TEST_FILE = "test-file";
+  public static final String VALIDATION_OUTPUT = "validation-output";
+  public static final String TEST_OUTPUT = "test-output";
   public static final String REGULARIZATION_FACTOR = "regularization-factor";
   public static final String PROBLEM_CASE = "problem-case";
 
   protected double inputs[][];
   private double[] outputs;
+  private double[][] validationInputs;
+  private double[][] testInputs;
+  private double[] validationOutputFriction;
+  private double[] validationOutputDrag;
+  private double[] validationOutputNusselt;
+  private double[] testOutputFriction;
+  private double[] testOutputDrag;
+  private double[] testOutputNusselt;
 
   private GeneralModelEvaluator model;
 
@@ -49,6 +62,11 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public double normalizedArea;
   public double fluidColumn;
   public Case problemCase;
+  // 1.0e15 is for lil-gp with 20 samples, we are using 500 so we increase it
+  public final static double BIG_NUMBER = 1.0e15*25;
+  // The individuals with error similar to this number are bad solutions
+  public final static double REALLY_BIG_NUMBER = BIG_NUMBER*1e100;
+  public final static double PROBABLY_ZERO = 1.11E-15;
 
   /******************************************************************************************************************/
   @Override
@@ -118,104 +136,196 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         evaluator = new NusseltNumberEvaluator();
     }
     model = new GeneralModelEvaluator(evaluator);
+
+
+    setupAlternateSets(state, base);
+  }
+
+
+  private void setupAlternateSets(EvolutionState state, final Parameter base) {
+    InputStream validationFileStream = state.parameters.getResource(base.push(VALIDATION_FILE), null);
+    InputStream testFileStream = state.parameters.getResource(base.push(TEST_FILE), null);
+    InputStream validationOutputStream = state.parameters.getResource(base.push(VALIDATION_OUTPUT), null);
+    InputStream testOutputStream = state.parameters.getResource(base.push(TEST_OUTPUT), null);
+
+    String validationFilePath = state.parameters.getString(base.push(VALIDATION_FILE), null).replace("$", "");
+    String testFilePath = state.parameters.getString(base.push(TEST_FILE), null).replace("$", "");
+    String validationOutputPath = state.parameters.getString(base.push(VALIDATION_OUTPUT), null).replace("$", "");
+    String testOutputPath = state.parameters.getString(base.push(TEST_OUTPUT), null).replace("$", "");
+
+    if (validationFileStream == null || testFileStream == null || validationOutputStream == null || testOutputStream == null)
+      state.output.fatal("Validation or test data files doesn't exist");
+
+    try {
+      validationInputs = readInputData(validationFilePath);
+      testInputs = readInputData(testFilePath);
+      validationOutputFriction = readOutputDataComplete(validationOutputPath, Case.FRICTION_FACTOR);
+      validationOutputDrag = readOutputDataComplete(validationOutputPath, Case.DRAG_COEFFICIENT);
+      validationOutputNusselt = readOutputDataComplete(validationOutputPath, Case.NUSSELT_NUMBER);
+      testOutputFriction = readOutputDataComplete(testOutputPath, Case.FRICTION_FACTOR);
+      testOutputDrag = readOutputDataComplete(testOutputPath, Case.DRAG_COEFFICIENT);
+      testOutputNusselt = readOutputDataComplete(testOutputPath, Case.NUSSELT_NUMBER);
+    } catch (IOException e) {
+      state.output.fatal("Error reading the file: " + e.toString());
+    } catch (IndexOutOfBoundsException e) {
+      state.output.fatal("Error in input file.");
+    }
+  }
+
+
+  public static double[] readOutputDataComplete(String filePath, Case exprCase) throws IOException {
+    List<String> lines = Files.readAllLines(Paths.get(filePath));
+    double[] outputs = new double[lines.size()];
+    int index = (exprCase == Case.NUSSELT_NUMBER) ?
+        1 : (exprCase == Case.FRICTION_FACTOR) ?
+        2 : (exprCase == Case.DRAG_COEFFICIENT) ?
+        3 : -1;
+    String[] inputValues;
+    for (int i = 0; i < lines.size(); i++) {
+      inputValues = lines.get(i).split(",");
+      outputs[i] = Double.parseDouble(inputValues[index]);
+    }
+    return outputs;
+  }
+
+
+  public static double[][] readInputData(String filePath) throws IOException {
+    String[] inputValues;
+    List<String> lines = Files.readAllLines(Paths.get(filePath));
+    double[][] inputs = new double[lines.size()][5];
+    for (int i = 0; i < lines.size(); i++) {
+      inputValues = lines.get(i).split(",");
+      for (int j = 0; j < 5; j++) inputs[i][j] = Double.parseDouble(inputValues[j]);
+    }
+    return inputs;
   }
 
   public void evaluate(final EvolutionState state, final Individual ind, final int subpop, final int threadnum) {
+    evaluate(state, ind, subpop, threadnum, inputs, outputs);
+  }
+
+  public void evaluate(final EvolutionState state, final Individual ind, final int subpop,
+                       final int threadnum, double[][] inputs, double[] outputs) {
     if (ind.evaluated) return; // don't bother reevaluating
 
     updateControlVariables(state, threadnum);
 
     RegressionData input = (RegressionData) (this.input);
 
-    // the fitness better be HitLevelKozaFitness!
     HitLevelKozaFitness f = ((HitLevelKozaFitness) ind.fitness);
 
     int hits = 0;
-    double quadraticErrorSum = 0, errorSum = 0.0, error;
+    double errorSum = 0.0;
+    BigDecimal quadraticErrorSum = new BigDecimal("0.0");
+    double error;
     final InputVariables currValue = new InputVariables();
     final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
+    double masError=-0.0;
 
     for (int i = initLoop(); i < endLoop(); i++) {
       currValue.set(inputs[i]);
       evolutionStateBean.set(state, threadnum, input, stack);
-      input.x = model.compute(
+      double result = model.compute(
           currValue.current, currValue.separation, currValue.flow, currValue.initTemperature, currValue.cellDiameter,
           (GPIndividual) ind, evolutionStateBean, this);
 
-      error = outputs[i] - input.x;
+      error = Math.abs(outputs[i] - result);
+      masError=Math.max(error,masError);
+
+      if (Double.isNaN(error) || Double.isInfinite(error) || error >= BIG_NUMBER)
+        error = REALLY_BIG_NUMBER;
+        // very slight math errors can creep in when evaluating two equivalent by differently-ordered functions, like
+        // x * (x*x*x + x*x)  vs. x*x*x*x + x*x
+      else if (error < PROBABLY_ZERO)  // slightly off
+        error = 0.0;
+
       errorSum += error;
-      quadraticErrorSum += Math.pow(error, 2);
+      quadraticErrorSum = quadraticErrorSum.add(BigDecimal.valueOf(error * error));
 
       // Check if the error is within hitLevel percent of the desired error
-      if (Math.abs(error) <= Math.abs(outputs[i]) * HitLevelKozaFitness.hitLevel) hits++;
+      if (error <= Math.abs(outputs[i]) * HitLevelKozaFitness.hitLevel)
+        hits++;
     }
 
     // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
-    final int testCount = getTestedElementsCount();
-    final double quadraticErrorAvg = quadraticErrorSum / testCount;
-    double MSEWithRegularization = quadraticErrorAvg + alpha * Math.sqrt(ind.size());
+    final double testCount = getTestedElementsCount();
+    final double quadraticErrorAvg = quadraticErrorSum.divide(BigDecimal.valueOf(testCount)).doubleValue();
+    double regularizedMSE = quadraticErrorAvg + alpha * Math.sqrt(ind.size());
 
     f.errorAvg = Math.abs(errorSum / testCount);
-    f.variance = quadraticErrorAvg - Math.pow(f.errorAvg, 2);
+    f.variance = quadraticErrorAvg - f.errorAvg * f.errorAvg;
 
-    if (Double.isNaN(MSEWithRegularization) || Double.isInfinite(MSEWithRegularization))
-      MSEWithRegularization = Double.MAX_VALUE;
+    if (Double.isNaN(regularizedMSE) || Double.isInfinite(regularizedMSE))
+      regularizedMSE = Double.MAX_VALUE;
 
     // Limit fitness precision, to eliminate rounding error problem. 12 decimals default precision in GPlab
-    MSEWithRegularization = new BigDecimal(MSEWithRegularization).setScale(12, RoundingMode.HALF_UP).doubleValue();
+    regularizedMSE = BigDecimal.valueOf(regularizedMSE).setScale(12, RoundingMode.HALF_UP).doubleValue();
 
-    f.setStandardizedFitness(state, MSEWithRegularization);
-    f.meetsCondition = (double) hits / testCount;
+    f.setStandardizedFitness(state, regularizedMSE);
+    f.meetsCondition = (double) hits / getTestedElementsCount();
     ind.evaluated = true;
   }
 
+  /**
+   * Evaluate an individual with an specific dataset
+   *
+   * @param state
+   * @param ind
+   * @param inputs
+   * @param outputs
+   */
   public void evaluate(final EvolutionState state, final Individual ind, double[][] inputs, double[] outputs) {
-    if (ind.evaluated) return; // don't bother reevaluating
+    evaluate(state, ind, 0, 0, inputs, outputs);
+  }
 
-    updateControlVariables(state, 0);
+  public MyGPIndividual evaluateValidation(final EvolutionState state, Individual[] tenBest) {
 
-    RegressionData input = (RegressionData) (this.input);
-
-    // the fitness better be HitLevelKozaFitness!
-    HitLevelKozaFitness f = ((HitLevelKozaFitness) ind.fitness);
-
-    int hits = 0;
-    double quadraticErrorSum = 0, errorSum = 0.0, error;
-    final InputVariables currValue = new InputVariables();
-    final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
-
-    for (int i = initLoop(); i < endLoop(); i++) {
-      currValue.set(inputs[i]);
-      evolutionStateBean.set(state, 0, input, stack);
-      input.x = model.compute(
-          currValue.current, currValue.separation, currValue.flow, currValue.initTemperature, currValue.cellDiameter,
-          (GPIndividual) ind, evolutionStateBean, this);
-
-      error = outputs[i] - input.x;
-      errorSum += error;
-      quadraticErrorSum += Math.pow(error, 2);
-
-      // Check if the error is within hitLevel percent of the desired error
-      if (Math.abs(error) <= Math.abs(outputs[i]) * HitLevelKozaFitness.hitLevel) hits++;
+    double[] validationOutput;
+    switch (this.problemCase) {
+      case FRICTION_FACTOR:
+        validationOutput = validationOutputFriction;
+        break;
+      case DRAG_COEFFICIENT:
+        validationOutput = validationOutputDrag;
+        break;
+      case NUSSELT_NUMBER:
+      default:
+        validationOutput = validationOutputNusselt;
     }
 
-    // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
-    final int testCount = getTestedElementsCount();
-    final double quadraticErrorAvg = quadraticErrorSum / testCount;
-    double MSEWithRegularization = quadraticErrorAvg + alpha * Math.sqrt(ind.size());
+    return getBestOf(state, tenBest, validationOutput);
+  }
 
-    f.errorAvg = Math.abs(errorSum / testCount);
-    f.variance = quadraticErrorAvg - Math.pow(f.errorAvg, 2);
 
-    if (Double.isNaN(MSEWithRegularization) || Double.isInfinite(MSEWithRegularization))
-      MSEWithRegularization = Double.MAX_VALUE;
+  public MyGPIndividual evaluateTest(EvolutionState state, MyGPIndividual bestOfValidation) {
+    MyGPIndividual bestOfTest = (MyGPIndividual) bestOfValidation.clone();
+    bestOfTest.evaluated = false;
 
-    // Limit fitness precision, to eliminate rounding error problem. 12 decimals default precision in GPlab
-    MSEWithRegularization = new BigDecimal(MSEWithRegularization).setScale(12, RoundingMode.HALF_UP).doubleValue();
+    double[] testOutput;
+    switch (this.problemCase) {
+      case FRICTION_FACTOR:
+        testOutput = testOutputFriction;
+        break;
+      case DRAG_COEFFICIENT:
+        testOutput = testOutputDrag;
+        break;
+      case NUSSELT_NUMBER:
+      default:
+        testOutput = testOutputNusselt;
+    }
 
-    f.setStandardizedFitness(state, MSEWithRegularization);
-    f.meetsCondition = (double) hits / testCount;
-    ind.evaluated = true;
+    evaluate(state, bestOfTest, testInputs, testOutput);
+    return bestOfTest;
+  }
+
+  public MyGPIndividual getBestOf(final EvolutionState state, Individual[] tenBest, double[] validationOutput) {
+    MyGPIndividual bestOfValidation = null;
+    for (Individual ind : tenBest) {
+      ind.evaluated = false;
+      this.evaluate(state, ind, validationInputs, validationOutput);
+      bestOfValidation = MyGPIndividual.getBest(bestOfValidation, ind);
+    }
+    return bestOfValidation;
   }
 
   protected int getTestedElementsCount() {
@@ -262,5 +372,6 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public void setNusseltNumberModelVariables(double rem) {
     this.reynolds = rem;
   }
+
 }
 

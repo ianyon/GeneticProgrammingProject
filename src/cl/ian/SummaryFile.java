@@ -1,5 +1,7 @@
 package cl.ian;
 
+import cl.ian.gp.MyGPIndividual;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,5 +40,16 @@ public class SummaryFile {
     } catch (IOException e) {
       System.out.println("Couldn't write summary with message: " + message);
     }
+  }
+
+  public static String printIndividuals(String bestIndText, MyGPIndividual bestValInd,
+                                        MyGPIndividual bestTestInd, Case expressionName) {
+    final String bestValMessage = bestValInd.fitnessAndTree();
+    final String bestTestMessage = bestTestInd.fitnessAndTree();
+
+    SummaryFile.writeToSummary(bestIndText, expressionName);
+    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionName);
+    SummaryFile.writeToSummary(String.format("\nTest: %s\n", bestTestMessage), expressionName);
+    return bestTestMessage;
   }
 }

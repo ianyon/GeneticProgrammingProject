@@ -13,7 +13,7 @@ public class LoopMaxTreeSize extends LoopCallable {
 
 
   public LoopMaxTreeSize(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps) {
-    super(database, state, loopSteps, new double[]{50,100});
+    super(database, state, loopSteps, new double[]{30, 50, 100, 150});
     parametersHeader.add("MaxSize=");
   }
 
@@ -22,7 +22,7 @@ public class LoopMaxTreeSize extends LoopCallable {
     for (int i = 0; i < testValues.length; i++) {
       database.set(new Parameter("gp.koza.xover.maxsize"), "" + testValues[i]);
       database.set(new Parameter("gp.koza.mutate.maxsize"), "" + testValues[i]);
-      parametersValue.set(index,String.format("%d", (int) testValues[i]));
+      parametersValue.set(index, String.format("%d", (int) testValues[i]));
       doExecutionOrContinueWithNextStep();
     }
     return null;

@@ -42,13 +42,14 @@ pop.subpop.0.duplicate-retries = 20
 #eval.problem = cl.ian.gp.PhenomenologicalModelVerticalSlicing
 eval.problem = cl.ian.gp.PhenomenologicalModel
 eval.problem.data = ec.app.regression.RegressionData
-# Load input and output data for training
-eval.problem.inputfile = $TrainingData/doe500train_sort.txt
 
+# Validation
 eval.problem.validation-file = $TrainingData/doe500val.txt
-eval.problem.test-file = $TrainingData/doe500test.txt
 eval.problem.validation-output = $TrainingData/salidas_ansys500val.txt
+# Test
+eval.problem.test-file = $TrainingData/doe500test.txt
 eval.problem.test-output = $TrainingData/salidas_ansys500test.txt
+
 # Vertical slicing: Random segments used to test the individuals (500 elements dataset)
 eval.problem.number-of-slices = 4
 

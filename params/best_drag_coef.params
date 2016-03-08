@@ -1,5 +1,7 @@
 parent.0 = best.params
 
+# Load input and output data for training
+eval.problem.inputfile = $TrainingData/doe500train_sort_DragCoefficient.txt
 eval.problem.outputfile = $TrainingData/salidas_V500train_sort.txt
 
 eval.problem.problem-case = DragCoefficient

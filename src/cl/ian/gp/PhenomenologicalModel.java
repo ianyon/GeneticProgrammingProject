@@ -21,7 +21,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayDeque;
 import java.util.List;
 
 public class PhenomenologicalModel extends GPProblem implements SimpleProblemForm {
@@ -67,6 +66,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   // The individuals with error similar to this number are bad solutions
   public final static double REALLY_BIG_NUMBER = BIG_NUMBER*1e100;
   public final static double PROBABLY_ZERO = 1.11E-15;
+  public double[] savedError;
 
   /******************************************************************************************************************/
   @Override
@@ -176,10 +176,22 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   public static double[] readOutputDataComplete(String filePath, Case exprCase) throws IOException {
     List<String> lines = Files.readAllLines(Paths.get(filePath));
     double[] outputs = new double[lines.size()];
-    int index = (exprCase == Case.NUSSELT_NUMBER) ?
-        1 : (exprCase == Case.FRICTION_FACTOR) ?
-        2 : (exprCase == Case.DRAG_COEFFICIENT) ?
-        3 : -1;
+
+    int index;
+    switch (exprCase){
+      case NUSSELT_NUMBER:
+        index=1;
+        break;
+      case FRICTION_FACTOR:
+        index=2;
+        break;
+      case DRAG_COEFFICIENT:
+        index=3;
+        break;
+      default:
+        index=-1;
+    }
+
     String[] inputValues;
     for (int i = 0; i < lines.size(); i++) {
       inputValues = lines.get(i).split(",");
@@ -201,11 +213,11 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   }
 
   public void evaluate(final EvolutionState state, final Individual ind, final int subpop, final int threadnum) {
-    evaluate(state, ind, subpop, threadnum, inputs, outputs);
+    evaluate(state, ind, subpop, threadnum, inputs, outputs, false);
   }
 
   public void evaluate(final EvolutionState state, final Individual ind, final int subpop,
-                       final int threadnum, double[][] inputs, double[] outputs) {
+                       final int threadnum, double[][] inputs, double[] outputs, boolean saveError) {
     if (ind.evaluated) return; // don't bother reevaluating
 
     updateControlVariables(state, threadnum);
@@ -245,6 +257,9 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
       // Check if the error is within hitLevel percent of the desired error
       if (error <= Math.abs(outputs[i]) * HitLevelKozaFitness.hitLevel)
         hits++;
+
+      if(saveError)
+        savedError[i-initLoop()] = error;
     }
 
     // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
@@ -268,14 +283,14 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
   /**
    * Evaluate an individual with an specific dataset
-   *
-   * @param state
+   *  @param state
    * @param ind
    * @param inputs
    * @param outputs
+   * @param saveError
    */
-  public void evaluate(final EvolutionState state, final Individual ind, double[][] inputs, double[] outputs) {
-    evaluate(state, ind, 0, 0, inputs, outputs);
+  public void evaluate(final EvolutionState state, final Individual ind, double[][] inputs, double[] outputs, boolean saveError) {
+    evaluate(state, ind, 0, 0, inputs, outputs,saveError);
   }
 
   public MyGPIndividual evaluateValidation(final EvolutionState state, Individual[] tenBest) {
@@ -314,7 +329,9 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
         testOutput = testOutputNusselt;
     }
 
-    evaluate(state, bestOfTest, testInputs, testOutput);
+    savedError = new double[getTestedElementsCount()];
+
+    evaluate(state, bestOfTest, testInputs, testOutput, true);
     return bestOfTest;
   }
 
@@ -322,7 +339,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     MyGPIndividual bestOfValidation = null;
     for (Individual ind : tenBest) {
       ind.evaluated = false;
-      this.evaluate(state, ind, validationInputs, validationOutput);
+      evaluate(state, ind, validationInputs, validationOutput, false);
       bestOfValidation = MyGPIndividual.getBest(bestOfValidation, ind);
     }
     return bestOfValidation;

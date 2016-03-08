@@ -26,8 +26,8 @@ public class Main {
       if (args[0].equalsIgnoreCase("once")) {
         try {
           //runExpressionOnce(Case.FRICTION_FACTOR);
-          //runExpressionOnce(Case.DRAG_COEFFICIENT);
-          runExpressionOnce(Case.NUSSELT_NUMBER);
+          runExpressionOnce(Case.DRAG_COEFFICIENT);
+          //runExpressionOnce(Case.NUSSELT_NUMBER);
         } catch (Exception e) {
           System.exit(-1);
         }
@@ -78,17 +78,12 @@ public class Main {
     Evolve.cleanup(state);
     System.out.println(String.format("Finished %s (%g s)", nameAndFile[1], elapsed(startTime)));
 
-    final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
-    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).bestOfValidation;
-    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).bestOfTest;
-    final String bestMessage = bestInd.fitnessAndTree();
-    final String bestValMessage = String.format("%s (Test= %s)\n%s",
-        bestValInd.fitness.fitnessToStringForHumans(),bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringTreeForHumans());
 
-    SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionCase);
-    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionCase);
+    final SimpleGPStatistics statistics = (SimpleGPStatistics) state.statistics;
+    SummaryFile.printIndividuals(
+        statistics.getBestSoFar()[0].fitnessAndTree(),statistics.bestOfValidation,statistics.bestOfTest,expressionCase);
 
-    bestOfRuns.put(expressionCase, MyGPIndividual.getErrorBest(bestOfRuns.get(expressionCase), bestTestInd));
+    bestOfRuns.put(expressionCase, MyGPIndividual.getErrorBest(bestOfRuns.get(expressionCase), statistics.bestOfTest));
   }
 
   public static double elapsed(long startTime) {
@@ -124,15 +119,9 @@ public class Main {
     ArrayList<LoopCallable> loopSteps = LoopCallable.populateLoops(database, state, exprCase);
     LoopCallable.initiateLoops(loopSteps,state, nameAndFile);
 
-    final MyGPIndividual bestInd = ((SimpleGPStatistics) state.statistics).getBestSoFar()[0];
-    final MyGPIndividual bestValInd = ((SimpleGPStatistics) state.statistics).bestOfValidation;
-    final MyGPIndividual bestTestInd = ((SimpleGPStatistics) state.statistics).bestOfTest;
-    final String bestMessage = bestInd.fitnessAndTree();
-    final String bestValMessage = String.format("%s (Test= %s)\n%s",
-        bestValInd.fitness.fitnessToStringForHumans(),bestTestInd.fitness.fitnessToStringForHumans(), bestValInd.stringTreeForHumans());
-
-    SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), exprCase);
-    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), exprCase);
+    final SimpleGPStatistics statistics = (SimpleGPStatistics) state.statistics;
+    SummaryFile.printIndividuals(
+        statistics.getBestSoFar()[0].fitnessAndTree(),statistics.bestOfValidation,statistics.bestOfTest,exprCase);
   }
 
   private static void createDirIfNotExist() {

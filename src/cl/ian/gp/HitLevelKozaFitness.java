@@ -1,6 +1,6 @@
 package cl.ian.gp;
 
-import cl.ian.IndividualComparator;
+import cl.ian.IndividualErrorComparator;
 import ec.EvolutionState;
 import ec.Fitness;
 import ec.Individual;
@@ -8,7 +8,6 @@ import ec.gp.koza.KozaFitness;
 import ec.util.Parameter;
 
 import java.util.Arrays;
-import java.util.PriorityQueue;
 
 /**
  * Created by Ian on 20/01/2016.
@@ -53,14 +52,15 @@ public class HitLevelKozaFitness extends KozaFitness {
   }
 
   public boolean errorBetterThan(final Fitness _fitness) {
-    return (((HitLevelKozaFitness) _fitness).errorAvg) > (errorAvg) &&
-        (((HitLevelKozaFitness) _fitness).variance) > (variance);
+    return (((HitLevelKozaFitness) _fitness).errorAvg) > (errorAvg)
+        //&& (((HitLevelKozaFitness) _fitness).variance) > (variance)
+        ;
   }
 
   public static Individual[] findTopKHeap(Individual[] inds, int k) {
-    IndividualComparator<Individual> comparator = new IndividualComparator<>();
+    IndividualErrorComparator<Individual> comparator = new IndividualErrorComparator<>();
     // TODO: Use a min heap for better performance
-    Arrays.sort(inds,comparator);
+    Arrays.sort(inds, comparator);
 
     Individual[] res = new Individual[k];
     for (int i = 0; i < k; i++) res[i] = (Individual) inds[i].clone();

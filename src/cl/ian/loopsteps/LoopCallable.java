@@ -66,12 +66,12 @@ public abstract class LoopCallable implements Callable {
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
     // We are using 5% elites
     //loopSteps.add(new LoopElitism(database, state, loopSteps));
-    loopSteps.add(new LoopPopulation(database, state, loopSteps));
+    //loopSteps.add(new LoopPopulation(database, state, loopSteps));
     //loopSteps.add(new LoopKnownApproxProbability(database, state, loopSteps));
 //    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps));
 //    loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps));
 //    loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps));
-//    loopSteps.add(new LoopMaxTreeSize(database, state, loopSteps));
+    loopSteps.add(new LoopMaxTreeSize(database, state, loopSteps));
     // The div max doesn't make any difference in the results
     //loopSteps.add(new LoopDivMaxValue(database, state, loopSteps));
     return loopSteps;
@@ -138,6 +138,7 @@ public abstract class LoopCallable implements Callable {
 
     double avgTime = 0;
     for (int i = 0; i < 3; i++) {
+      state.output.println(expressionName + " Avg " + (i + 1) + "/3", 0);
       long startTime = System.nanoTime();
       state.run(EvolutionState.C_STARTED_FRESH);
       Evolve.cleanup(state);
@@ -150,15 +151,10 @@ public abstract class LoopCallable implements Callable {
       bestValInd = MyGPIndividual.getErrorBest(bestValInd, statistics.bestOfValidation);
       bestTestInd = MyGPIndividual.getErrorBest(bestTestInd, statistics.bestOfTest);
     }
-    System.out.println(expressionName + " Avg Execution time (3 runs): " + avgTime + " s\n");
+    state.output.println(expressionName + " Avg Execution time (3 runs): " + avgTime + " s\n", 0);
 
-    final String bestMessage = String.format("%s\n%s", paramIdentifier, bestInd.fitnessAndTree());
-    final String bestValMessage = bestValInd.fitnessAndTree();
-    final String bestTestMessage = bestTestInd.fitnessAndTree();
-
-    SummaryFile.writeToSummary(String.format("\nBest fitness of run: %s\n", bestMessage), expressionName);
-    SummaryFile.writeToSummary(String.format("\nValidation: %s\n", bestValMessage), expressionName);
-    SummaryFile.writeToSummary(String.format("\nTest: %s\n", bestTestMessage), expressionName);
+    String bestTestMessage = SummaryFile.printIndividuals(String.format("\nBest fitness of run: %s\n%s\n",
+        paramIdentifier, bestInd.fitnessAndTree()), bestValInd, bestTestInd, expressionName);
 
     bestOfLoops = MyGPIndividual.getErrorBest(bestOfLoops, bestTestInd);
     headerBestOfLoops = paramIdentifier;
@@ -178,9 +174,9 @@ public abstract class LoopCallable implements Callable {
       progressMessage += ": Estimated remaining time  " + getFormattedTime(estimatedRemainingTime);
       progressMessage += getRemainingTimeAllExpr();
     }
-    System.out.println(progressMessage);
+    state.output.println(progressMessage, 0);
 
-    System.out.println("\nParameters:" + paramIdentifier);
+    state.output.println("\nParameters:" + paramIdentifier, 0);
     setStatisticFilesIdentifier(paramIdentifier);
     return paramIdentifier;
   }
@@ -227,7 +223,7 @@ public abstract class LoopCallable implements Callable {
       try {
         loopSteps.get(index + 1).call();
       } catch (Exception e) {
-        System.out.println("Exception during loop call");
+        state.output.println("Exception during loop call", 0);
         e.printStackTrace();
         System.exit(-1);
       }

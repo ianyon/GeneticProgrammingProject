@@ -24,7 +24,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
 {
 
   public MyGPIndividual[] getBestSoFar() {
-    return best_of_run;
+    return bestOfRun;
   }
 
   /**
@@ -54,7 +54,7 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   /**
    * The best individual we've found so far
    */
-  public MyGPIndividual[] best_of_run = null;
+  public MyGPIndividual[] bestOfRun = null;
   public MyGPIndividual bestOfValidation = null;
   public MyGPIndividual bestOfTest;
 
@@ -128,9 +128,9 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   public void postInitializationStatistics(final EvolutionState state) {
     super.postInitializationStatistics(state);
 
-    // set up our best_of_run array -- can't do this in setup, because
+    // set up our bestOfRun array -- can't do this in setup, because
     // we don't know if the number of subpopulations has been determined yet
-    best_of_run = new MyGPIndividual[state.population.subpops.length];
+    bestOfRun = new MyGPIndividual[state.population.subpops.length];
 
     KnownApproxRampedHalfHalfInit init = (KnownApproxRampedHalfHalfInit) ((GPIndividual)
         state.population.subpops[0].individuals[0]).trees[0].constraints((GPInitializer) state.initializer).init;
@@ -161,8 +161,8 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
       }
     }
 
-    // now test to see if it's the new best_of_run
-    best_of_run[0] = MyGPIndividual.getBest(best_of_run[0], best_i[0]);
+    // now test to see if it's the new bestOfRun
+    bestOfRun[0] = MyGPIndividual.getBest(bestOfRun[0], best_i[0]);
 
     if (onlyFinal) return;
 
@@ -179,30 +179,27 @@ public class SimpleGPStatistics extends Statistics implements SteadyStateStatist
   @Override
   public void finalStatistics(final EvolutionState state, final int result) {
     // for now we just print the best fitness
-    if (doFinal) state.output.print("\nBest Individual of Run:", statisticslog);
-    if (doFinal) best_of_run[0].printIndividualForHumans(state, statisticslog);
-    if (doFinal) state.output.println(best_of_run[0].depthAndSize(), statisticslog);
-    if (doMessage && !silentPrint)
-      state.output.message(String.format("\nBest fitness of run: %s\n", best_of_run[0].fitnessAndTree()));
+    printIndividualFinalMessage(state, bestOfRun[0], "Training");
 
     /** Validate individual **/
     Individual[] tenBest = HitLevelKozaFitness.findTopKHeap(state.population.subpops[0].individuals, 10);
 
     bestOfValidation = ((PhenomenologicalModel) state.evaluator.p_problem).evaluateValidation(state, tenBest);
-
-    if (doFinal) state.output.print("\nBest of validation:", statisticslog);
-    if (doFinal) bestOfValidation.printIndividualForHumans(state, statisticslog);
-    if (doFinal) state.output.println(bestOfValidation.depthAndSize(), statisticslog);
-    if (doMessage && !silentPrint)
-      state.output.message(String.format("\nBest of validation: %s\n", bestOfValidation.fitnessAndTree()));
+    printIndividualFinalMessage(state, bestOfValidation, "Validation");
 
     /** Test individual **/
     bestOfTest = ((PhenomenologicalModel) state.evaluator.p_problem).evaluateTest(state, bestOfValidation);
+    printIndividualFinalMessage(state, bestOfValidation, "Test");
+  }
 
-    if (doFinal) state.output.print("\nBest of test:", statisticslog);
-    if (doFinal) bestOfTest.printIndividualForHumans(state, statisticslog);
-    if (doFinal) state.output.println(bestOfTest.depthAndSize(), statisticslog);
+  protected void printIndividualFinalMessage(EvolutionState state, MyGPIndividual ind, String msg) {
+    if (doFinal) {
+      state.output.print("\n" + msg + " Best Individual:", statisticslog);
+      ind.printIndividualForHumans(state, statisticslog);
+      state.output.println(ind.depthAndSize(), statisticslog);
+      state.output.println("Evaluation error: " + ind.printEvaluationError(), statisticslog);
+    }
     if (doMessage && !silentPrint)
-      state.output.message(String.format("\nBest of test: %s\n", bestOfTest.fitnessAndTree()));
+      state.output.message(String.format("\n" + msg + " Best fitness of run: %s\n", ind.fitnessAndTree()));
   }
 }

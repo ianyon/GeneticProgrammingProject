@@ -64,9 +64,8 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
   // 1.0e15 is for lil-gp
   public final static double BIG_NUMBER = 1.0e15;
   // The individuals with error similar to this number are bad solutions
-  public final static double REALLY_BIG_NUMBER = BIG_NUMBER*1.0e5;
+  public final static double REALLY_BIG_NUMBER = BIG_NUMBER * 1.0e5;
   public final static double PROBABLY_ZERO = 1.11E-15;
-  public double[] savedError;
 
   /******************************************************************************************************************/
   @Override
@@ -178,18 +177,18 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     double[] outputs = new double[lines.size()];
 
     int index;
-    switch (exprCase){
+    switch (exprCase) {
       case NUSSELT_NUMBER:
-        index=1;
+        index = 1;
         break;
       case FRICTION_FACTOR:
-        index=2;
+        index = 2;
         break;
       case DRAG_COEFFICIENT:
-        index=3;
+        index = 3;
         break;
       default:
-        index=-1;
+        index = -1;
     }
 
     String[] inputValues;
@@ -220,8 +219,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
                        final int threadnum, double[][] inputs, double[] outputs, boolean saveError) {
     if (ind.evaluated) return; // don't bother reevaluating
 
-    if(saveError)
-      savedError = new double[getTestedElementsCount()];
+    ((MyGPIndividual) ind).setEvaluationErrorSize(getTestedElementsCount());
 
     updateControlVariables(state, threadnum);
 
@@ -235,7 +233,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     double error;
     final InputVariables currValue = new InputVariables();
     final EvolutionStateBean evolutionStateBean = new EvolutionStateBean();
-    double maxError=-0.0;
+    double maxError = -0.0;
 
     for (int i = initLoop(); i < endLoop(); i++) {
       currValue.set(inputs[i]);
@@ -245,10 +243,10 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
           (GPIndividual) ind, evolutionStateBean, this);
 
       error = Math.abs(outputs[i] - result);
-      maxError=Double.isNaN(error)?maxError:Math.max(error,maxError);
+      maxError = Double.isNaN(error) ? maxError : Math.max(error, maxError);
 
       // Solutions that bad are similarly bad between them
-      if(error > BIG_NUMBER)
+      if (error > BIG_NUMBER)
         error = BIG_NUMBER;
 
       else if (Double.isNaN(error) || Double.isInfinite(error))
@@ -265,8 +263,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
       if (error <= Math.abs(outputs[i]) * HitLevelKozaFitness.hitLevel)
         hits++;
 
-      if(saveError)
-        savedError[i-initLoop()] = error;
+      ((MyGPIndividual)ind).setEvaluationError(i - initLoop(), error);
     }
 
     // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
@@ -290,14 +287,15 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
 
   /**
    * Evaluate an individual with an specific dataset
-   *  @param state
+   *
+   * @param state
    * @param ind
    * @param inputs
    * @param outputs
    * @param saveError
    */
   public void evaluate(final EvolutionState state, final Individual ind, double[][] inputs, double[] outputs, boolean saveError) {
-    evaluate(state, ind, 0, 0, inputs, outputs,saveError);
+    evaluate(state, ind, 0, 0, inputs, outputs, saveError);
   }
 
   public MyGPIndividual evaluateValidation(final EvolutionState state, Individual[] tenBest) {

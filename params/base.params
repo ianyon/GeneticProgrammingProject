@@ -8,9 +8,10 @@ evalthreads = auto
 # The Statistics
 stat = cl.ian.gp.statistics.SimpleGPStatistics
 stat.do-final = true
-#stat.only-final = true
+stat.only-final = true
 # stat.silent = true
 stat.file = $out.stat
+gp.tree.print-style = c
 
 #stat.num-children = 1
 # stat.child.0 = cl.ian.gp.statistics.MyKozaShortStatistics
@@ -20,7 +21,6 @@ stat.file = $out.stat
 # stat.child.0.do-time = true
 # stat.child.0.do-size = true
 # stat.child.0.do-subpops = true
-gp.tree.print-style = c
 
 #print-all-params = true
 #print-accessed-params = true

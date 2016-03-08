@@ -13,7 +13,7 @@ public class LoopMaxTreeSize extends LoopCallable {
 
 
   public LoopMaxTreeSize(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps) {
-    super(database, state, loopSteps, new double[]{30, 50, 100, 150});
+    super(database, state, loopSteps, new double[]{50, 100, 150});
     parametersHeader.add("MaxSize=");
   }
 

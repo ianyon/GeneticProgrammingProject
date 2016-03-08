@@ -66,12 +66,12 @@ public abstract class LoopCallable implements Callable {
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
     // We are using 5% elites
     //loopSteps.add(new LoopElitism(database, state, loopSteps));
-    //loopSteps.add(new LoopPopulation(database, state, loopSteps));
+    loopSteps.add(new LoopPopulation(database, state, loopSteps));
     //loopSteps.add(new LoopKnownApproxProbability(database, state, loopSteps));
 //    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps));
 //    loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps));
 //    loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps));
-    loopSteps.add(new LoopMaxTreeSize(database, state, loopSteps));
+    //loopSteps.add(new LoopMaxTreeSize(database, state, loopSteps));
     // The div max doesn't make any difference in the results
     //loopSteps.add(new LoopDivMaxValue(database, state, loopSteps));
     return loopSteps;
@@ -157,8 +157,10 @@ public abstract class LoopCallable implements Callable {
         paramIdentifier, bestInd.fitnessAndTree()), bestValInd, bestTestInd, expressionName);
 
     bestOfLoops = MyGPIndividual.getErrorBest(bestOfLoops, bestTestInd);
-    headerBestOfLoops = paramIdentifier;
-    stringBestOfLoops = bestTestMessage;
+    if (bestOfLoops == bestTestInd) {
+      headerBestOfLoops = paramIdentifier;
+      stringBestOfLoops = bestTestMessage;
+    }
   }
 
   private String printHeader() {

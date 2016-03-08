@@ -6,10 +6,14 @@ import ec.gp.GPIndividual;
 import ec.gp.GPNode;
 import ec.gp.GPTree;
 
+import java.util.Arrays;
+
 /**
  * Created by Ian on 26/01/2016.
  */
 public class MyGPIndividual extends GPIndividual {
+
+  public double[] evaluationError;
 
   public String fitnessAndTree() {
     return String.format("%s\n%s", fitness.fitnessToStringForHumans(), stringTreeForHumans());
@@ -88,8 +92,20 @@ public class MyGPIndividual extends GPIndividual {
   }
 
   public static MyGPIndividual getErrorBest(Individual best, Individual ind) {
-    if (best == null || ((HitLevelKozaFitness)ind.fitness).errorBetterThan(best.fitness))
+    if (best == null || ((HitLevelKozaFitness) ind.fitness).errorBetterThan(best.fitness))
       return (MyGPIndividual) ind.clone();
     return (MyGPIndividual) best;
+  }
+
+  public void setEvaluationErrorSize(int errorArraySize) {
+    this.evaluationError = new double[errorArraySize];
+  }
+
+  public void setEvaluationError(int i, double error) {
+    evaluationError[i] = error;
+  }
+
+  public String printEvaluationError() {
+    return Arrays.toString(evaluationError);
   }
 }

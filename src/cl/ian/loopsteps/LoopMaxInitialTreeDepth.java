@@ -13,8 +13,8 @@ public class LoopMaxInitialTreeDepth extends LoopCallable {
 
 
   public LoopMaxInitialTreeDepth(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps) {
-    super(database, state, loopSteps, new double[]{6, 8,10});
-    parametersHeader.add("MaxInitDepth=");
+    super(database, state, loopSteps, new double[]{4, 6, 8, 10});
+    parametersHeader.add("MaxIniDepth=");
   }
 
 

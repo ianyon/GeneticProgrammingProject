@@ -20,7 +20,7 @@ public class LoopKnownApproxProbability extends LoopCallable {
   @Override
   public Void call() throws Exception {
     for (int i = 0; i < testValues.length; i++) {
-      database.set(new Parameter("gp.tc.0.init.use-known-approx"), "" + testValues[i]);
+      database.set(new Parameter("gp.tc.0.init.known-prob"), "" + testValues[i]);
 
       parametersValue.set(index, String.format("%d%%", (int) (testValues[i] * 100)));
 

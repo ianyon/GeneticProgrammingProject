@@ -118,10 +118,6 @@ public class Main {
     EvolutionState state = Evolve.initialize(database, 0);
     ArrayList<LoopCallable> loopSteps = LoopCallable.populateLoops(database, state, exprCase);
     LoopCallable.initiateLoops(loopSteps,state, nameAndFile);
-
-    final SimpleGPStatistics statistics = (SimpleGPStatistics) state.statistics;
-    SummaryFile.printIndividuals(
-        statistics.getBestSoFar()[0].fitnessAndTree(),statistics.bestOfValidation,statistics.bestOfTest,exprCase);
   }
 
   private static void createDirIfNotExist() {

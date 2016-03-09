@@ -30,7 +30,7 @@ gp.tree.print-style = c
 #print-params = true
 ###########################################################################################
 # Evolution Parameters
-generations = 60
+generations = 30
 breed.elite-fraction.0 = 0.05
 quit-on-run-complete = true
 
@@ -63,7 +63,7 @@ gp.tc.0.init = cl.ian.gp.KnownApproxRampedHalfHalfInit
 gp.tc.0.init.known-prob = 0.5
 # Min and Max level for initial individuals
 gp.tc.0.init.min-depth = 2
-gp.tc.0.init.max-depth = 6
+gp.tc.0.init.max-depth = 5
 gp.tc.0.init.growp = 0.5
 ###########################################################################################
 # We have six functions in the function set:
@@ -85,14 +85,15 @@ pop.subpop.0.species.pipe.generate-max = true
 pop.subpop.0.species.pipe.num-sources = 2
 pop.subpop.0.species.pipe.source.0 = ec.gp.koza.CrossoverPipeline
 #pop.subpop.0.species.pipe.source.0 = cl.ian.gp.RetriesCrossoverPipeline
-pop.subpop.0.species.pipe.source.0.prob = 0.9
+pop.subpop.0.species.pipe.source.0.prob = 0.95
 pop.subpop.0.species.pipe.source.1 = ec.gp.koza.MutationPipeline
 #pop.subpop.0.species.pipe.source.1 = cl.ian.gp.RetriesMutationPipeline
-pop.subpop.0.species.pipe.source.1.prob = 0.1
+pop.subpop.0.species.pipe.source.1.prob = 0.05
 
 # Crossover parameters
 gp.koza.xover.tries = 20
-gp.koza.xover.maxdepth = 17
+gp.koza.xover.maxdepth = 14
+gp.koza.xover.maxsize = 100
 # Return only one children (the other is thrown away)
 gp.koza.xover.toss = false
 gp.koza.xover.ns.0 = ec.gp.koza.KozaNodeSelector
@@ -102,14 +103,14 @@ gp.koza.xover.source.1 = same
 
 # Mutation parameters
 gp.koza.mutate.tries = 20
-gp.koza.mutate.maxdepth = 17
+gp.koza.mutate.maxdepth = 14
+gp.koza.mutate.maxsize = 100
 gp.koza.mutate.pipe.ns = ec.gp.koza.KozaNodeSelector
 gp.koza.mutate.build.0 = ec.gp.koza.GrowBuilder
 gp.koza.mutate.source.0 = ec.parsimony.LexicographicTournamentSelection
 gp.koza.grow.min-depth = 2
-gp.koza.grow.max-depth = 6
+gp.koza.grow.max-depth = 5
 
-# select.tournament.size = 2
 select.lexicographic-tournament.size = 2
 
 # KozaNodeSelector Probability of selecting a type of node when performing breeding. Set to zero to pick any node

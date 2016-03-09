@@ -13,7 +13,7 @@ public class LoopMaxTreeDepth extends LoopCallable {
 
 
   public LoopMaxTreeDepth(ParameterDatabase database, EvolutionState state, ArrayList<LoopCallable> loopSteps) {
-    super(database, state, loopSteps, new double[]{17,19});
+    super(database, state, loopSteps, new double[]{13, 15, 17, 19, 20});
     parametersHeader.add("MaxDepth=");
   }
 
@@ -22,7 +22,7 @@ public class LoopMaxTreeDepth extends LoopCallable {
     for (int i = 0; i < testValues.length; i++) {
       database.set(new Parameter("gp.koza.xover.maxdepth"), "" + testValues[i]);
       database.set(new Parameter("gp.koza.mutate.maxdepth"), "" + testValues[i]);
-      parametersValue.set(index,String.format("%d", (int) testValues[i]));
+      parametersValue.set(index, String.format("%d", (int) testValues[i]));
       doExecutionOrContinueWithNextStep();
     }
     return null;

@@ -228,7 +228,7 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
     HitLevelKozaFitness f = ((HitLevelKozaFitness) ind.fitness);
 
     int hits = 0;
-    double errorSum = 0.0;
+    BigDecimal errorSum = new BigDecimal("0.0");
     BigDecimal quadraticErrorSum = new BigDecimal("0.0");
     double error;
     final InputVariables currValue = new InputVariables();
@@ -248,37 +248,33 @@ public class PhenomenologicalModel extends GPProblem implements SimpleProblemFor
       // Solutions that bad are similarly bad between them
       if (error > BIG_NUMBER)
         error = BIG_NUMBER;
-
       else if (Double.isNaN(error) || Double.isInfinite(error))
-        error = REALLY_BIG_NUMBER;
+        error = BIG_NUMBER;
         // very slight math errors can creep in when evaluating two equivalent by differently-ordered functions, like
         // x * (x*x*x + x*x)  vs. x*x*x*x + x*x
-      else if (error < PROBABLY_ZERO)  // slightly off
+      else if (error < PROBABLY_ZERO)  // slightly off  // This never really happens
         error = 0.0;
 
-      errorSum += error;
+      errorSum = errorSum.add(BigDecimal.valueOf(error));
       quadraticErrorSum = quadraticErrorSum.add(BigDecimal.valueOf(error * error));
 
       // Check if the error is within hitLevel percent of the desired error
       if (error <= Math.abs(outputs[i]) * HitLevelKozaFitness.hitLevel)
         hits++;
 
-      ((MyGPIndividual)ind).setEvaluationError(i - initLoop(), error);
+      ((MyGPIndividual) ind).setEvaluationError(i - initLoop(), error);
     }
 
     // Calculate L1 distance: mean((outputs-input.x)^2)+regularizationExpression;
-    final double testCount = getTestedElementsCount();
-    final double quadraticErrorAvg = quadraticErrorSum.divide(BigDecimal.valueOf(testCount)).doubleValue();
+    final BigDecimal testCount = BigDecimal.valueOf(getTestedElementsCount());
+    final double quadraticErrorAvg = quadraticErrorSum.divide(testCount, BigDecimal.ROUND_HALF_UP).doubleValue();
     double regularizedMSE = quadraticErrorAvg + alpha * Math.sqrt(ind.size());
 
-    f.errorAvg = Math.abs(errorSum / testCount);
+    f.errorAvg = errorSum.divide(testCount, BigDecimal.ROUND_HALF_UP).abs().doubleValue();
     f.variance = quadraticErrorAvg - f.errorAvg * f.errorAvg;
 
-    if (Double.isNaN(regularizedMSE) || Double.isInfinite(regularizedMSE))
+    if (Double.isNaN(regularizedMSE) || Double.isInfinite(regularizedMSE)) // This never really happens
       regularizedMSE = Double.MAX_VALUE;
-
-    // Limit fitness precision, to eliminate rounding error problem. 12 decimals default precision in GPlab
-    regularizedMSE = BigDecimal.valueOf(regularizedMSE).setScale(12, RoundingMode.HALF_UP).doubleValue();
 
     f.setStandardizedFitness(state, regularizedMSE);
     f.meetsCondition = (double) hits / getTestedElementsCount();

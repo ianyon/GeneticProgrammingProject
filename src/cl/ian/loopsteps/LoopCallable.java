@@ -2,6 +2,7 @@ package cl.ian.loopsteps;
 
 import cl.ian.Case;
 import cl.ian.SummaryFile;
+import cl.ian.gp.HitLevelKozaFitness;
 import cl.ian.gp.MyGPIndividual;
 import cl.ian.gp.statistics.SimpleGPStatistics;
 import ec.EvolutionState;
@@ -20,21 +21,25 @@ import static cl.ian.Main.elapsed;
  * Created by Ian on 16/02/2016.
  */
 public abstract class LoopCallable implements Callable {
+  /** Used to ask the user the first time we run. To avoid overwriting potentially important stat files*/
   private static boolean execute = false;
+
   private final ArrayList<LoopCallable> loopSteps;
   protected final int index;
   protected final ParameterDatabase database;
   private final EvolutionState state;
   protected final double[] testValues;
 
-  // Fields to show the actual loop information
+  // Fields to show the actual loop identifier
   protected static final ArrayList<String> parametersHeader = new ArrayList<>();
+  protected static final ArrayList<String> parametersValue = new ArrayList<>();
+
   /**
    * Name of the expression being executed. Initialized in populateLoops
    */
   private static Case expressionName;
-  protected static final ArrayList<String> parametersValue = new ArrayList<>();
 
+  /** Total number of loops to run. Initialized in totalChainedLoops */
   private static int totalLoops;
   private static int executedLoops;
   private static double avgExecutionTime;
@@ -54,6 +59,8 @@ public abstract class LoopCallable implements Callable {
     executedLoops = 0;
     avgExecutionTime = 0;
     estimatedRemainingTime = 0;
+    bestOfLoops=null;
+    stringBestOfLoops=null;
 
     this.testValues = testValues;
   }
@@ -66,11 +73,11 @@ public abstract class LoopCallable implements Callable {
     ArrayList<LoopCallable> loopSteps = new ArrayList<>();
     // We are using 5% elites
     //loopSteps.add(new LoopElitism(database, state, loopSteps));
-    loopSteps.add(new LoopPopulation(database, state, loopSteps));
+    //loopSteps.add(new LoopPopulation(database, state, loopSteps));
     //loopSteps.add(new LoopKnownApproxProbability(database, state, loopSteps));
-//    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps));
-//    loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps));
-//    loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps));
+    loopSteps.add(new LoopCrossoverRate(database, state, loopSteps));
+    //loopSteps.add(new LoopMaxInitialTreeDepth(database, state, loopSteps));
+    //loopSteps.add(new LoopMaxTreeDepth(database, state, loopSteps));
     //loopSteps.add(new LoopMaxTreeSize(database, state, loopSteps));
     // The div max doesn't make any difference in the results
     //loopSteps.add(new LoopDivMaxValue(database, state, loopSteps));
@@ -120,14 +127,11 @@ public abstract class LoopCallable implements Callable {
   }
 
   protected void doExecution() {
-    String paramIdentifier = printHeader();
+    String paramIdentifier = printParamIdentifier();
     long startTime = System.nanoTime();
     averagedExecution(paramIdentifier);
     double thisTime = elapsed(startTime);
 
-    executedLoops++;
-    avgExecutionTime = (avgExecutionTime * (executedLoops - 1) + thisTime) / executedLoops;
-    estimatedRemainingTime = avgExecutionTime * (totalLoops - executedLoops);
     System.out.println(expressionName + " Execution time: " + thisTime + " s\n");
   }
 
@@ -138,11 +142,24 @@ public abstract class LoopCallable implements Callable {
 
     double avgTime = 0;
     for (int i = 0; i < 3; i++) {
-      state.output.println(expressionName + " Avg " + (i + 1) + "/3", 0);
+      String progressMessage = String.format("%s Averaged Execution %d/3. Executed loops %d/%d (%d%%)",
+          expressionName, (i + 1),executedLoops + 1, totalLoops, Math.round(100 * executedLoops / totalLoops));
+
+      // Format the remaining time
+      if (executedLoops != 0) {
+        progressMessage += ": Estimated remaining time  " + getFormattedTime(estimatedRemainingTime);
+        progressMessage += getRemainingTimeAllExpr();
+      }
+      state.output.println(progressMessage, 0);
+
       long startTime = System.nanoTime();
       state.run(EvolutionState.C_STARTED_FRESH);
       Evolve.cleanup(state);
       avgTime += elapsed(startTime);
+
+      executedLoops++;
+      avgExecutionTime = (avgExecutionTime * (executedLoops - 1) + avgTime) / executedLoops;
+      estimatedRemainingTime = avgExecutionTime * (totalLoops - executedLoops);
 
       final SimpleGPStatistics statistics = (SimpleGPStatistics) state.statistics;
 
@@ -156,27 +173,17 @@ public abstract class LoopCallable implements Callable {
     String bestTestMessage = SummaryFile.printIndividuals(String.format("\nBest fitness of run: %s\n%s\n",
         paramIdentifier, bestInd.fitnessAndTree()), bestValInd, bestTestInd, expressionName);
 
-    bestOfLoops = MyGPIndividual.getErrorBest(bestOfLoops, bestTestInd);
-    if (bestOfLoops == bestTestInd) {
+    if (bestOfLoops == null || ((HitLevelKozaFitness) bestTestInd.fitness).errorBetterThan(bestOfLoops.fitness)) {
+      bestOfLoops = bestTestInd;
       headerBestOfLoops = paramIdentifier;
       stringBestOfLoops = bestTestMessage;
     }
   }
 
-  private String printHeader() {
+  private String printParamIdentifier() {
     String paramIdentifier = "";
     for (int i = 0; i < parametersHeader.size(); i++)
       paramIdentifier += " " + parametersHeader.get(i) + parametersValue.get(i);
-
-    String progressMessage = String.format("%s Execution %d/%d (%d%%)", expressionName, executedLoops + 1, totalLoops,
-        Math.round(100 * executedLoops / totalLoops));
-
-    // Format the remaining time
-    if (executedLoops != 0) {
-      progressMessage += ": Estimated remaining time  " + getFormattedTime(estimatedRemainingTime);
-      progressMessage += getRemainingTimeAllExpr();
-    }
-    state.output.println(progressMessage, 0);
 
     state.output.println("\nParameters:" + paramIdentifier, 0);
     setStatisticFilesIdentifier(paramIdentifier);
@@ -241,7 +248,7 @@ public abstract class LoopCallable implements Callable {
     for (LoopCallable step : loopSteps) {
       acc *= step.numberOfLoops();
     }
-    totalLoops = acc;
+    totalLoops = acc*3;
     return acc;
   }
 

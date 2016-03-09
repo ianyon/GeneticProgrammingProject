@@ -42,7 +42,7 @@ public class HitLevelKozaFitness extends KozaFitness {
 
   @Override
   public String fitnessToStringForHumans() {
-    return String.format("Avg=%s Var=%g%s", errorAvg, variance, hits > 0 ? String.format(" (Hits=%d)", hits) : "");
+    return String.format("Avg=%g Var=%g%s", errorAvg, variance, hits > 0 ? String.format(" (Hits=%d)", hits) : "");
     //return "" + standardizedFitness + " (Adjusted=" + adjustedFitness() + ", Hits=" + hits+")";
   }
 

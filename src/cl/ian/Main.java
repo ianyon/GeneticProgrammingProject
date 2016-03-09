@@ -56,9 +56,9 @@ public class Main {
     String bestMessage = bestOfRuns.get(Case.FRICTION_FACTOR).fitnessAndTree();
     SummaryFile.writeToSummary(String.format("\nBest Test fitness of all: %s\n", bestMessage), Case.FRICTION_FACTOR);
     bestMessage = bestOfRuns.get(Case.DRAG_COEFFICIENT).fitnessAndTree();
-    SummaryFile.writeToSummary(String.format("\nBest fitness of all: %s\n", bestMessage), Case.DRAG_COEFFICIENT);
+    SummaryFile.writeToSummary(String.format("\nBest Test fitness of all: %s\n", bestMessage), Case.DRAG_COEFFICIENT);
     bestMessage = bestOfRuns.get(Case.NUSSELT_NUMBER).fitnessAndTree();
-    SummaryFile.writeToSummary(String.format("\nBest fitness of all: %s\n", bestMessage), Case.NUSSELT_NUMBER);
+    SummaryFile.writeToSummary(String.format("\nBest Test fitness of all: %s\n", bestMessage), Case.NUSSELT_NUMBER);
   }
 
   private static void doBestOnce() {
@@ -81,7 +81,8 @@ public class Main {
 
     final SimpleGPStatistics statistics = (SimpleGPStatistics) state.statistics;
     SummaryFile.printIndividuals(
-        statistics.getBestSoFar()[0].fitnessAndTree(),statistics.bestOfValidation,statistics.bestOfTest,expressionCase);
+        String.format("\nBest fitness of run: %s\n"
+            , statistics.getBestSoFar()[0].fitnessAndTree()), statistics.bestOfValidation, statistics.bestOfTest, expressionCase);
 
     bestOfRuns.put(expressionCase, MyGPIndividual.getErrorBest(bestOfRuns.get(expressionCase), statistics.bestOfTest));
   }
@@ -117,7 +118,7 @@ public class Main {
     database.set(new Parameter("gp.tc.0.init.use-known-approx"), exprCase.text);
     EvolutionState state = Evolve.initialize(database, 0);
     ArrayList<LoopCallable> loopSteps = LoopCallable.populateLoops(database, state, exprCase);
-    LoopCallable.initiateLoops(loopSteps,state, nameAndFile);
+    LoopCallable.initiateLoops(loopSteps, state, nameAndFile);
   }
 
   private static void createDirIfNotExist() {
